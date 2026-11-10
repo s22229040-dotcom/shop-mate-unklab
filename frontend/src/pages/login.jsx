@@ -3,8 +3,13 @@ import { useNavigate } from 'react-router-dom';
 
 export default function Login() {
   const navigate = useNavigate();
-  const [isRegister, setIsRegister] = useState(false); // Status form (Login vs Registrasi)
+  // Diatur true agar saat pertama kali dibuka, pengguna melihat form Registrasi terlebih dahulu
+  const [isRegister, setIsRegister] = useState(true); 
   const [role, setRole] = useState('civitas'); // 'civitas' atau 'penjual'
+  
+  // Penyimpanan data sementara untuk simulasi akun terdaftar
+  const [registeredAccounts, setRegisteredAccounts] = useState([]);
+  
   const [formData, setFormData] = useState({
     identityNumber: '', // NIM / NIDN atau NIK Penjual
     email: '',
@@ -32,10 +37,28 @@ export default function Login() {
     }
 
     if (isRegister) {
-      alert('Registrasi berhasil! Silakan masuk menggunakan akun Anda.');
-      setIsRegister(false); // Pindahkan kembali ke form login
+      // Proses Registrasi: Simpan akun baru beserta password buatannya sendiri
+      setRegisteredAccounts([...registeredAccounts, formData]);
+      alert('Registrasi berhasil! Akun Anda telah terdaftar. Silakan login menggunakan password yang telah dibuat.');
+      
+      // Bersihkan form password dan pindah ke halaman login
+      setFormData({ identityNumber: '', email: '', password: '', name: '' });
+      setIsRegister(false); // Beralih ke tampilan Login
     } else {
-      // Proses Login sukses, arahkan ke dashboard sesuai peran
+      // Proses Login: Wajib mencocokkan email & password yang sudah diregistrasi
+      const foundAccount = registeredAccounts.find(
+        (acc) => acc.email === formData.email && acc.password === formData.password
+      );
+
+      // Untuk kemudahan demo, kita beri opsi lolos jika belum sempat daftar, 
+      // tapi idealnya harus terdaftar di registeredAccounts
+      if (registeredAccounts.length > 0 && !foundAccount) {
+        alert('Email atau Password salah! Pastikan Anda sudah registrasi atau memasukkan data dengan benar.');
+        return;
+      }
+
+      alert('Login berhasil! Selamat datang di Shop-Mate UNKLAB.');
+      // Masuk ke dashboard sesuai peran
       navigate(`/dashboard?role=${role}`);
     }
   };
@@ -49,7 +72,9 @@ export default function Login() {
           </span>
           <h1 className="text-2xl font-bold text-slate-800 mt-2">Shop-Mate UNKLAB</h1>
           <p className="text-sm text-slate-500">
-            {isRegister ? 'Buat Akun Baru (Registrasi)' : 'Silakan login untuk melanjutkan'}
+            {isRegister 
+              ? 'Wajib Registrasi: Buat Password Akun Anda' 
+              : 'Silakan Login dengan Password Anda'}
           </p>
         </div>
 
@@ -120,7 +145,9 @@ export default function Login() {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-700 mb-1">Password</label>
+            <label className="block text-xs font-medium text-slate-700 mb-1">
+              {isRegister ? 'Buat Password Baru' : 'Masukkan Password Anda'}
+            </label>
             <input
               type="password"
               name="password"
@@ -134,9 +161,9 @@ export default function Login() {
 
           <button
             type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 rounded-xl transition shadow-md text-sm cursor-pointer"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py.2.5 py-2.5 rounded-xl transition shadow-md text-sm cursor-pointer"
           >
-            {isRegister ? 'Daftar Sekarang' : 'Masuk (Login)'}
+            {isRegister ? 'Daftar & Buat Akun' : 'Masuk (Login)'}
           </button>
         </form>
 
@@ -146,7 +173,7 @@ export default function Login() {
             onClick={() => setIsRegister(!isRegister)}
             className="text-xs text-blue-600 hover:underline font-medium cursor-pointer"
           >
-            {isRegister ? 'Sudah punya akun? Login di sini' : 'Belum punya akun? Registrasi'}
+            {isRegister ? 'Sudah pernah daftar? Login di sini' : 'Belum punya akun? Registrasi dulu'}
           </button>
         </div>
       </div>
