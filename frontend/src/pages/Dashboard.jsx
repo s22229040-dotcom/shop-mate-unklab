@@ -10,7 +10,7 @@ export default function Dashboard() {
 
   const [activeTab, setActiveTab] = useState('katalog');
 
-  // Katalog Produk Lengkap (Lanyard, Makanan, Minuman)
+  // Katalog Produk lengkap dengan Nomor WhatsApp Penjual / Tenant
   const [products] = useState([
     { 
       id: 1, 
@@ -19,8 +19,9 @@ export default function Dashboard() {
       price: 25000, 
       stock: 15, 
       tenant: 'Koperasi UNKLAB', 
+      sellerPhone: '6281234567891', 
       img: 'https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?q=80&w=600&auto=format&fit=crop',
-      desc: 'Lanyard resmi berstandar universitas dengan bahan berkualitas tinggi, nyaman dipakai, dan dilengkapi ID card holder eksklusif UNKLAB.' 
+      desc: 'Lanyard resmi berstandar universitas dengan bahan berkualitas tinggi.' 
     },
     { 
       id: 2, 
@@ -29,8 +30,9 @@ export default function Dashboard() {
       price: 15000, 
       stock: 25, 
       tenant: 'Kantin Asrama Putra', 
+      sellerPhone: '6281298765432', 
       img: 'https://images.unsplash.com/photo-1555126634-323283e090fa?q=80&w=600&auto=format&fit=crop',
-      desc: 'Nasi kuning hangat dengan lauk abon, telur pindang, sambal sedap, dan kering tempe khas kantin asrama UNKLAB.' 
+      desc: 'Nasi kuning hangat dengan lauk abon dan telur pindang khas kantin asrama.' 
     },
     { 
       id: 3, 
@@ -39,8 +41,9 @@ export default function Dashboard() {
       price: 4000, 
       stock: 50, 
       tenant: 'Tenant Fasilkom', 
+      sellerPhone: '6281355556666', 
       img: 'https://images.unsplash.com/photo-1548839140-29a749e1cf4d?q=80&w=600&auto=format&fit=crop',
-      desc: 'Air mineral steril kemasan botol 600ml untuk menyegarkan hari kuliah Anda di kampus.' 
+      desc: 'Air mineral steril kemasan botol 600ml untuk menyegarkan hari kuliah.' 
     },
     { 
       id: 4, 
@@ -49,28 +52,9 @@ export default function Dashboard() {
       price: 5000, 
       stock: 30, 
       tenant: 'Kantin Utama', 
+      sellerPhone: '6281211112222', 
       img: 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?q=80&w=600&auto=format&fit=crop',
-      desc: 'Teh melati manis segar disajikan dingin dengan es batu kristal pilihan.' 
-    },
-    { 
-      id: 5, 
-      name: 'Roti Bakar Coklat Keju', 
-      category: 'Makanan', 
-      price: 10000, 
-      stock: 12, 
-      tenant: 'Bakery UNKLAB', 
-      img: 'https://images.unsplash.com/photo-1528735602780-2552fd46c7af?q=80&w=600&auto=format&fit=crop',
-      desc: 'Roti tebal dipanggang dengan mentega wangi, lumeran coklat, dan parutan keju melimpah.' 
-    },
-    { 
-      id: 6, 
-      name: 'Jaket Almamater UNKLAB', 
-      category: 'Atribut Kampus', 
-      price: 175000, 
-      stock: 8, 
-      tenant: 'Koperasi Kampus', 
-      img: 'https://images.unsplash.com/photo-1578632767115-351597cf2477?q=80&w=600&auto=format&fit=crop',
-      desc: 'Jaket almamater resmi Universitas Klabat wajib untuk kegiatan akademik dan acara kampus.' 
+      desc: 'Teh melati manis segar disajikan dingin dengan es batu pilihan.' 
     }
   ]);
 
@@ -81,8 +65,7 @@ export default function Dashboard() {
   const [isCheckoutModal, setIsCheckoutModal] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('QRIS');
 
-  // State Profil Pembeli
-  const [userProfile, setUserProfile] = useState({
+  const [userProfile] = useState({
     name: 'Michael Tendean',
     email: 's22229040@student.unklab.ac.id',
     phone: '081234567890',
@@ -149,7 +132,6 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Menu Navigasi */}
         <div className="flex items-center gap-2">
           <button 
             onClick={() => setActiveTab('katalog')}
@@ -190,7 +172,6 @@ export default function Dashboard() {
       {/* KONTEN UTAMA */}
       <main className="flex-1 p-6 max-w-7xl mx-auto w-full">
         
-        {/* TAB 1: KATALOG */}
         {activeTab === 'katalog' && (
           <div>
             <div className="bg-gradient-to-r from-purple-900 via-slate-900 to-slate-900 border border-slate-800 p-8 rounded-3xl mb-8 shadow-xl flex flex-col md:flex-row items-center justify-between gap-6">
@@ -199,30 +180,18 @@ export default function Dashboard() {
                   KAMPUS E-COMMERCE
                 </span>
                 <h2 className="text-2xl sm:text-3xl font-black text-white mt-2 mb-1">Cari Kebutuhan Kuliah & Konsumsi Anda</h2>
-                <p className="text-xs text-slate-300">Klik pada gambar produk untuk melihat detail lengkap sebelum membeli.</p>
+                <p className="text-xs text-slate-300">Klik produk untuk detail atau hubungi langsung WhatsApp penjual.</p>
               </div>
 
               <div className="w-full md:w-80">
                 <input
                   type="text"
-                  placeholder="Cari lanyard, nasi kuning, air..."
+                  placeholder="Cari lanyard, makanan, minuman..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full px-4 py-3 bg-slate-950/80 border border-slate-700 rounded-xl text-xs text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-400"
                 />
               </div>
-            </div>
-
-            <div className="flex items-center gap-2 mb-6 overflow-x-auto pb-2">
-              {['Semua', 'Atribut Kampus', 'Makanan', 'Minuman'].map((cat) => (
-                <button
-                  key={cat}
-                  onClick={() => setSelectedCategory(cat)}
-                  className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer whitespace-nowrap ${selectedCategory === cat ? 'bg-amber-400 text-slate-950 shadow-md' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'}`}
-                >
-                  {cat}
-                </button>
-              ))}
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
@@ -250,7 +219,17 @@ export default function Dashboard() {
                       >
                         {p.name}
                       </h3>
-                      <p className="text-sm font-black text-amber-400">Rp {p.price.toLocaleString()}</p>
+                      <p className="text-sm font-black text-amber-400 mb-3">Rp {p.price.toLocaleString()}</p>
+                      
+                      {/* Tombol Hubungi WhatsApp Penjual */}
+                      <a
+                        href={`https://wa.me/${p.sellerPhone}?text=Halo%20${encodeURIComponent(p.tenant)},%20saya%20tertarik%20dengan%20produk%20${encodeURIComponent(p.name)}%20di%20Shop-Mate%20UNKLAB.`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[11px] text-emerald-400 hover:underline font-bold flex items-center gap-1 mb-3"
+                      >
+                        <span>💬</span> Chat WhatsApp Penjual ({p.sellerPhone})
+                      </a>
                     </div>
                   </div>
 
@@ -268,7 +247,6 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* TAB 2: KERANJANG */}
         {activeTab === 'keranjang' && (
           <div className="max-w-3xl mx-auto bg-slate-800/40 border border-slate-800 rounded-3xl p-8 shadow-xl">
             <h2 className="text-xl font-black text-white mb-6 pb-4 border-b border-slate-700">Keranjang Belanja Anda</h2>
@@ -337,7 +315,6 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* TAB 3: NOTIFIKASI */}
         {activeTab === 'pesanan' && (
           <div className="max-w-3xl mx-auto space-y-6">
             <div className="bg-gradient-to-r from-amber-500/20 to-purple-900/40 border border-amber-500/40 rounded-3xl p-6 shadow-xl">
@@ -359,7 +336,6 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* TAB 4: PROFIL SAYA */}
         {activeTab === 'profil' && (
           <div className="max-w-xl mx-auto bg-slate-800/60 border border-slate-700 rounded-3xl p-8 shadow-xl space-y-4">
             <h2 className="text-xl font-black text-white mb-2 pb-3 border-b border-slate-700">Profil Pembeli Civitas</h2>
@@ -392,7 +368,7 @@ export default function Dashboard() {
 
       </main>
 
-      {/* MODAL DETAIL PRODUK */}
+      {/* MODAL DETAIL */}
       {selectedProduct && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-lg w-full overflow-hidden shadow-2xl text-slate-100">
@@ -412,6 +388,16 @@ export default function Dashboard() {
               <h2 className="text-xl font-black text-white">{selectedProduct.name}</h2>
               <p className="text-xs text-slate-400">Tenant / Penjual: <span className="text-amber-400 font-semibold">{selectedProduct.tenant}</span></p>
               <p className="text-xs text-slate-300 leading-relaxed">{selectedProduct.desc}</p>
+              <div className="pt-2">
+                <a
+                  href={`https://wa.me/${selectedProduct.sellerPhone}?text=Halo%20${encodeURIComponent(selectedProduct.tenant)},%20saya%20mau%20bertanya%20tentang%20${encodeURIComponent(selectedProduct.name)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 text-xs font-bold text-emerald-400 bg-emerald-950/40 border border-emerald-500/30 px-4 py-2 rounded-xl"
+                >
+                  <span>💬</span> Hubungi Penjual via WhatsApp ({selectedProduct.sellerPhone})
+                </a>
+              </div>
               <div className="flex items-center justify-between pt-4 border-t border-slate-800">
                 <span className="text-lg font-black text-amber-400">Rp {selectedProduct.price.toLocaleString()}</span>
                 <button

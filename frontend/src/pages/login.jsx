@@ -12,10 +12,20 @@ export default function Login() {
     email: '',
     password: '',
     buyerOrSeller: 'Pembeli (Buyer)',
-    address: '' // Kolom Alamat Baru di Registrasi
+    address: ''
   });
 
-  const [registeredAccounts, setRegisteredAccounts] = useState([]);
+  // Database sementara (Disertakan akun default khusus Admin agar langsung bisa dicoba)
+  const [registeredAccounts, setRegisteredAccounts] = useState([
+    {
+      name: 'Administrator Sistem',
+      email: 'admin@unklab.ac.id',
+      password: 'admin123',
+      role: 'Admin',
+      buyerOrSeller: 'Admin',
+      address: 'Gedung Rektorat UNKLAB'
+    }
+  ]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -24,36 +34,62 @@ export default function Login() {
   const handleSubmit = (e) => {
     e.preventDefault();
 
+    // Validasi khusus Admin
+    if (selectedRole === 'Admin') {
+      if (formData.email === 'admin@unklab.ac.id' && formData.password === 'admin123') {
+        alert('Login Berhasil sebagai Administrator!');
+        navigate('/admin-dashboard');
+        return;
+      } else {
+        alert('Maaf, Akses Admin ditolak! Email atau Password Admin salah.');
+        return;
+      }
+    }
+
+    // Validasi Domain Email Civitas
     if (!formData.email.endsWith('@unklab.ac.id') && !formData.email.endsWith('@student.unklab.ac.id')) {
       alert('Wajib menggunakan email resmi berdomain @unklab.ac.id atau @student.unklab.ac.id!');
       return;
     }
 
     if (mode === 'register') {
+      // Cek apakah email sudah terdaftar
+      const exists = registeredAccounts.find(acc => acc.email === formData.email);
+      if (exists) {
+        alert('Email ini sudah terdaftar! Silakan langsung login.');
+        return;
+      }
+
       const newAcc = { ...formData, role: selectedRole };
       setRegisteredAccounts([...registeredAccounts, newAcc]);
-      alert('Registrasi akun berhasil! Silakan login.');
+      alert('Registrasi akun berhasil! Silakan login menggunakan password yang telah Anda buat.');
       setMode('login');
       setFormData({ name: '', email: '', password: '', buyerOrSeller: 'Pembeli (Buyer)', address: '' });
+    
     } else if (mode === 'login') {
+      // Cek pencocokan akun terdaftar
       const matched = registeredAccounts.find(
-        acc => acc.email === formData.email && acc.password === formData.password
+        acc => acc.email === formData.email && acc.password === formData.password && acc.role === selectedRole
       );
 
-      if (registeredAccounts.length > 0 && !matched) {
-        alert('Email atau Password salah! Periksa kembali.');
+      if (!matched) {
+        alert('Maaf, akun belum terdaftar atau password salah. Silakan lakukan registrasi terlebih dahulu!');
         return;
       }
 
       alert(`Login Berhasil sebagai ${selectedRole}!`);
-      if (selectedRole === 'Admin') {
-        navigate('/admin-dashboard');
-      } else if (selectedRole === 'Penjual') {
+      if (selectedRole === 'Penjual') {
         navigate('/seller-dashboard');
       } else {
         navigate(`/dashboard?role=${selectedRole.toLowerCase()}`);
       }
+
     } else if (mode === 'forgot') {
+      const exists = registeredAccounts.find(acc => acc.email === formData.email);
+      if (!exists) {
+        alert('Email tidak ditemukan dalam sistem database kami. Belum punya akun? Silakan registrasi.');
+        return;
+      }
       alert(`Instruksi pemulihan password telah dikirim ke email resmi ${formData.email}.`);
       setMode('login');
     }
@@ -63,7 +99,7 @@ export default function Login() {
     <div className="min-h-screen bg-[#2d0c4a] flex items-center justify-center p-4 font-sans">
       <div className="bg-white rounded-3xl overflow-hidden shadow-2xl max-w-4xl w-full grid grid-cols-1 md:grid-cols-2">
         
-        {/* SISI KIRI: Background Foto Kampus Lebih Terlihat (Gradien Ungu Transparan) */}
+        {/* SISI KIRI: Background Kampus & Logo */}
         <div 
           className="p-8 flex flex-col justify-center items-center text-center text-white relative bg-cover bg-center"
           style={{ 
@@ -84,7 +120,7 @@ export default function Login() {
           </div>
         </div>
 
-        {/* SISI KANAN: Form Dinamis */}
+        {/* SISI KANAN: Form */}
         <div className="p-8 flex flex-col justify-between bg-white overflow-y-auto max-h-[90vh]">
           <div>
             <div className="text-center mb-5">
@@ -137,7 +173,7 @@ export default function Login() {
                       className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 cursor-pointer"
                     >
                       <option value="Pembeli (Buyer)">🛍️ Pembeli (Buyer)</option>
-                      <option value="Penjual (Seller/Tenant)">🏪 Penjual (Seller)</option>
+                      <option value="Penjual (Seller/Tenant)">🏪 Penjual (Seller / Tenant)</option>
                     </select>
                   </div>
                   <div>
@@ -146,7 +182,7 @@ export default function Login() {
                       type="text"
                       name="address"
                       required
-                      placeholder="Contoh: Asrama Putra UNKLAB / Kampus Airmadidi"
+                      placeholder="Contoh: Asrama Putra UNKLAB"
                       value={formData.address}
                       onChange={handleChange}
                       className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800"
@@ -161,7 +197,7 @@ export default function Login() {
                   type="email"
                   name="email"
                   required
-                  placeholder="nama@student.unklab.ac.id / @unklab.ac.id"
+                  placeholder={selectedRole === 'Admin' ? 'admin@unklab.ac.id' : 'nama@student.unklab.ac.id'}
                   value={formData.email}
                   onChange={handleChange}
                   className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800"
