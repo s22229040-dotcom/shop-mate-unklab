@@ -8,10 +8,9 @@ export default function Dashboard() {
   const queryParams = new URLSearchParams(location.search);
   const userRole = queryParams.get('role') || 'Student (Mahasiswa)';
 
-  // Tab Navigasi Aktif
   const [activeTab, setActiveTab] = useState('katalog');
 
-  // Katalog Produk Khas Kampus
+  // Katalog Produk Lengkap (Lanyard, Makanan, Minuman)
   const [products] = useState([
     { 
       id: 1, 
@@ -72,34 +71,24 @@ export default function Dashboard() {
       tenant: 'Koperasi Kampus', 
       img: 'https://images.unsplash.com/photo-1578632767115-351597cf2477?q=80&w=600&auto=format&fit=crop',
       desc: 'Jaket almamater resmi Universitas Klabat wajib untuk kegiatan akademik dan acara kampus.' 
-    },
-    { 
-      id: 7, 
-      name: 'Kopi Susu Gula Aren Kampus', 
-      category: 'Minuman', 
-      price: 12000, 
-      stock: 20, 
-      tenant: 'Tenant Cafe UNKLAB', 
-      img: 'https://images.unsplash.com/photo-1517701550927-30cf4ba1dba5?q=80&w=600&auto=format&fit=crop',
-      desc: 'Perpaduan espresso robusta pilihan dengan susu segar dan manisnya gula aren asli.' 
     }
   ]);
 
-  // State Pencarian & Filter
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Semua');
-
-  // State Detail Produk (Modal)
   const [selectedProduct, setSelectedProduct] = useState(null);
-
-  // State Keranjang
   const [cart, setCart] = useState([]);
-
-  // State Pembayaran & Checkout Modal
   const [isCheckoutModal, setIsCheckoutModal] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState('QRIS'); // 'QRIS' atau 'Cash'
+  const [paymentMethod, setPaymentMethod] = useState('QRIS');
 
-  // State Riwayat Pesanan dengan Notifikasi Real-time dari Penjual
+  // State Profil Pembeli
+  const [userProfile, setUserProfile] = useState({
+    name: 'Michael Tendean',
+    email: 's22229040@student.unklab.ac.id',
+    phone: '081234567890',
+    address: 'Asrama Putra UNKLAB, Kamar 204'
+  });
+
   const [orders, setOrders] = useState([
     { 
       id: 'ORD-9821', 
@@ -108,18 +97,9 @@ export default function Dashboard() {
       payment: 'QRIS (Paid)',
       status: 'Selesai diantar ke Asrama', 
       notification: 'Tenant telah mengonfirmasi: Pesanan Anda telah sampai di lobi asrama!' 
-    },
-    { 
-      id: 'ORD-9822', 
-      item: 'Lanyard Resmi UNKLAB Premium (1x)', 
-      total: 'Rp 25.000', 
-      payment: 'Cash (COD)',
-      status: 'Sedang Diantar Kurir Kampus', 
-      notification: 'Kurir tenant sedang menuju ke lokasi Anda.' 
     }
   ]);
 
-  // Tambah ke keranjang
   const addToCart = (product) => {
     const existing = cart.find(item => item.id === product.id);
     if (existing) {
@@ -130,7 +110,6 @@ export default function Dashboard() {
     alert(`Berhasil menambahkan "${product.name}" ke keranjang!`);
   };
 
-  // Proses Checkout Final
   const confirmCheckout = () => {
     const totalAmount = cart.reduce((sum, i) => sum + (i.price * i.qty), 0);
     const newOrder = {
@@ -146,7 +125,7 @@ export default function Dashboard() {
     setCart([]);
     setIsCheckoutModal(false);
     setActiveTab('pesanan');
-    alert(`Checkout Berhasil via ${paymentMethod}! Notifikasi pesanan telah dikirim.`);
+    alert(`Checkout Berhasil via ${paymentMethod}!`);
   };
 
   const filteredProducts = products.filter(p => {
@@ -170,12 +149,13 @@ export default function Dashboard() {
           </div>
         </div>
 
+        {/* Menu Navigasi */}
         <div className="flex items-center gap-2">
           <button 
             onClick={() => setActiveTab('katalog')}
             className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${activeTab === 'katalog' ? 'bg-amber-400 text-slate-950 shadow-md' : 'text-slate-300 hover:bg-slate-800'}`}
           >
-            🛍️ Katalog Produk
+            🛍️ Katalog
           </button>
           <button 
             onClick={() => setActiveTab('keranjang')}
@@ -185,22 +165,24 @@ export default function Dashboard() {
           </button>
           <button 
             onClick={() => setActiveTab('pesanan')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer relative ${activeTab === 'pesanan' ? 'bg-amber-400 text-slate-950 shadow-md' : 'text-slate-300 hover:bg-slate-800'}`}
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${activeTab === 'pesanan' ? 'bg-amber-400 text-slate-950 shadow-md' : 'text-slate-300 hover:bg-slate-800'}`}
           >
-            🔔 Notifikasi & Pesanan
+            🔔 Notifikasi
+          </button>
+          <button 
+            onClick={() => setActiveTab('profil')}
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${activeTab === 'profil' ? 'bg-amber-400 text-slate-950 shadow-md' : 'text-slate-300 hover:bg-slate-800'}`}
+          >
+            👤 Profil Saya
           </button>
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="text-right hidden sm:block">
-            <p className="text-xs font-bold text-white uppercase">{userRole}</p>
-            <p className="text-[10px] text-slate-400">Terverifikasi UNKLAB</p>
-          </div>
           <button 
             onClick={() => navigate('/')}
-            className="px-3.5 py-2 bg-red-600/20 hover:bg-red-600/30 text-red-400 font-bold text-xs rounded-xl transition cursor-pointer"
+            className="px-3.5 py-2 bg-red-600/20 hover:bg-red-600/30 text-red-400 font-bold text-xs rounded-xl transition cursor-pointer flex items-center gap-1"
           >
-            Keluar
+            <span>&larr;</span> Keluar
           </button>
         </div>
       </header>
@@ -208,7 +190,7 @@ export default function Dashboard() {
       {/* KONTEN UTAMA */}
       <main className="flex-1 p-6 max-w-7xl mx-auto w-full">
         
-        {/* TAB 1: KATALOG PRODUK */}
+        {/* TAB 1: KATALOG */}
         {activeTab === 'katalog' && (
           <div>
             <div className="bg-gradient-to-r from-purple-900 via-slate-900 to-slate-900 border border-slate-800 p-8 rounded-3xl mb-8 shadow-xl flex flex-col md:flex-row items-center justify-between gap-6">
@@ -231,7 +213,6 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* Filter Kategori */}
             <div className="flex items-center gap-2 mb-6 overflow-x-auto pb-2">
               {['Semua', 'Atribut Kampus', 'Makanan', 'Minuman'].map((cat) => (
                 <button
@@ -244,12 +225,10 @@ export default function Dashboard() {
               ))}
             </div>
 
-            {/* Grid Produk */}
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
               {filteredProducts.map((p) => (
                 <div key={p.id} className="bg-slate-800/60 border border-slate-700/60 rounded-2xl overflow-hidden shadow-lg hover:border-amber-400/50 transition flex flex-col justify-between">
                   <div>
-                    {/* Gambar bisa diklik untuk memunculkan detail */}
                     <div 
                       onClick={() => setSelectedProduct(p)}
                       className="h-48 overflow-hidden relative cursor-pointer group"
@@ -289,7 +268,7 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* TAB 2: KERANJANG BELANJA */}
+        {/* TAB 2: KERANJANG */}
         {activeTab === 'keranjang' && (
           <div className="max-w-3xl mx-auto bg-slate-800/40 border border-slate-800 rounded-3xl p-8 shadow-xl">
             <h2 className="text-xl font-black text-white mb-6 pb-4 border-b border-slate-700">Keranjang Belanja Anda</h2>
@@ -327,7 +306,6 @@ export default function Dashboard() {
                   </span>
                 </div>
 
-                {/* PILIHAN METODE PEMBAYARAN (QRIS / CASH) */}
                 <div className="mt-4 p-4 bg-slate-900 rounded-2xl border border-slate-700">
                   <label className="block text-xs font-bold text-slate-300 uppercase mb-3">Pilih Metode Pembayaran</label>
                   <div className="grid grid-cols-2 gap-3">
@@ -359,11 +337,9 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* TAB 3: NOTIFIKASI & RIWAYAT PESANAN */}
+        {/* TAB 3: NOTIFIKASI */}
         {activeTab === 'pesanan' && (
           <div className="max-w-3xl mx-auto space-y-6">
-            
-            {/* Kotak Notifikasi Real-time dari Penjual */}
             <div className="bg-gradient-to-r from-amber-500/20 to-purple-900/40 border border-amber-500/40 rounded-3xl p-6 shadow-xl">
               <h3 className="text-sm font-black text-amber-400 mb-3 flex items-center gap-2">
                 <span>🔔</span> Notifikasi Status Pesanan (Real-time dari Tenant)
@@ -380,39 +356,46 @@ export default function Dashboard() {
                 ))}
               </div>
             </div>
+          </div>
+        )}
 
-            {/* Riwayat Pesanan */}
-            <div className="bg-slate-800/40 border border-slate-800 rounded-3xl p-8 shadow-xl">
-              <h2 className="text-xl font-black text-white mb-6 pb-4 border-b border-slate-700">Riwayat Transaksi</h2>
-
-              <div className="space-y-4">
-                {orders.map((ord, idx) => (
-                  <div key={idx} className="p-5 bg-slate-900/80 rounded-2xl border border-slate-700 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                    <div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-xs font-extrabold text-amber-400">{ord.id}</span>
-                        <span className="text-[10px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded font-bold">{ord.payment}</span>
-                      </div>
-                      <p className="text-xs font-bold text-white">{ord.item}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-xs font-black text-emerald-400">{ord.total}</p>
-                      <span className="text-[10px] text-slate-400">{ord.status}</span>
-                    </div>
-                  </div>
-                ))}
+        {/* TAB 4: PROFIL SAYA */}
+        {activeTab === 'profil' && (
+          <div className="max-w-xl mx-auto bg-slate-800/60 border border-slate-700 rounded-3xl p-8 shadow-xl space-y-4">
+            <h2 className="text-xl font-black text-white mb-2 pb-3 border-b border-slate-700">Profil Pembeli Civitas</h2>
+            <div className="space-y-3 text-xs">
+              <div className="p-3 bg-slate-900 rounded-xl flex justify-between">
+                <span className="text-slate-400 font-bold">Nama:</span>
+                <span className="text-white font-semibold">{userProfile.name}</span>
+              </div>
+              <div className="p-3 bg-slate-900 rounded-xl flex justify-between">
+                <span className="text-slate-400 font-bold">Email UNKLAB:</span>
+                <span className="text-white font-semibold">{userProfile.email}</span>
+              </div>
+              <div className="p-3 bg-slate-900 rounded-xl flex justify-between">
+                <span className="text-slate-400 font-bold">Nomor WhatsApp:</span>
+                <span className="text-white font-semibold">{userProfile.phone}</span>
+              </div>
+              <div className="p-3 bg-slate-900 rounded-xl flex justify-between">
+                <span className="text-slate-400 font-bold">Alamat / Asrama:</span>
+                <span className="text-white font-semibold">{userProfile.address}</span>
               </div>
             </div>
-
+            <button
+              onClick={() => setActiveTab('katalog')}
+              className="w-full mt-4 bg-amber-400 hover:bg-amber-500 text-slate-950 font-extrabold py-3 rounded-xl text-xs cursor-pointer shadow"
+            >
+              &larr; Kembali ke Katalog Belanja
+            </button>
           </div>
         )}
 
       </main>
 
-      {/* MODAL DETAIL PRODUK KETIKA GAMBAR DITEKAN */}
+      {/* MODAL DETAIL PRODUK */}
       {selectedProduct && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-lg w-full overflow-hidden shadow-2xl text-slate-100 animate-in fade-in zoom-in duration-200">
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-lg w-full overflow-hidden shadow-2xl text-slate-100">
             <div className="h-64 relative">
               <img src={selectedProduct.img} alt={selectedProduct.name} className="w-full h-full object-cover" />
               <button 
@@ -446,7 +429,7 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* MODAL KONFIRMASI PEMBAYARAN (QRIS / CASH) */}
+      {/* MODAL CHECKOUT */}
       {isCheckoutModal && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-md w-full p-8 shadow-2xl text-slate-100 text-center space-y-4">
@@ -454,23 +437,22 @@ export default function Dashboard() {
             
             {paymentMethod === 'QRIS' ? (
               <div className="space-y-3">
-                <p className="text-xs text-slate-400">Silakan scan kode QR di bawah ini menggunakan aplikasi Mobile Banking atau E-Wallet Anda:</p>
+                <p className="text-xs text-slate-400">Scan kode QR berikut menggunakan E-Wallet / Mobile Banking:</p>
                 <div className="w-48 h-48 bg-white p-3 rounded-2xl mx-auto flex items-center justify-center shadow">
-                  <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=ShopMateUNKLAB-QRIS-Payment" alt="QRIS Code" className="w-full h-full object-contain" />
+                  <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=ShopMateUNKLAB-QRIS" alt="QRIS" className="w-full h-full object-contain" />
                 </div>
-                <p className="text-[11px] text-amber-400 font-bold">Merchant: Shop-Mate UNKLAB Official</p>
               </div>
             ) : (
               <div className="space-y-3 py-6">
                 <p className="text-3xl">💵</p>
-                <p className="text-xs text-slate-300">Anda memilih metode pembayaran <b>Cash on Delivery (COD / Tunai)</b>. Siapkan uang pas saat kurir atau tenant mengantarkan pesanan Anda.</p>
+                <p className="text-xs text-slate-300">Pembayaran <b>Cash on Delivery (COD)</b>. Siapkan uang pas saat pesanan diantarkan ke alamat Anda.</p>
               </div>
             )}
 
             <div className="flex gap-3 pt-4 border-t border-slate-800">
               <button
                 onClick={() => setIsCheckoutModal(false)}
-                className="flex-1 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl text-xs cursor-pointer"
+                className="flex-1 py-3 bg-slate-800 text-slate-300 font-bold rounded-xl text-xs cursor-pointer"
               >
                 Batal
               </button>

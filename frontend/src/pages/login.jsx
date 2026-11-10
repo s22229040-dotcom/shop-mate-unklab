@@ -11,7 +11,8 @@ export default function Login() {
     name: '',
     email: '',
     password: '',
-    buyerOrSeller: 'Pembeli (Buyer)'
+    buyerOrSeller: 'Pembeli (Buyer)',
+    address: '' // Kolom Alamat Baru di Registrasi
   });
 
   const [registeredAccounts, setRegisteredAccounts] = useState([]);
@@ -33,7 +34,7 @@ export default function Login() {
       setRegisteredAccounts([...registeredAccounts, newAcc]);
       alert('Registrasi akun berhasil! Silakan login.');
       setMode('login');
-      setFormData({ name: '', email: '', password: '', buyerOrSeller: 'Pembeli (Buyer)' });
+      setFormData({ name: '', email: '', password: '', buyerOrSeller: 'Pembeli (Buyer)', address: '' });
     } else if (mode === 'login') {
       const matched = registeredAccounts.find(
         acc => acc.email === formData.email && acc.password === formData.password
@@ -53,7 +54,7 @@ export default function Login() {
         navigate(`/dashboard?role=${selectedRole.toLowerCase()}`);
       }
     } else if (mode === 'forgot') {
-      alert(`Instruksi pemulihan password telah dikirim ke email resmi ${formData.email}. Silakan periksa inbox Anda.`);
+      alert(`Instruksi pemulihan password telah dikirim ke email resmi ${formData.email}.`);
       setMode('login');
     }
   };
@@ -62,40 +63,40 @@ export default function Login() {
     <div className="min-h-screen bg-[#2d0c4a] flex items-center justify-center p-4 font-sans">
       <div className="bg-white rounded-3xl overflow-hidden shadow-2xl max-w-4xl w-full grid grid-cols-1 md:grid-cols-2">
         
-        {/* SISI KIRI */}
+        {/* SISI KIRI: Background Foto Kampus Lebih Terlihat (Gradien Ungu Transparan) */}
         <div 
           className="p-8 flex flex-col justify-center items-center text-center text-white relative bg-cover bg-center"
           style={{ 
-            backgroundImage: `linear-gradient(to bottom, rgba(58, 16, 92, 0.88), rgba(30, 8, 50, 0.94)), url('/download.jpg')` 
+            backgroundImage: `linear-gradient(to bottom, rgba(58, 16, 92, 0.75), rgba(30, 8, 50, 0.85)), url('/download.jpg')` 
           }}
         >
           <div className="max-w-xs mx-auto space-y-4 z-10">
-            <div className="w-20 h-20 bg-amber-400/10 backdrop-blur-md rounded-2xl flex items-center justify-center p-2 mx-auto mb-2 border border-amber-400/30 shadow-lg">
+            <div className="w-20 h-20 bg-amber-400/20 backdrop-blur-md rounded-2xl flex items-center justify-center p-2 mx-auto mb-2 border border-amber-400/40 shadow-xl">
               <img src="/logo.png" alt="Logo Shop-Mate" className="w-full h-full object-contain" />
             </div>
-            <h1 className="text-2xl font-black tracking-tight text-white">Shop-Mate UNKLAB</h1>
-            <p className="text-xs text-slate-200 leading-relaxed font-medium">
+            <h1 className="text-2xl font-black tracking-tight text-white drop-shadow-md">Shop-Mate UNKLAB</h1>
+            <p className="text-xs text-amber-200 leading-relaxed font-medium drop-shadow">
               Halo, Selamat Datang di Shop-Mate UNKLAB! Platform e-commerce eksklusif civitas akademika Universitas Klabat.
             </p>
           </div>
-          <div className="absolute bottom-6 text-[10px] text-slate-400 z-10">
+          <div className="absolute bottom-6 text-[10px] text-amber-300 z-10 font-semibold">
             &copy; 2026 Universitas Klabat • Restricted Access
           </div>
         </div>
 
-        {/* SISI KANAN */}
-        <div className="p-8 flex flex-col justify-between bg-white">
+        {/* SISI KANAN: Form Dinamis */}
+        <div className="p-8 flex flex-col justify-between bg-white overflow-y-auto max-h-[90vh]">
           <div>
-            <div className="text-center mb-6">
+            <div className="text-center mb-5">
               <h2 className="text-xl font-black text-[#3a105c] tracking-wide">Universitas Klabat</h2>
-              <p className="text-xs text-slate-500 mt-0.5">
+              <p className="text-xs text-slate-500 mt-0.5 font-medium">
                 {mode === 'register' && 'Form Registrasi Akun Civitas'}
                 {mode === 'login' && 'Silakan pilih peran dan masuk'}
                 {mode === 'forgot' && 'Pemulihan Password Akun'}
               </p>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-3">
               
               {mode !== 'forgot' && (
                 <div>
@@ -103,7 +104,7 @@ export default function Login() {
                   <select
                     value={selectedRole}
                     onChange={(e) => setSelectedRole(e.target.value)}
-                    className="w-full px-3.5 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#3a105c] cursor-pointer"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#3a105c] cursor-pointer"
                   >
                     <option value="Student (Mahasiswa)">Student (Mahasiswa)</option>
                     <option value="Dosen / Staff">Dosen / Staff</option>
@@ -124,7 +125,7 @@ export default function Login() {
                       placeholder="Nama lengkap sesuai SIAK"
                       value={formData.name}
                       onChange={handleChange}
-                      className="w-full px-3.5 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800"
+                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800"
                     />
                   </div>
                   <div>
@@ -133,11 +134,23 @@ export default function Login() {
                       name="buyerOrSeller"
                       value={formData.buyerOrSeller}
                       onChange={handleChange}
-                      className="w-full px-3.5 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 cursor-pointer"
+                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 cursor-pointer"
                     >
                       <option value="Pembeli (Buyer)">🛍️ Pembeli (Buyer)</option>
-                      <option value="Penjual (Seller/Tenant)">🏪 Penjual (Seller / Tenant)</option>
+                      <option value="Penjual (Seller/Tenant)">🏪 Penjual (Seller)</option>
                     </select>
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">Alamat Lengkap / Asrama</label>
+                    <input
+                      type="text"
+                      name="address"
+                      required
+                      placeholder="Contoh: Asrama Putra UNKLAB / Kampus Airmadidi"
+                      value={formData.address}
+                      onChange={handleChange}
+                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800"
+                    />
                   </div>
                 </>
               )}
@@ -151,7 +164,7 @@ export default function Login() {
                   placeholder="nama@student.unklab.ac.id / @unklab.ac.id"
                   value={formData.email}
                   onChange={handleChange}
-                  className="w-full px-3.5 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800"
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800"
                 />
               </div>
 
@@ -167,12 +180,11 @@ export default function Login() {
                     placeholder="••••••••"
                     value={formData.password}
                     onChange={handleChange}
-                    className="w-full px-3.5 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800"
                   />
                 </div>
               )}
 
-              {/* Link Lupa Password */}
               {mode === 'login' && (
                 <div className="text-right">
                   <button
@@ -187,7 +199,7 @@ export default function Login() {
 
               <button
                 type="submit"
-                className="w-full bg-[#3a105c] hover:bg-[#4d167a] text-white font-extrabold py-3.5 rounded-xl transition text-xs shadow-md cursor-pointer mt-2"
+                className="w-full bg-[#3a105c] hover:bg-[#4d167a] text-amber-300 font-extrabold py-3 rounded-xl transition text-xs shadow-md cursor-pointer mt-2"
               >
                 {mode === 'register' && 'Daftar Akun Baru'}
                 {mode === 'login' && 'Log in'}
@@ -196,8 +208,7 @@ export default function Login() {
             </form>
           </div>
 
-          {/* Footer Navigasi Mode */}
-          <div className="text-center pt-6 border-t border-slate-100 mt-6 flex justify-between text-xs">
+          <div className="text-center pt-4 border-t border-slate-100 mt-4 flex justify-between text-xs">
             {mode === 'forgot' ? (
               <button
                 type="button"
@@ -207,15 +218,13 @@ export default function Login() {
                 &larr; Kembali ke Login
               </button>
             ) : (
-              <>
-                <button
-                  type="button"
-                  onClick={() => setMode(mode === 'register' ? 'login' : 'register')}
-                  className="text-amber-600 hover:underline font-bold cursor-pointer mx-auto"
-                >
-                  {mode === 'register' ? 'Sudah punya akun? Login' : 'Belum punya akun? Registrasi'}
-                </button>
-              </>
+              <button
+                type="button"
+                onClick={() => setMode(mode === 'register' ? 'login' : 'register')}
+                className="text-amber-600 hover:underline font-bold cursor-pointer mx-auto"
+              >
+                {mode === 'register' ? 'Sudah punya akun? Login' : 'Belum punya akun? Registrasi'}
+              </button>
             )}
           </div>
 
