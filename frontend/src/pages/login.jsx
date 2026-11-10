@@ -4,20 +4,18 @@ import { useNavigate } from 'react-router-dom';
 export default function Login() {
   const navigate = useNavigate();
   
-  // 'auth' = Halaman Login/Registrasi, 'select' = Pilihan Peran Awal
-  const [viewMode, setViewMode] = useState('auth'); 
   const [isRegister, setIsRegister] = useState(false); // false = Login, true = Registrasi
+  const [selectedRole, setSelectedRole] = useState('Student'); // Student, Dosen / Staff, Penjual, Admin
 
-  // Form State ala Universitas Klabat
-  const [roleSelection, setRoleSelection] = useState('Student'); // Student, Admin, Penjual, Dosen, Staff, dll.
+  // Form State
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: '',
-    buyerOrSeller: 'Pembeli (Buyer)' // Pilihan Pembeli atau Penjual saat registrasi
+    buyerOrSeller: 'Pembeli (Buyer)' // Pilihan saat registrasi
   });
 
-  // Simulasi database akun terdaftar lokal
+  // Simulasi database lokal akun terdaftar
   const [registeredAccounts, setRegisteredAccounts] = useState([]);
 
   const handleChange = (e) => {
@@ -27,7 +25,7 @@ export default function Login() {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    // Validasi domain email UNKLAB
+    // Validasi email UNKLAB
     if (!formData.email.endsWith('@unklab.ac.id') && !formData.email.endsWith('@student.unklab.ac.id')) {
       alert('Wajib menggunakan email resmi berdomain @unklab.ac.id atau @student.unklab.ac.id!');
       return;
@@ -35,10 +33,10 @@ export default function Login() {
 
     if (isRegister) {
       // Registrasi Akun Baru
-      const newAccount = { ...formData, role: roleSelection };
-      setRegisteredAccounts([...registeredAccounts, newAccount]);
+      const newAcc = { ...formData, role: selectedRole };
+      setRegisteredAccounts([...registeredAccounts, newAcc]);
       alert('Registrasi berhasil! Silakan login menggunakan password yang telah Anda buat.');
-      setIsRegister(false); // Pindah ke mode login
+      setIsRegister(false);
       setFormData({ name: '', email: '', password: '', buyerOrSeller: 'Pembeli (Buyer)' });
     } else {
       // Proses Login
@@ -47,49 +45,48 @@ export default function Login() {
       );
 
       if (registeredAccounts.length > 0 && !matched) {
-        alert('Email atau Password salah! Pastikan Anda sudah melakukan registrasi terlebih dahulu.');
+        alert('Email atau Password salah! Pastikan Anda sudah registrasi.');
         return;
       }
 
-      alert(`Login Berhasil sebagai ${roleSelection}! Masuk ke sistem...`);
-      navigate(`/dashboard?role=${roleSelection.toLowerCase()}`);
+      alert(`Login Berhasil sebagai ${selectedRole}! Masuk ke sistem...`);
+      navigate(`/dashboard?role=${selectedRole.toLowerCase()}`);
     }
   };
 
   return (
     <div className="min-h-screen bg-[#2d0c4a] flex items-center justify-center p-4 font-sans">
       
-      {/* Container Utama Kartu Ganda */}
+      {/* Container Kartu Utama */}
       <div className="bg-white rounded-3xl overflow-hidden shadow-2xl max-w-4xl w-full grid grid-cols-1 md:grid-cols-2">
         
-        {/* SISI KIRI: Banner Ungu dengan Background Kampus & Logo di Tengah */}
+        {/* SISI KIRI: Background Gambar Kampus + Logo Kustom + Gradien Ungu */}
         <div 
           className="p-8 flex flex-col justify-center items-center text-center text-white relative bg-cover bg-center"
           style={{ 
-            backgroundImage: `linear-gradient(to bottom, rgba(58, 16, 92, 0.88), rgba(30, 8, 50, 0.94)), url('https://images.unsplash.com/photo-1523050854058-8df90110c9f1?q=80&w=1000&auto=format&fit=crop')` 
+            backgroundImage: `linear-gradient(to bottom, rgba(58, 16, 92, 0.88), rgba(30, 8, 50, 0.94)), url('/download.jpg')` 
           }}
         >
-          <div className="max-w-xs mx-auto space-y-4">
+          <div className="max-w-xs mx-auto space-y-4 z-10">
             
-            {/* Logo Shop-Mate di Tengah */}
-            <div className="w-16 h-16 bg-amber-400 text-slate-950 rounded-2xl flex items-center justify-center text-3xl font-extrabold shadow-lg mx-auto mb-2">
-              🛒
+            {/* Logo Kustom (logo.png) */}
+            <div className="w-20 h-20 bg-amber-400/10 backdrop-blur-md rounded-2xl flex items-center justify-center p-2 mx-auto mb-2 border border-amber-400/30 shadow-lg">
+              <img src="/logo.png" alt="Logo Shop-Mate" className="w-full h-full object-contain" />
             </div>
 
-            <h1 className="text-2xl font-black tracking-tight">Shop-Mate UNKLAB</h1>
+            <h1 className="text-2xl font-black tracking-tight text-white">Shop-Mate UNKLAB</h1>
             
-            {/* Teks Sambutan Baru */}
             <p className="text-xs text-slate-200 leading-relaxed font-medium">
               Halo, Selamat Datang di Shop-Mate UNKLAB! Platform e-commerce eksklusif civitas akademika Universitas Klabat.
             </p>
           </div>
 
-          <div className="absolute bottom-6 text-[10px] text-slate-400">
+          <div className="absolute bottom-6 text-[10px] text-slate-400 z-10">
             &copy; 2026 Universitas Klabat • Restricted Access
           </div>
         </div>
 
-        {/* SISI KANAN: Form Model Universitas Klabat (Dropdown Role, Email, Password, Login/Registrasi) */}
+        {/* SISI KANAN: Form Login / Registrasi */}
         <div className="p-8 flex flex-col justify-between bg-white">
           <div>
             <div className="text-center mb-6">
@@ -101,30 +98,22 @@ export default function Login() {
 
             <form onSubmit={handleSubmit} className="space-y-4">
               
-              {/* Dropdown Pilihan Role ala Universitas Klabat */}
+              {/* Dropdown 4 Pilihan Peran Sesuai Permintaan */}
               <div>
                 <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">Pilih Peran / Status</label>
-                <div className="relative">
-                  <select
-                    value={roleSelection}
-                    onChange={(e) => setRoleSelection(e.target.value)}
-                    className="w-full px-3.5 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#3a105c] cursor-pointer"
-                  >
-                    <option value="Student">Student (Mahasiswa)</option>
-                    <option value="Admin">Admin</option>
-                    <option value="Rektor">Rektor</option>
-                    <option value="Wakil Rektor 1">Wakil Rektor 1</option>
-                    <option value="Wakil Rektor 2">Wakil Rektor 2</option>
-                    <option value="Wakil Rektor 3">Wakil Rektor 3</option>
-                    <option value="Registrar">Registrar</option>
-                    <option value="Staff">Staff</option>
-                    <option value="Dosen">Dosen</option>
-                    <option value="Penjual / Tenant">Penjual / Tenant</option>
-                  </select>
-                </div>
+                <select
+                  value={selectedRole}
+                  onChange={(e) => setSelectedRole(e.target.value)}
+                  className="w-full px-3.5 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#3a105c] cursor-pointer"
+                >
+                  <option value="Student">Student (Mahasiswa)</option>
+                  <option value="Dosen / Staff">Dosen / Staff</option>
+                  <option value="Penjual">Penjual</option>
+                  <option value="Admin">Admin</option>
+                </select>
               </div>
 
-              {/* Input Nama Lengkap (Hanya saat Registrasi) */}
+              {/* Input Nama Lengkap (Saat Registrasi) */}
               {isRegister && (
                 <div>
                   <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">Nama Lengkap</label>
@@ -140,7 +129,7 @@ export default function Login() {
                 </div>
               )}
 
-              {/* Pilihan Pembeli / Penjual khusus saat Registrasi */}
+              {/* Pilihan Pembeli / Penjual Saat Registrasi */}
               {isRegister && (
                 <div>
                   <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">Tipe Akun Transaksi</label>
@@ -156,14 +145,14 @@ export default function Login() {
                 </div>
               )}
 
-              {/* Input Email Resmi UNKLAB */}
+              {/* Input Email */}
               <div>
                 <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">Email Resmi UNKLAB</label>
                 <input
                   type="email"
                   name="email"
                   required
-                  placeholder={roleSelection === 'Student' ? 's22229040@student.unklab.ac.id' : 'nama@unklab.ac.id'}
+                  placeholder={selectedRole === 'Student' ? 'nama@student.unklab.ac.id' : 'nama@unklab.ac.id'}
                   value={formData.email}
                   onChange={handleChange}
                   className="w-full px-3.5 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#3a105c]"
@@ -186,17 +175,17 @@ export default function Login() {
                 />
               </div>
 
-              {/* Tombol Aksi (Log in / Register) */}
+              {/* Tombol Submit */}
               <button
                 type="submit"
                 className="w-full bg-[#3a105c] hover:bg-[#4d167a] text-white font-extrabold py-3.5 rounded-xl transition text-xs shadow-md cursor-pointer mt-2"
               >
-                {isRegister ? 'Daftar & Buat Akun Baru' : 'Log in'}
+                {isRegister ? 'Daftar Akun Baru' : 'Log in'}
               </button>
             </form>
           </div>
 
-          {/* Toggle Bawah: Pindah antara Login dan Registrasi */}
+          {/* Footer Toggle Sesuai Permintaan: Belum punya akun? Registrasi */}
           <div className="text-center pt-6 border-t border-slate-100 mt-6">
             <button
               type="button"
@@ -204,8 +193,8 @@ export default function Login() {
               className="text-xs text-amber-600 hover:underline font-bold cursor-pointer"
             >
               {isRegister 
-                ? 'Sudah punya akun? Log in di sini' 
-                : 'Belum punya akun? Klik di sini untuk Registrasi & buat password'}
+                ? 'Sudah punya akun? Log in' 
+                : 'Belum punya akun? Registrasi'}
             </button>
           </div>
 
