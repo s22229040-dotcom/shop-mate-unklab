@@ -5,14 +5,14 @@ export default function Login() {
   const navigate = useNavigate();
   
   const [isRegister, setIsRegister] = useState(false); // false = Login, true = Registrasi
-  const [selectedRole, setSelectedRole] = useState('Student'); // Student, Dosen / Staff, Penjual, Admin
+  const [selectedRole, setSelectedRole] = useState('Student (Mahasiswa)'); // 4 Pilihan peran
 
   // Form State
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: '',
-    buyerOrSeller: 'Pembeli (Buyer)' // Pilihan saat registrasi
+    buyerOrSeller: 'Pembeli (Buyer)' // Pilihan peran transaksi saat registrasi
   });
 
   // Simulasi database lokal akun terdaftar
@@ -32,7 +32,7 @@ export default function Login() {
     }
 
     if (isRegister) {
-      // Registrasi Akun Baru
+      // Proses Registrasi Akun Baru
       const newAcc = { ...formData, role: selectedRole };
       setRegisteredAccounts([...registeredAccounts, newAcc]);
       alert('Registrasi berhasil! Silakan login menggunakan password yang telah Anda buat.');
@@ -50,7 +50,15 @@ export default function Login() {
       }
 
       alert(`Login Berhasil sebagai ${selectedRole}! Masuk ke sistem...`);
-      navigate(`/dashboard?role=${selectedRole.toLowerCase()}`);
+      
+      // Pengalihan halaman khusus sesuai role
+      if (selectedRole === 'Admin') {
+        navigate('/admin-dashboard');
+      } else if (selectedRole === 'Penjual') {
+        navigate('/seller-dashboard');
+      } else {
+        navigate(`/dashboard?role=${selectedRole.toLowerCase()}`);
+      }
     }
   };
 
@@ -98,7 +106,7 @@ export default function Login() {
 
             <form onSubmit={handleSubmit} className="space-y-4">
               
-              {/* Dropdown 4 Pilihan Peran Sesuai Permintaan */}
+              {/* Dropdown 4 Pilihan Peran */}
               <div>
                 <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">Pilih Peran / Status</label>
                 <select
@@ -106,7 +114,7 @@ export default function Login() {
                   onChange={(e) => setSelectedRole(e.target.value)}
                   className="w-full px-3.5 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#3a105c] cursor-pointer"
                 >
-                  <option value="Student">Student (Mahasiswa)</option>
+                  <option value="Student (Mahasiswa)">Student (Mahasiswa)</option>
                   <option value="Dosen / Staff">Dosen / Staff</option>
                   <option value="Penjual">Penjual</option>
                   <option value="Admin">Admin</option>
@@ -145,14 +153,14 @@ export default function Login() {
                 </div>
               )}
 
-              {/* Input Email */}
+              {/* Input Email Resmi UNKLAB */}
               <div>
                 <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">Email Resmi UNKLAB</label>
                 <input
                   type="email"
                   name="email"
                   required
-                  placeholder={selectedRole === 'Student' ? 'nama@student.unklab.ac.id' : 'nama@unklab.ac.id'}
+                  placeholder={selectedRole.includes('Student') ? 'nama@student.unklab.ac.id' : 'nama@unklab.ac.id'}
                   value={formData.email}
                   onChange={handleChange}
                   className="w-full px-3.5 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#3a105c]"
@@ -185,7 +193,7 @@ export default function Login() {
             </form>
           </div>
 
-          {/* Footer Toggle Sesuai Permintaan: Belum punya akun? Registrasi */}
+          {/* Footer Toggle Sesuai Permintaan */}
           <div className="text-center pt-6 border-t border-slate-100 mt-6">
             <button
               type="button"
@@ -193,7 +201,7 @@ export default function Login() {
               className="text-xs text-amber-600 hover:underline font-bold cursor-pointer"
             >
               {isRegister 
-                ? 'Sudah punya akun? Log in' 
+                ? 'Sudah punya akun? Login' 
                 : 'Belum punya akun? Registrasi'}
             </button>
           </div>
