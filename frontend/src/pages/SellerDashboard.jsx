@@ -1,110 +1,272 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 export default function SellerDashboard() {
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState('produk');
+
+  // State produk tenant dengan link gambar Google/Unsplash berkualitas
+  const [products, setProducts] = useState([
+    { id: 1, name: 'Nasi Kuning Special Asrama', price: 15000, stock: 25, category: 'Makanan', img: 'https://images.unsplash.com/photo-1555126634-323283e090fa?q=80&w=400&auto=format&fit=crop' },
+    { id: 2, name: 'Es Teh Manis Segar', price: 5000, stock: 40, category: 'Minuman', img: 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?q=80&w=400&auto=format&fit=crop' }
+  ]);
+
+  const [newProduct, setNewProduct] = useState({ name: '', price: '', stock: '', category: 'Makanan', img: '' });
+  const [isAddModal, setIsAddModal] = useState(false);
+
+  // State Pesanan Masuk & Tombol Kirim Notifikasi Real-time ke Pembeli
+  const [incomingOrders, setIncomingOrders] = useState([
+    { id: 'ORD-9821', buyer: 'Michael Tendean (Student)', item: 'Nasi Kuning Special Asrama (1x)', total: 'Rp 15.000', payment: 'QRIS', status: 'Menunggu Disiapkan' },
+    { id: 'ORD-9822', buyer: 'Christina P. (Student)', item: 'Es Teh Manis Segar (2x)', total: 'Rp 10.000', payment: 'Cash (COD)', status: 'Menunggu Disiapkan' }
+  ]);
+
+  const handleAddProduct = (e) => {
+    e.preventDefault();
+    const productToAdd = {
+      id: products.length + 1,
+      ...newProduct,
+      price: Number(newProduct.price),
+      stock: Number(newProduct.stock),
+      img: newProduct.img || 'https://images.unsplash.com/photo-1548839140-29a749e1cf4d?q=80&w=400&auto=format&fit=crop'
+    };
+    setProducts([...products, productToAdd]);
+    setNewProduct({ name: '', price: '', stock: '', category: 'Makanan', img: '' });
+    setIsAddModal(false);
+    alert('Produk baru berhasil ditambahkan ke katalog toko!');
+  };
+
+  const updateOrderStatus = (id, newStatus) => {
+    setIncomingOrders(incomingOrders.map(o => o.id === id ? { ...o, status: newStatus } : o));
+    alert(`Status pesanan ${id} diperbarui menjadi: "${newStatus}". Notifikasi terkirim ke pembeli!`);
+  };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 flex font-sans">
+    <div className="min-h-screen bg-slate-900 text-slate-100 flex font-sans">
+      
       {/* Sidebar Penjual */}
-      <div className="w-64 bg-white border-r border-slate-200 p-6 flex flex-col justify-between shadow-sm">
+      <div className="w-64 bg-slate-950 border-r border-slate-800 p-6 flex flex-col justify-between">
         <div>
           <div className="flex items-center gap-3 mb-8">
-            <div className="w-10 h-10 bg-amber-400 text-slate-950 rounded-xl flex items-center justify-center font-bold text-lg shadow-sm">
+            <div className="w-10 h-10 bg-amber-400 text-slate-950 rounded-xl flex items-center justify-center font-bold text-lg shadow">
               🏪
             </div>
             <div>
-              <h1 className="font-extrabold text-sm text-slate-900">Tenant / Penjual</h1>
-              <p className="text-[10px] text-amber-600 font-semibold">Shop-Mate UNKLAB</p>
+              <h1 className="font-extrabold text-sm text-white">Tenant / Penjual</h1>
+              <p className="text-[10px] text-amber-400">Shop-Mate UNKLAB</p>
             </div>
           </div>
 
           <nav className="space-y-2 text-xs font-semibold">
-            <a href="#products" className="block px-4 py-2.5 bg-amber-400 text-slate-950 rounded-xl shadow-sm">📦 Kelola Produk & Menu</a>
-            <a href="#orders" className="block px-4 py-2.5 text-slate-600 hover:bg-slate-100 rounded-xl">🛒 Pesanan Masuk (0)</a>
-            <a href="#finance" className="block px-4 py-2.5 text-slate-600 hover:bg-slate-100 rounded-xl">💰 Keuangan & Saldo</a>
-            <a href="#settings" className="block px-4 py-2.5 text-slate-600 hover:bg-slate-100 rounded-xl">⚙️ Pengaturan Toko</a>
+            <button 
+              onClick={() => setActiveTab('produk')}
+              className={`w-full text-left px-4 py-3 rounded-xl transition cursor-pointer flex items-center gap-2.5 ${activeTab === 'produk' ? 'bg-amber-400 text-slate-950 font-extrabold shadow' : 'text-slate-300 hover:bg-slate-800'}`}
+            >
+              <span>📦</span> Kelola Produk & Stok
+            </button>
+            <button 
+              onClick={() => setActiveTab('pesanan')}
+              className={`w-full text-left px-4 py-3 rounded-xl transition cursor-pointer flex items-center gap-2.5 ${activeTab === 'pesanan' ? 'bg-amber-400 text-slate-950 font-extrabold shadow' : 'text-slate-300 hover:bg-slate-800'}`}
+            >
+              <span>🛒</span> Pesanan Masuk ({incomingOrders.length})
+            </button>
+            <button 
+              onClick={() => setActiveTab('keuangan')}
+              className={`w-full text-left px-4 py-3 rounded-xl transition cursor-pointer flex items-center gap-2.5 ${activeTab === 'keuangan' ? 'bg-amber-400 text-slate-950 font-extrabold shadow' : 'text-slate-300 hover:bg-slate-800'}`}
+            >
+              <span>💰</span> Laporan Saldo & Keuangan
+            </button>
           </nav>
         </div>
 
         <button 
           onClick={() => navigate('/')}
-          className="w-full bg-red-50 hover:bg-red-100 text-red-600 font-bold py-2.5 rounded-xl text-xs transition cursor-pointer"
+          className="w-full bg-red-600/20 hover:bg-red-600/30 text-red-400 font-bold py-3 rounded-xl text-xs transition cursor-pointer flex items-center justify-center gap-2"
         >
-          Keluar (Logout)
+          <span>🚪</span> Keluar (Logout)
         </button>
       </div>
 
-      {/* Konten Utama Penjual */}
+      {/* Konten Utama */}
       <div className="flex-1 p-8 overflow-y-auto">
-        <header className="flex justify-between items-center mb-8 pb-4 border-b border-slate-200">
+        <header className="flex justify-between items-center mb-8 pb-4 border-b border-slate-800">
           <div>
-            <h2 className="text-xl font-black text-slate-900">Dashboard Manajemen Toko Anda</h2>
-            <p className="text-xs text-slate-500">Kelola produk makanan, barang, dan pesanan civitas UNKLAB di sini.</p>
+            <h2 className="text-xl font-black text-white">
+              {activeTab === 'produk' && 'Manajemen Produk Toko / Tenant'}
+              {activeTab === 'pesanan' && 'Kelola Pesanan Masuk & Kirim Notifikasi'}
+              {activeTab === 'keuangan' && 'Rekapitulasi Saldo & Pendapatan Penjual'}
+            </h2>
+            <p className="text-xs text-slate-400">Dashboard operasional penjual resmi civitas akademika UNKLAB.</p>
           </div>
-          <button className="px-4 py-2.5 bg-[#3a105c] hover:bg-[#4d167a] text-white font-bold text-xs rounded-xl shadow-md transition cursor-pointer">
-            + Tambah Produk Baru
-          </button>
+          {activeTab === 'produk' && (
+            <button 
+              onClick={() => setIsAddModal(true)}
+              className="px-4 py-2.5 bg-amber-400 hover:bg-amber-500 text-slate-950 font-extrabold text-xs rounded-xl shadow transition cursor-pointer"
+            >
+              + Tambah Produk Baru
+            </button>
+          )}
         </header>
 
-        {/* Ringkasan Penjualan */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-            <p className="text-xs text-slate-500 font-semibold mb-1">Pendapatan Hari Ini</p>
-            <h3 className="text-2xl font-black text-slate-900">Rp 350.000</h3>
-            <span className="text-[10px] text-emerald-600 font-bold mt-2 inline-block">5 transaksi selesai</span>
-          </div>
-          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-            <p className="text-xs text-slate-500 font-semibold mb-1">Pesanan Perlu Diproses</p>
-            <h3 className="text-2xl font-black text-amber-600">2</h3>
-            <span className="text-[10px] text-slate-500 mt-2 inline-block">Mohon segera disiapkan</span>
-          </div>
-          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-            <p className="text-xs text-slate-500 font-semibold mb-1">Total Produk Aktif</p>
-            <h3 className="text-2xl font-black text-slate-900">12 Item</h3>
-            <span className="text-[10px] text-emerald-600 font-bold mt-2 inline-block">Stok aman</span>
-          </div>
-        </div>
-
-        {/* Daftar Produk Toko */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
-          <h3 className="text-sm font-bold text-slate-900 mb-4">Datalog Produk Jualan Toko</h3>
-          <div className="space-y-3">
-            <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center font-bold text-lg">
-                  🍔
-                </div>
+        {/* TAB 1: PRODUK */}
+        {activeTab === 'produk' && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+            {products.map((p) => (
+              <div key={p.id} className="bg-slate-800/60 border border-slate-700/60 rounded-2xl overflow-hidden shadow-lg flex flex-col justify-between">
                 <div>
-                  <h4 className="text-xs font-bold text-slate-900">Nasi Kuning Special UNKLAB</h4>
-                  <p className="text-[11px] text-slate-500">Rp 15.000 • Stok: 20 Porsi</p>
+                  <div className="h-40 overflow-hidden">
+                    <img src={p.img} alt={p.name} className="w-full h-full object-cover" />
+                  </div>
+                  <div className="p-4">
+                    <span className="text-[10px] bg-slate-900 text-amber-400 px-2 py-0.5 rounded font-bold">{p.category}</span>
+                    <h3 className="text-sm font-extrabold text-white mt-1 mb-1">{p.name}</h3>
+                    <p className="text-xs text-amber-400 font-black">Rp {p.price.toLocaleString()} • Stok: {p.stock}</p>
+                  </div>
+                </div>
+                <div className="p-4 pt-0">
+                  <button onClick={() => alert(`Edit produk ${p.name}`)} className="w-full py-2 bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs font-bold rounded-xl cursor-pointer">
+                    Edit Produk
+                  </button>
                 </div>
               </div>
-              <div className="space-x-2">
-                <button className="px-3 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold rounded-lg">Edit</button>
-                <button className="px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-600 text-xs font-bold rounded-lg">Hapus</button>
+            ))}
+          </div>
+        )}
+
+        {/* TAB 2: PESANAN MASUK & NOTIFIKASI */}
+        {activeTab === 'pesanan' && (
+          <div className="space-y-4">
+            {incomingOrders.map((ord) => (
+              <div key={ord.id} className="bg-slate-800/40 border border-slate-800 p-6 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-xs font-extrabold text-amber-400">{ord.id}</span>
+                    <span className="text-[10px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded font-bold">Bayar: {ord.payment}</span>
+                    <span className="text-[10px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded font-bold">{ord.status}</span>
+                  </div>
+                  <p className="text-xs font-bold text-white">{ord.item}</p>
+                  <p className="text-[11px] text-slate-400">Pemesan: {ord.buyer}</p>
+                </div>
+                
+                {/* Tombol aksi notifikasi ke pembeli */}
+                <div className="flex flex-wrap gap-2">
+                  <button onClick={() => updateOrderStatus(ord.id, 'Sedang Disiapkan')} className="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-xl text-xs cursor-pointer">
+                    1. Siapkan Pesanan
+                  </button>
+                  <button onClick={() => updateOrderStatus(ord.id, 'Sedang Diantar Kurir')} className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs cursor-pointer">
+                    2. Kirim Kurir
+                  </button>
+                  <button onClick={() => updateOrderStatus(ord.id, 'Selesai diantar')} className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs cursor-pointer">
+                    3. Selesai ✓
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* TAB 3: KEUANGAN */}
+        {activeTab === 'keuangan' && (
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-slate-800/60 p-6 rounded-2xl border border-slate-700">
+                <p className="text-xs text-slate-400 mb-1">Total Pendapatan (Bulan Ini)</p>
+                <h3 className="text-2xl font-black text-amber-400">Rp 1.450.000</h3>
+              </div>
+              <div className="bg-slate-800/60 p-6 rounded-2xl border border-slate-700">
+                <p className="text-xs text-slate-400 mb-1">Saldo Siap Dicairkan</p>
+                <h3 className="text-2xl font-black text-emerald-400">Rp 980.000</h3>
+              </div>
+              <div className="bg-slate-800/60 p-6 rounded-2xl border border-slate-700">
+                <p className="text-xs text-slate-400 mb-1">Transaksi Sukses</p>
+                <h3 className="text-2xl font-black text-white">45 Pesanan</h3>
               </div>
             </div>
 
-            <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center font-bold text-lg">
-                  🧋
-                </div>
-                <div>
-                  <h4 className="text-xs font-bold text-slate-900">Es Teh Manis / Boba Kampus</h4>
-                  <p className="text-[11px] text-slate-500">Rp 8.000 • Stok: 45 Cup</p>
-                </div>
-              </div>
-              <div className="space-x-2">
-                <button className="px-3 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold rounded-lg">Edit</button>
-                <button className="px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-600 text-xs font-bold rounded-lg">Hapus</button>
-              </div>
-            </div>
+            <button onClick={() => alert('Permintaan pencairan saldo berhasil dikirim ke Admin UNKLAB!')} className="px-5 py-3 bg-amber-400 hover:bg-amber-500 text-slate-950 font-extrabold rounded-xl text-xs cursor-pointer shadow">
+              Withdraw (Cairkan Saldo ke Rekening Kampus)
+            </button>
           </div>
-        </div>
+        )}
 
       </div>
+
+      {/* MODAL TAMBAH PRODUK */}
+      {isAddModal && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-md w-full p-6 shadow-2xl text-slate-100 space-y-4">
+            <h3 className="text-lg font-black">Tambah Produk Toko Baru</h3>
+            <form onSubmit={handleAddProduct} className="space-y-3 text-xs">
+              <div>
+                <label className="block font-bold text-slate-400 uppercase mb-1">Nama Produk</label>
+                <input
+                  type="text"
+                  placeholder="Contoh: Burger Khas Kampus"
+                  value={newProduct.name}
+                  onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}
+                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-white"
+                  required
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-bold text-slate-400 uppercase mb-1">Harga (Rp)</label>
+                  <input
+                    type="number"
+                    placeholder="15000"
+                    value={newProduct.price}
+                    onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })}
+                    className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-white"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-slate-400 uppercase mb-1">Stok Awal</label>
+                  <input
+                    type="number"
+                    placeholder="20"
+                    value={newProduct.stock}
+                    onChange={(e) => setNewProduct({ ...newProduct, stock: e.target.value })}
+                    className="w-full px-3.5 py-3 bg-slate-950 border border-slate-700 rounded-xl text-white"
+                    required
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block font-bold text-slate-400 uppercase mb-1">Kategori</label>
+                <select
+                  value={newProduct.category}
+                  onChange={(e) => setNewProduct({ ...newProduct, category: e.target.value })}
+                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-white cursor-pointer"
+                >
+                  <option value="Makanan">Makanan</option>
+                  <option value="Minuman">Minuman</option>
+                  <option value="Atribut Kampus">Atribut Kampus</option>
+                </select>
+              </div>
+              <div>
+                <label className="block font-bold text-slate-400 uppercase mb-1">Link Gambar Produk (URL Google/Unsplash)</label>
+                <input
+                  type="text"
+                  placeholder="https://images.unsplash.com/..."
+                  value={newProduct.img}
+                  onChange={(e) => setNewProduct({ ...newProduct, img: e.target.value })}
+                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-white"
+                />
+              </div>
+
+              <div className="flex gap-3 pt-3">
+                <button type="button" onClick={() => setIsAddModal(false)} className="flex-1 py-3 bg-slate-800 text-slate-300 font-bold rounded-xl cursor-pointer">
+                  Batal
+                </button>
+                <button type="submit" className="flex-1 py-3 bg-amber-400 text-slate-950 font-extrabold rounded-xl cursor-pointer">
+                  Simpan Produk ✓
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
