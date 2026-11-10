@@ -386,7 +386,7 @@ export default function Dashboard() {
                 {selectedProduct.category}
               </span>
               <h2 className="text-xl font-black text-white">{selectedProduct.name}</h2>
-              <p className="text-xs text-slate-400">Tenant / Penjual: <span className="text-amber-400 font-semibold">{selectedProduct.tenant}</span></p>
+              <p className="text-xs text-slate-400">Penjual: <span className="text-amber-400 font-semibold">{selectedProduct.tenant}</span></p>
               <p className="text-xs text-slate-300 leading-relaxed">{selectedProduct.desc}</p>
               <div className="pt-2">
                 <a
