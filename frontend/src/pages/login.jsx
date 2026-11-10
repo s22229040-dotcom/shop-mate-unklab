@@ -23,7 +23,6 @@ export default function Login() {
     e.preventDefault();
 
     if (mode === 'register') {
-      // Validasi email sesuai kategori
       if (selectedCategory === 'student' && !formData.email.endsWith('@student.unklab.ac.id')) {
         alert('Mahasiswa wajib menggunakan email berdomain @student.unklab.ac.id!');
         return;
@@ -41,18 +40,12 @@ export default function Login() {
     }
   };
 
-  // TAMPILAN UTAMA: PILIH KATEGORI AKUN (MIRIP GAMBAR)
   if (mode === 'select') {
     return (
       <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-between p-6 relative overflow-hidden">
-        
-        {/* Background Overlay Gradien */}
         <div className="absolute inset-0 bg-gradient-to-b from-slate-900/90 via-slate-950/95 to-slate-950 z-0"></div>
 
-        {/* Konten Utama */}
         <div className="relative z-10 max-w-4xl mx-auto w-full pt-4">
-          
-          {/* Header Navbar atas */}
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pb-8 border-b border-slate-800/80">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-amber-400 text-slate-950 flex items-center justify-center font-bold text-lg shadow-md">
@@ -64,7 +57,6 @@ export default function Login() {
               </div>
             </div>
 
-            {/* Tombol Demo Cepat */}
             <div className="flex items-center gap-2">
               <button 
                 onClick={() => navigate('/dashboard?role=student')}
@@ -81,7 +73,6 @@ export default function Login() {
             </div>
           </div>
 
-          {/* Judul Tengah */}
           <div className="text-center my-10">
             <span className="inline-block px-4 py-1.5 bg-amber-400 text-slate-950 text-xs font-bold rounded-full mb-4 shadow-sm tracking-wide">
               UNIVERSITAS KLABAT AIRMADIDI
@@ -94,10 +85,7 @@ export default function Login() {
             </p>
           </div>
 
-          {/* Pilihan Kartu Kategori (Student vs Dosen) */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5 max-w-3xl mx-auto mb-10">
-            
-            {/* Kartu Student */}
             <div 
               onClick={() => setSelectedCategory('student')}
               className={`p-6 rounded-2xl border-2 transition-all cursor-pointer relative bg-slate-900/80 backdrop-blur-md ${
@@ -118,7 +106,6 @@ export default function Login() {
               </span>
             </div>
 
-            {/* Kartu Dosen / Staff */}
             <div 
               onClick={() => setSelectedCategory('dosen')}
               className={`p-6 rounded-2xl border-2 transition-all cursor-pointer relative bg-slate-900/80 backdrop-blur-md ${
@@ -138,10 +125,8 @@ export default function Login() {
                 Pilih Dosen / Staff &rarr;
               </span>
             </div>
-
           </div>
 
-          {/* Tombol Aksi Bawah */}
           <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
             <button
               onClick={() => setMode('login')}
@@ -156,10 +141,8 @@ export default function Login() {
               <span>👤+ Buat Akun Baru</span>
             </button>
           </div>
-
         </div>
 
-        {/* Footer */}
         <div className="relative z-0 max-w-4xl mx-auto w-full pt-8 border-t border-slate-900 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-2">
           <p>&copy; 2026 Shop-Mate UNKLAB. Projek Sistem Analisis dan Desain.</p>
           <div className="flex gap-4">
@@ -167,16 +150,13 @@ export default function Login() {
             <span>Schema DB</span>
           </div>
         </div>
-
       </div>
     );
   }
 
-  // TAMPILAN FORM LOGIN / REGISTRASI
   return (
     <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
       <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 max-w-md w-full shadow-2xl text-slate-100">
-        
         <button 
           onClick={() => setMode('select')}
           className="text-xs text-amber-400 hover:underline font-medium mb-4 flex items-center gap-1 cursor-pointer"
@@ -252,7 +232,6 @@ export default function Login() {
             {mode === 'register' ? 'Sudah punya akun? Login di sini' : 'Belum punya akun? Buat Akun Baru'}
           </button>
         </div>
-
       </div>
     </div>
   );
