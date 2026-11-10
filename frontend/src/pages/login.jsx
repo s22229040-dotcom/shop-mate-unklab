@@ -3,264 +3,241 @@ import { useNavigate } from 'react-router-dom';
 
 export default function Login() {
   const navigate = useNavigate();
-  const [selectedCategory, setSelectedCategory] = useState('student'); // 'student' atau 'dosen'
-  const [mode, setMode] = useState('select'); // 'select', 'login', 'register'
   
-  // State untuk form registrasi & login
+  // 'select' = Tampilan awal sesuai gambar, 'register' = Form registrasi, 'login' = Form login
+  const [viewMode, setViewMode] = useState('select'); 
+  const [selectedRoleType, setSelectedRoleType] = useState('student'); // 'student' atau 'penjual' (Dosen/Staff)
+
+  // Data Form
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: '',
-    role: 'Pembeli (Buyer)' // Pilihan Pembeli atau Penjual
+    accountRole: 'Pembeli (Buyer)' // Pilihan Pembeli atau Penjual
   });
 
-  // Penyimpanan sementara data akun terdaftar (Simulasi database lokal)
+  // Penyimpanan sementara akun terdaftar
   const [registeredAccounts, setRegisteredAccounts] = useState([]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleActionSubmit = (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
 
-    // 1. Validasi Domain Email Resmi UNKLAB
-    if (selectedCategory === 'student' && !formData.email.endsWith('@student.unklab.ac.id')) {
-      alert('Mahasiswa wajib menggunakan email resmi berdomain @student.unklab.ac.id!');
+    // Validasi Domain Email UNKLAB
+    if (selectedRoleType === 'student' && !formData.email.endsWith('@student.unklab.ac.id')) {
+      alert('Student (Mahasiswa) wajib menggunakan email resmi berdomain @student.unklab.ac.id!');
       return;
     }
-    if (selectedCategory === 'dosen' && !formData.email.endsWith('@unklab.ac.id')) {
-      alert('Dosen/Staff wajib menggunakan email resmi berdomain @unklab.ac.id!');
+    if (selectedRoleType === 'penjual' && !formData.email.endsWith('@unklab.ac.id') && !formData.email.endsWith('@student.unklab.ac.id')) {
+      alert('Civitas UNKLAB wajib menggunakan email resmi berdomain @unklab.ac.id atau @student.unklab.ac.id!');
       return;
     }
 
-    if (mode === 'register') {
-      // Proses Registrasi: Simpan akun baru beserta password buatannya sendiri
-      const newAccount = {
-        ...formData,
-        category: selectedCategory
-      };
+    if (viewMode === 'register') {
+      // Simpan registrasi baru beserta password buatan sendiri
+      const newAcc = { ...formData, category: selectedRoleType };
+      setRegisteredAccounts([...registeredAccounts, newAcc]);
       
-      setRegisteredAccounts([...registeredAccounts, newAccount]);
-      alert('Registrasi akun berhasil! Silakan login menggunakan password yang telah Anda buat.');
-      
-      // Reset form dan arahkan ke menu login
-      setFormData({ name: '', email: '', password: '', role: 'Pembeli (Buyer)' });
-      setMode('login');
-
-    } else if (mode === 'login') {
-      // Proses Login: Wajib mencocokkan email & password yang sudah diregistrasikan
-      const foundAccount = registeredAccounts.find(
+      alert('Registrasi berhasil! Silakan login menggunakan password yang telah Anda buat.');
+      setFormData({ name: '', email: '', password: '', accountRole: 'Pembeli (Buyer)' });
+      setViewMode('login'); // Pindah ke menu login
+    } else {
+      // Proses Login
+      const found = registeredAccounts.find(
         (acc) => acc.email === formData.email && acc.password === formData.password
       );
 
-      // Untuk kemudahan demo jika belum sempat daftar, kita beri peringatan atau izinkan masuk
-      if (registeredAccounts.length > 0 && !foundAccount) {
-        alert('Email atau Password salah! Pastikan Anda sudah melakukan registrasi terlebih dahulu.');
+      if (registeredAccounts.length > 0 && !found) {
+        alert('Email atau Password salah! Pastikan Anda sudah melakukan registrasi mandiri.');
         return;
       }
 
-      alert(`Login berhasil! Selamat datang di Shop-Mate UNKLAB sebagai ${formData.role || 'Pengguna'}.`);
-      navigate(`/dashboard?role=${selectedCategory}`);
+      alert(`Login berhasil! Selamat datang di Shop-Mate UNKLAB.`);
+      navigate(`/dashboard?role=${selectedRoleType}`);
     }
   };
 
-  // TAMPILAN UTAMA: PILIH KATEGORI AKUN
-  if (mode === 'select') {
+  // TAMPILAN AWAL (PERSIS SEPERTI GAMBAR ANDA)
+  if (viewMode === 'select') {
     return (
-      <div 
-        className="min-h-screen text-slate-100 flex flex-col justify-between p-6 relative overflow-hidden font-sans bg-cover bg-center"
-        style={{ 
-          backgroundImage: `linear-gradient(to bottom, rgba(11, 19, 41, 0.92), rgba(11, 19, 41, 0.96)), url('https://images.unsplash.com/photo-1523050854058-8df90110c9f1?q=80&w=1920&auto=format&fit=crop')` 
-        }}
-      >
-        {/* Header Atas */}
-        <div className="max-w-6xl mx-auto w-full flex flex-col sm:flex-row items-center justify-between gap-4 py-4 z-10">
-          <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-2xl bg-amber-400 text-slate-950 flex items-center justify-center font-extrabold text-xl shadow-md">
-              🎓
-            </div>
-            <div>
-              <h1 className="font-black text-base tracking-wider text-white">SHOP-MATE UNKLAB</h1>
-              <p className="text-[11px] text-slate-300 font-medium">Official Campus Marketplace & Commerce</p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2.5">
-            <button 
-              onClick={() => navigate('/dashboard?role=student')}
-              className="px-4 py-2 bg-slate-900/90 hover:bg-slate-800 text-amber-400 text-xs font-semibold rounded-xl border border-slate-700/80 shadow-sm transition cursor-pointer flex items-center gap-1.5"
-            >
-              <span>🟡</span> Demo Pembeli
-            </button>
-            <button 
-              onClick={() => navigate('/dashboard?role=penjual')}
-              className="px-4 py-2 bg-slate-900/90 hover:bg-slate-800 text-amber-400 text-xs font-semibold rounded-xl border border-slate-700/80 shadow-sm transition cursor-pointer flex items-center gap-1.5"
-            >
-              <span>🟡</span> Demo Penjual
-            </button>
-          </div>
-        </div>
-
-        {/* Konten Utama Tengah */}
-        <div className="max-w-4xl mx-auto w-full text-center my-auto py-8 z-10">
-          <div className="inline-block px-4 py-1.5 bg-amber-400 text-slate-950 text-xs font-extrabold rounded-full mb-5 shadow-md tracking-wide">
-            UNIVERSITAS KLABAT AIRMADIDI
-          </div>
+      <div className="min-h-screen bg-[#3a105c] flex items-center justify-center p-4 font-sans">
+        
+        {/* Container Kartu Utama */}
+        <div className="bg-white rounded-3xl overflow-hidden shadow-2xl max-w-4xl w-full grid grid-cols-1 md:grid-cols-2">
           
-          <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tight mb-3">
-            Pilih Kategori Akun Civitas Akademika
-          </h2>
-          <p className="text-slate-300 text-xs sm:text-sm max-w-xl mx-auto mb-10 leading-relaxed">
-            Platform e-commerce eksklusif untuk Mahasiswa dan Dosen/Staff UNKLAB. Wajib registrasi untuk membuat password mandiri dan memilih peran.
-          </p>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 max-w-3xl mx-auto mb-10 text-left">
-            <div 
-              onClick={() => setSelectedCategory('student')}
-              className={`p-6 rounded-2xl border-2 transition-all cursor-pointer relative bg-slate-900/85 backdrop-blur-md ${
-                selectedCategory === 'student' 
-                  ? 'border-amber-400 shadow-xl shadow-amber-400/10' 
-                  : 'border-slate-800 hover:border-slate-700'
-              }`}
-            >
-              <div className="w-10 h-10 rounded-xl bg-amber-400/10 text-amber-400 flex items-center justify-center font-bold mb-4">
-                🎓
-              </div>
-              <h3 className="text-lg font-bold text-white mb-1">Student (Mahasiswa)</h3>
-              <p className="text-xs text-slate-300 mb-5">
-                Gunakan email berdomain <span className="text-amber-400 font-semibold">@student.unklab.ac.id</span>
-              </p>
-              <span className="text-xs font-bold text-amber-400 flex items-center gap-1">
-                Pilih Mahasiswa &rarr;
+          {/* Sisi Kiri: Banner Ungu dengan Ilustrasi Wisuda */}
+          <div 
+            className="p-8 flex flex-col justify-between text-white relative bg-cover bg-center"
+            style={{ 
+              backgroundImage: `linear-gradient(to bottom, rgba(58, 16, 92, 0.85), rgba(30, 8, 50, 0.95)), url('https://images.unsplash.com/photo-1523050854058-8df90110c9f1?q=80&w=1000&auto=format&fit=crop')` 
+            }}
+          >
+            <div>
+              <span className="inline-block px-3 py-1 bg-amber-400 text-slate-950 text-[10px] font-extrabold rounded-md uppercase tracking-wider mb-6">
+                UNKLAB EXCLUSIVE
               </span>
+              
+              <div className="w-12 h-12 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center text-amber-400 text-2xl font-bold mb-4 border border-white/20">
+                🛒
+              </div>
+
+              <h1 className="text-2xl font-extrabold tracking-tight mb-2">Shop-Mate</h1>
+              <h2 className="text-sm font-bold text-amber-400 uppercase tracking-widest mb-4">UNKLAB</h2>
+              
+              <p className="text-xs text-slate-200 leading-relaxed">
+                Selamat datang di Shop-Mate. Platform belanja eksklusif civitas akademika Universitas Klabat.
+              </p>
             </div>
 
-            <div 
-              onClick={() => setSelectedCategory('dosen')}
-              className={`p-6 rounded-2xl border-2 transition-all cursor-pointer relative bg-slate-900/85 backdrop-blur-md ${
-                selectedCategory === 'dosen' 
-                  ? 'border-amber-400 shadow-xl shadow-amber-400/10' 
-                  : 'border-slate-800 hover:border-slate-700'
-              }`}
-            >
-              <div className="w-10 h-10 rounded-xl bg-amber-400/10 text-amber-400 flex items-center justify-center font-bold mb-4">
-                🏛️
-              </div>
-              <h3 className="text-lg font-bold text-white mb-1">Dosen / Staff UNKLAB</h3>
-              <p className="text-xs text-slate-300 mb-5">
-                Gunakan email resmi <span className="text-amber-400 font-semibold">@unklab.ac.id</span>
-              </p>
-              <span className="text-xs font-bold text-amber-400 flex items-center gap-1">
-                Pilih Dosen / Staff &rarr;
-              </span>
+            <div className="text-[10px] text-slate-400 pt-8">
+              &copy; 2026 Universitas Klabat • Restricted Access
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
-            <button
-              onClick={() => setMode('login')}
-              className="flex-1 bg-amber-400 hover:bg-amber-500 text-slate-950 font-extrabold py-4 px-6 rounded-2xl transition shadow-lg text-sm flex items-center justify-center gap-2 cursor-pointer"
-            >
-              <span>&rarr; Lanjut Login</span>
-            </button>
-            <button
-              onClick={() => setMode('register')}
-              className="flex-1 bg-slate-900/90 hover:bg-slate-800 text-slate-200 border border-slate-700 font-extrabold py-4 px-6 rounded-2xl transition text-sm flex items-center justify-center gap-2 cursor-pointer"
-            >
-              <span>👤+ Buat Akun Baru</span>
-            </button>
-          </div>
-        </div>
+          {/* Sisi Kanan: Pilihan Peran / Kartu Interaktif */}
+          <div className="p-8 flex flex-col justify-between bg-white">
+            <div>
+              <h3 className="text-base font-extrabold text-slate-900 mb-1">Anda adalah?</h3>
+              <p className="text-xs text-slate-500 mb-6">Pilih jenis pengguna sebelum melanjutkan.</p>
 
-        <div className="max-w-6xl mx-auto w-full pt-6 border-t border-slate-800/80 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-400 gap-2 z-10">
-          <p>&copy; 2026 Shop-Mate UNKLAB. Projek Sistem Analisis dan Desain.</p>
-          <div className="flex gap-6">
-            <span className="hover:text-slate-200 cursor-pointer">Dokumentasi Sistem</span>
-            <span className="hover:text-slate-200 cursor-pointer">Schema DB</span>
+              <div className="space-y-3">
+                {/* Opsi 1: Student & Civitas */}
+                <div 
+                  onClick={() => setSelectedRoleType('student')}
+                  className={`p-4 rounded-2xl border-2 transition cursor-pointer flex items-start gap-3 ${
+                    selectedRoleType === 'student' 
+                      ? 'border-amber-500 bg-amber-50/40 shadow-sm' 
+                      : 'border-slate-200 hover:border-slate-300'
+                  }`}
+                >
+                  <div className="w-9 h-9 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center font-bold text-sm shrink-0">
+                    🎓
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-bold text-slate-900">Student & Civitas</h4>
+                    <p className="text-[11px] text-slate-500">Mahasiswa & Staff aktif UNKLAB</p>
+                    <p className="text-[10px] text-amber-700 font-semibold mt-1">Wajib menggunakan email @student.unklab.ac.id</p>
+                  </div>
+                </div>
+
+                {/* Opsi 2: Penjual / Dosen */}
+                <div 
+                  onClick={() => setSelectedRoleType('penjual')}
+                  className={`p-4 rounded-2xl border-2 transition cursor-pointer flex items-start gap-3 ${
+                    selectedRoleType === 'penjual' 
+                      ? 'border-amber-500 bg-amber-50/40 shadow-sm' 
+                      : 'border-slate-200 hover:border-slate-300'
+                  }`}
+                >
+                  <div className="w-9 h-9 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center font-bold text-sm shrink-0">
+                    🏪
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-bold text-slate-900">Dosen / Penjual Tenant</h4>
+                    <p className="text-[11px] text-slate-500">Pengelola toko & tenant umum</p>
+                    <p className="text-[10px] text-amber-700 font-semibold mt-1">Akses manajemen produk & pesanan</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Tombol Lanjut & Pindah ke Registrasi */}
+            <div className="pt-6 border-t border-slate-100 mt-6 space-y-3">
+              <button
+                onClick={() => setViewMode('register')}
+                className="w-full bg-[#1e0832] hover:bg-slate-900 text-white font-bold py-3 rounded-xl transition text-xs shadow-md cursor-pointer"
+              >
+                Lanjutkan Registrasi Akun Baru &rarr;
+              </button>
+
+              <div className="text-center">
+                <button
+                  onClick={() => setViewMode('login')}
+                  className="text-xs text-amber-600 hover:underline font-semibold cursor-pointer"
+                >
+                  Sudah punya akun? Login di sini
+                </button>
+              </div>
+            </div>
+
           </div>
+
         </div>
       </div>
     );
   }
 
-  // TAMPILAN FORM REGISTRASI & LOGIN
+  // TAMPILAN FORM REGISTRASI ATAU LOGIN
   return (
-    <div 
-      className="min-h-screen flex items-center justify-center p-4 bg-cover bg-center"
-      style={{ 
-        backgroundImage: `linear-gradient(to bottom, rgba(11, 19, 41, 0.92), rgba(11, 19, 41, 0.96)), url('https://images.unsplash.com/photo-1523050854058-8df90110c9f1?q=80&w=1920&auto=format&fit=crop')` 
-      }}
-    >
-      <div className="bg-slate-900/95 backdrop-blur-md border border-slate-800 rounded-3xl p-8 max-w-md w-full shadow-2xl text-slate-100">
+    <div className="min-h-screen bg-[#3a105c] flex items-center justify-center p-4">
+      <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl">
+        
         <button 
-          onClick={() => setMode('select')}
-          className="text-xs text-amber-400 hover:underline font-semibold mb-5 flex items-center gap-1 cursor-pointer"
+          onClick={() => setViewMode('select')}
+          className="text-xs text-amber-600 hover:underline font-semibold mb-4 flex items-center gap-1 cursor-pointer"
         >
-          &larr; Kembali ke Beranda
+          &larr; Kembali ke Pilihan Peran
         </button>
 
-        <h2 className="text-2xl font-black mb-1">
-          {mode === 'register' ? 'Registrasi Akun Baru' : 'Masuk dengan Password'}
+        <h2 className="text-xl font-extrabold text-slate-900 mb-1">
+          {viewMode === 'register' ? 'Registrasi Akun Shop-Mate' : 'Login ke Shop-Mate'}
         </h2>
-        <p className="text-xs text-slate-300 mb-6">
-          Kategori: <span className="text-amber-400 font-bold uppercase">{selectedCategory}</span>
+        <p className="text-xs text-slate-500 mb-6">
+          Kategori: <span className="text-amber-600 font-bold uppercase">{selectedRoleType}</span>
         </p>
 
-        <form onSubmit={handleActionSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
           
-          {/* Input Nama Lengkap (Hanya saat Registrasi) */}
-          {mode === 'register' && (
-            <div>
-              <label className="block text-xs font-bold text-slate-300 uppercase mb-1">Nama Lengkap</label>
-              <input
-                type="text"
-                name="name"
-                required
-                placeholder="Nama lengkap sesuai SIAK"
-                value={formData.name}
-                onChange={handleChange}
-                className="w-full px-4 py-3.5 bg-slate-950/80 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-amber-400"
-              />
-            </div>
+          {viewMode === 'register' && (
+            <>
+              <div>
+                <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">Nama Lengkap</label>
+                <input
+                  type="text"
+                  name="name"
+                  required
+                  placeholder="Nama lengkap sesuai SIAK"
+                  value={formData.name}
+                  onChange={handleChange}
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                />
+              </div>
+
+              {/* Pilihan Peran Saat Registrasi (Pembeli atau Penjual) */}
+              <div>
+                <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">Pilih Peran Akun</label>
+                <select
+                  name="accountRole"
+                  value={formData.accountRole}
+                  onChange={handleChange}
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500 cursor-pointer"
+                >
+                  <option value="Pembeli (Buyer)">🛍️ Pembeli (Buyer)</option>
+                  <option value="Penjual (Seller/Tenant)">🏪 Penjual (Seller / Tenant)</option>
+                </select>
+              </div>
+            </>
           )}
 
-          {/* Pilihan Peran (Pembeli / Penjual) - Tersedia untuk Student & Dosen saat Registrasi */}
-          {mode === 'register' && (
-            <div>
-              <label className="block text-xs font-bold text-slate-300 uppercase mb-1">Pilih Peran Akun</label>
-              <select
-                name="role"
-                value={formData.role}
-                onChange={handleChange}
-                className="w-full px-4 py-3.5 bg-slate-950/80 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-amber-400 cursor-pointer"
-              >
-                <option value="Pembeli (Buyer)">🛍️ Pembeli (Buyer)</option>
-                <option value="Penjual (Seller/Tenant)">🏪 Penjual (Seller / Tenant)</option>
-              </select>
-            </div>
-          )}
-
-          {/* Email Resmi UNKLAB */}
           <div>
-            <label className="block text-xs font-bold text-slate-300 uppercase mb-1">
-              {selectedCategory === 'student' ? 'Email Student UNKLAB' : 'Email Resmi UNKLAB'}
-            </label>
+            <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">Email Resmi UNKLAB</label>
             <input
               type="email"
               name="email"
               required
-              placeholder={selectedCategory === 'student' ? 'nama@student.unklab.ac.id' : 'nama@unklab.ac.id'}
+              placeholder={selectedRoleType === 'student' ? 'nama@student.unklab.ac.id' : 'nama@unklab.ac.id'}
               value={formData.email}
               onChange={handleChange}
-              className="w-full px-4 py-3.5 bg-slate-950/80 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-amber-400"
+              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500"
             />
           </div>
 
-          {/* Password (Buat Baru saat Registrasi, atau Masukkan saat Login) */}
           <div>
-            <label className="block text-xs font-bold text-slate-300 uppercase mb-1">
-              {mode === 'register' ? 'Buat Password Mandiri' : 'Masukkan Password Anda'}
+            <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">
+              {viewMode === 'register' ? 'Buat Password Mandiri' : 'Masukkan Password Anda'}
             </label>
             <input
               type="password"
@@ -269,27 +246,28 @@ export default function Login() {
               placeholder="••••••••"
               value={formData.password}
               onChange={handleChange}
-              className="w-full px-4 py-3.5 bg-slate-950/80 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-amber-400"
+              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500"
             />
           </div>
 
           <button
             type="submit"
-            className="w-full bg-amber-400 hover:bg-amber-500 text-slate-950 font-extrabold py-3.5 rounded-xl transition shadow-lg text-sm cursor-pointer mt-3"
+            className="w-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-extrabold py-3 rounded-xl transition text-xs shadow-md cursor-pointer mt-2"
           >
-            {mode === 'register' ? 'Daftar & Buat Password' : 'Masuk Sekarang (Login)'}
+            {viewMode === 'register' ? 'Daftar & Buat Password Akun' : 'Masuk Sekarang (Login)'}
           </button>
         </form>
 
         <div className="text-center mt-5">
           <button
             type="button"
-            onClick={() => setMode(mode === 'register' ? 'login' : 'register')}
-            className="text-xs text-amber-400 hover:underline font-medium cursor-pointer"
+            onClick={() => setViewMode(viewMode === 'register' ? 'login' : 'register')}
+            className="text-xs text-slate-600 hover:underline font-medium cursor-pointer"
           >
-            {mode === 'register' ? 'Sudah registrasi & buat password? Login di sini' : 'Belum punya akun? Wajib Registrasi dulu'}
+            {viewMode === 'register' ? 'Sudah punya akun & password? Login di sini' : 'Belum registrasi? Buat Akun Baru'}
           </button>
         </div>
+
       </div>
     </div>
   );
