@@ -15,20 +15,20 @@ export default function Login() {
     address: ''
   });
 
-  // Mengambil data akun tersimpan dari localStorage agar tidak hilang saat refresh/login ulang
+  // Mengambil data akun tersimpan secara persisten di localStorage browser
   const [registeredAccounts, setRegisteredAccounts] = useState(() => {
     const savedAccounts = localStorage.getItem('shopmate_accounts');
     if (savedAccounts) {
       try {
         return JSON.parse(savedAccounts);
       } catch (e) {
-        console.error("Gagal memparsing data akun lokal", e);
+        console.error("Gagal memuat data akun lokal", e);
       }
     }
-    // Akun default awal sistem
+    // Contoh akun default umum kampus (bebas privasi pribadi)
     return [
       {
-        name: 'Michael Tendean',
+        name: 'Mahasiswa Contoh UNKLAB',
         email: '12320526@student.unklab.ac.id',
         password: 'password123',
         role: 'Student (Mahasiswa)',
@@ -37,15 +37,15 @@ export default function Login() {
       },
       {
         name: 'Kantin Asri UNKLAB',
-        email: '12210987@student.unklab.ac.id',
+        email: 'tenantkantin@student.unklab.ac.id',
         password: 'seller123',
         role: 'Penjual',
         buyerOrSeller: 'Penjual (Seller/Tenant)',
         address: 'Pusat Kuliner Kampus'
       },
       {
-        name: 'Dr. Citra Lestari',
-        email: 'citra.lestari@unklab.ac.id',
+        name: 'Dr. Dosen UNKLAB',
+        email: 'dosen.unklab@unklab.ac.id',
         password: 'dosen123',
         role: 'Dosen / Staff',
         buyerOrSeller: 'Staff Kampus',
@@ -116,7 +116,7 @@ export default function Login() {
       setFormData({ name: '', email: '', password: '', buyerOrSeller: 'Pembeli (Buyer)', address: '' });
     
     } 
-    // 3. Mode Masuk (Login) Berdasarkan Email Resmi UNKLAB
+    // 3. Mode Masuk (Login)
     else if (mode === 'login') {
       const matchedAccount = registeredAccounts.find(acc => acc.email.toLowerCase() === inputEmail);
 
@@ -136,7 +136,7 @@ export default function Login() {
 
       alert(`Login Berhasil! Selamat datang kembali, ${matchedAccount.name}.`);
       
-      // Arahkan ke halaman sesuai peran (Pembeli, Penjual, Dosen, Admin)
+      // Arahkan ke halaman sesuai peran
       if (matchedAccount.role === 'Admin') {
         navigate('/admin-dashboard');
       } else if (matchedAccount.role === 'Penjual' || matchedAccount.buyerOrSeller.includes('Penjual')) {
@@ -172,7 +172,7 @@ export default function Login() {
     <div className="min-h-screen bg-[#2d0c4a] flex items-center justify-center p-4 font-sans">
       <div className="bg-white rounded-3xl overflow-hidden shadow-2xl max-w-4xl w-full grid grid-cols-1 md:grid-cols-2">
         
-        {/* SISI KIRI: Background Kampus Nuansa Ungu & Kuning UNKLAB */}
+        {/* SISI KIRI */}
         <div 
           className="p-8 flex flex-col justify-center items-center text-center text-white relative bg-cover bg-center"
           style={{ 
@@ -193,7 +193,7 @@ export default function Login() {
           </div>
         </div>
 
-        {/* SISI KANAN: Form Autentikasi */}
+        {/* SISI KANAN */}
         <div className="p-8 flex flex-col justify-between bg-white overflow-y-auto max-h-[90vh]">
           <div>
             <div className="text-center mb-5">
@@ -264,14 +264,13 @@ export default function Login() {
                 </>
               )}
 
-              {/* INPUT EMAIL KAMPUS */}
               <div>
                 <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">Email Resmi UNKLAB</label>
                 <input
                   type="email"
                   name="email"
                   required
-                  placeholder="Contoh: s22229040@student.unklab.ac.id"
+                  placeholder="Contoh: 12320526@student.unklab.ac.id"
                   value={formData.email}
                   onChange={handleChange}
                   className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800"
