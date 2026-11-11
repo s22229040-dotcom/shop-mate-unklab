@@ -4,19 +4,26 @@ import { useNavigate } from 'react-router-dom';
 export default function AdminDashboard() {
   const navigate = useNavigate();
   
-  // State navigasi tab admin sesuai layout kode referensi
   const [activeAdminTab, setActiveAdminTab] = useState('overview');
 
-  // Database / State simulasi admin
-  const [currentUser] = useState({
+  const [adminProfile, setAdminProfile] = useState({
     name: 'Dr. Citra Lestari, M.Kom',
-    email: 'citra.lestari@unklab.ac.id'
+    email: 'admin@unklab.ac.id',
+    phone: '081199887766',
+    role: 'Administrator Utama UNKLAB',
+    password: 'admin123'
+  });
+
+  const [passwordForm, setPasswordForm] = useState({
+    oldPassword: '',
+    newPassword: '',
+    confirmPassword: ''
   });
 
   const [users, setUsers] = useState([
-    { id: 1, name: 'Christina Pattilamonia', email: 'christina@student.unklab.ac.id', role: 'buyer', userType: 'student', phone: '081234567890', address: 'Asrama Putri UNKLAB' },
-    { id: 2, name: 'Kantin Asri UNKLAB', email: 'kantinasri@student.unklab.ac.id', role: 'seller', userType: 'student', phone: '082198765432', address: 'Pusat Kuliner Kampus' },
-    { id: 3, name: 'Dr. Citra Lestari, M.Kom', email: 'citra.lestari@unklab.ac.id', role: 'admin', userType: 'staff', phone: '081199887766', address: 'Fakultas Fasilkom' }
+    { id: 1, name: 'Christina Pattilamonia', email: 'christina@student.unklab.ac.id', role: 'buyer', status: 'Aktif' },
+    { id: 2, name: 'Kantin Asri UNKLAB', email: 'kantinasri@student.unklab.ac.id', role: 'seller', status: 'Aktif' },
+    { id: 3, name: 'Michael Tendean', email: 'michael@student.unklab.ac.id', role: 'buyer', status: 'Aktif' }
   ]);
 
   const [categories, setCategories] = useState([
@@ -25,184 +32,132 @@ export default function AdminDashboard() {
     { id: 3, name: 'Makanan & Minuman Kampus', inUse: true }
   ]);
 
-  const [products] = useState([
-    { id: 101, sellerName: 'Kantin Asri & Snack', name: 'Nasi Kuning Special UNKLAB', price: 15000, stock: 45, visible: true, views: 342, soldCount: 88 },
-    { id: 102, sellerName: 'Kantin Asri & Snack', name: 'Es Teh Manis & Pisang Goroho', price: 10000, stock: 30, visible: true, views: 198, soldCount: 45 }
-  ]);
-
   const [transactions] = useState([
     { id: 'TRX-501', date: '2026-11-10 10:30', buyer: 'Christina Pattilamonia', seller: 'Kantin Asri & Snack', total: 30000, status: 'Berhasil', method: 'QRIS UNKLAB' },
-    { id: 'TRX-502', date: '2026-11-09 14:15', buyer: 'Sisiani Palari', seller: 'Ayu Merchandise', total: 185000, status: 'Berhasil', method: 'Transfer BSI' }
+    { id: 'TRX-502', date: '2026-11-09 14:15', buyer: 'Michael Tendean', seller: 'Ayu Merchandise', total: 185000, status: 'Berhasil', method: 'Transfer BSI' }
   ]);
 
-  const [auditLogs, setAuditLogs] = useState([
-    { id: 1, admin: 'Dr. Citra Lestari', action: 'Menyetujui pendaftaran tenant baru: Ayu Merchandise', time: 'Hari ini, 09:15' },
-    { id: 2, admin: 'Dr. Citra Lestari', action: 'Memperbarui komisi platform marketplace menjadi 2.5%', time: 'Kemarin, 14:30' }
-  ]);
-
-  const [settings, setSettings] = useState({
-    platformFee: 2.5,
-    autoApproveStudent: true
-  });
-
-  const totalUsers = users.length;
-  const totalProducts = products.length;
   const totalRevenue = transactions.reduce((sum, t) => sum + t.total, 0);
 
-  // Handler Hapus Kategori dengan Validasi UC-26
-  const handleDeleteCategory = (catId, catName, inUse) => {
-    if (inUse) {
-      alert(`Penghapusan Ditolak (UC-26): Kategori "${catName}" masih digunakan oleh produk aktif dalam sistem!`);
+  const handlePasswordChange = (e) => {
+    e.preventDefault();
+    if (passwordForm.oldPassword !== adminProfile.password) {
+      alert('Password lama salah! Periksa kembali.');
       return;
     }
-    setCategories(categories.filter(c => c.id !== catId));
-    setAuditLogs([{ id: Date.now(), admin: currentUser.name, action: `Menghapus kategori: ${catName}`, time: 'Baru saja' }, ...auditLogs]);
-    alert('Kategori berhasil dihapus.');
-  };
-
-  const handleAddCategory = () => {
-    const name = prompt('Masukkan nama kategori produk baru:');
-    if (name && name.trim() !== '') {
-      setCategories([...categories, { id: Date.now(), name: name.trim(), inUse: false }]);
-      setAuditLogs([{ id: Date.now(), admin: currentUser.name, action: `Menambahkan kategori produk: ${name}`, time: 'Baru saja' }, ...auditLogs]);
-      alert('Kategori baru berhasil ditambahkan!');
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      alert('Konfirmasi password baru tidak cocok!');
+      return;
     }
+    setAdminProfile({ ...adminProfile, password: passwordForm.newPassword });
+    setPasswordForm({ oldPassword: '', newPassword: '', confirmPassword: '' });
+    alert('Password admin berhasil diperbarui dengan aman!');
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-100 text-slate-800 font-sans">
+    <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col font-sans">
       
       {/* Top Brand Header */}
-      <header className="bg-[#0F2C59] text-white shadow-xl sticky top-0 z-40 border-b-4 border-[#F4CE14]">
-        <div className="max-w-7xl mx-auto px-4 py-3.5 flex justify-between items-center">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-[#F4CE14] text-[#0F2C59] font-bold flex items-center justify-center text-xl shadow-lg">
-              🎓
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="font-extrabold text-base tracking-wide">SHOP-MATE UNKLAB</h1>
-                <span className="bg-[#F4CE14] text-[#0F2C59] text-[10px] font-extrabold px-2 py-0.5 rounded-full">ADMIN PORTAL</span>
-              </div>
-              <p className="text-xs text-slate-300">Universitas Klabat Airmadidi • Sistem Kontrol & Manajemen</p>
-            </div>
+      <header className="bg-slate-950 border-b border-slate-800 px-6 py-4 flex items-center justify-between sticky top-0 z-40 shadow-md">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-amber-400 text-slate-950 rounded-xl flex items-center justify-center font-black text-lg shadow">
+            👑
           </div>
+          <div>
+            <h1 className="font-extrabold text-sm text-white tracking-wide">ADMIN CONTROL CENTER</h1>
+            <p className="text-[10px] text-amber-400 font-semibold uppercase">Shop-Mate Universitas Klabat</p>
+          </div>
+        </div>
 
-          <div className="flex items-center gap-3">
-            <div className="hidden md:block text-right">
-              <p className="text-xs font-bold text-white">{currentUser.name}</p>
-              <p className="text-[10px] text-yellow-300">{currentUser.email}</p>
-            </div>
-            <button onclick={() => navigate('/')} className="bg-rose-600 hover:bg-rose-700 text-white px-3.5 py-2 rounded-xl text-xs font-bold transition shadow cursor-pointer">
-              Keluar
-            </button>
+        <div className="flex items-center gap-3">
+          <div className="hidden md:block text-right">
+            <p className="text-xs font-bold text-white">{adminProfile.name}</p>
+            <p className="text-[10px] text-amber-400">{adminProfile.email}</p>
           </div>
+          <button 
+            onClick={() => navigate('/')}
+            className="px-3.5 py-2 bg-red-600/20 hover:bg-red-600/30 text-red-400 font-bold text-xs rounded-xl transition cursor-pointer flex items-center gap-1"
+          >
+            <span>&larr;</span> Keluar
+          </button>
         </div>
       </header>
 
       {/* Navigation Tabs Bar */}
-      <div className="bg-white border-b border-slate-200 shadow-sm sticky top-[73px] z-30">
-        <div className="max-w-7xl mx-auto px-4 flex overflow-x-auto gap-2 py-2.5">
-          <button onClick={() => setActiveAdminTab('overview')} className={`px-4 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap cursor-pointer ${activeAdminTab === 'overview' ? 'bg-[#0F2C59] text-[#F4CE14] shadow' : 'text-slate-600 hover:bg-slate-100'}`}>
-            📊 Dashboard Overview
-          </button>
-          <button onClick={() => setActiveAdminTab('users')} className={`px-4 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap cursor-pointer ${activeAdminTab === 'users' ? 'bg-[#0F2C59] text-[#F4CE14] shadow' : 'text-slate-600 hover:bg-slate-100'}`}>
-            👥 Kelola Pengguna (UC-21)
-          </button>
-          <button onClick={() => setActiveAdminTab('products')} className={`px-4 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap cursor-pointer ${activeAdminTab === 'products' ? 'bg-[#0F2C59] text-[#F4CE14] shadow' : 'text-slate-600 hover:bg-slate-100'}`}>
-            📦 Kelola Produk (UC-25)
-          </button>
-          <button onClick={() => setActiveAdminTab('categories')} className={`px-4 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap cursor-pointer ${activeAdminTab === 'categories' ? 'bg-[#0F2C59] text-[#F4CE14] shadow' : 'text-slate-600 hover:bg-slate-100'}`}>
-            🏷️ Kelola Kategori (UC-26)
-          </button>
-          <button onClick={() => setActiveAdminTab('transactions')} className={`px-4 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap cursor-pointer ${activeAdminTab === 'transactions' ? 'bg-[#0F2C59] text-[#F4CE14] shadow' : 'text-slate-600 hover:bg-slate-100'}`}>
-            💰 Transaksi & Keuangan (UC-27)
-          </button>
-          <button onClick={() => setActiveAdminTab('settings')} className={`px-4 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap cursor-pointer ${activeAdminTab === 'settings' ? 'bg-[#0F2C59] text-[#F4CE14] shadow' : 'text-slate-600 hover:bg-slate-100'}`}>
-            ⚙️ Pengaturan Sistem & Audit
-          </button>
-        </div>
+      <div className="bg-slate-950/80 border-b border-slate-800 px-6 py-2.5 flex overflow-x-auto gap-2 sticky top-[73px] z-30">
+        <button onClick={() => setActiveAdminTab('overview')} className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer whitespace-nowrap ${activeAdminTab === 'overview' ? 'bg-amber-400 text-slate-950 shadow' : 'text-slate-300 hover:bg-slate-800'}`}>
+          📊 Dashboard & Persentase
+        </button>
+        <button onClick={() => setActiveAdminTab('users')} className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer whitespace-nowrap ${activeAdminTab === 'users' ? 'bg-amber-400 text-slate-950 shadow' : 'text-slate-300 hover:bg-slate-800'}`}>
+          👥 Kelola Pengguna
+        </button>
+        <button onClick={() => setActiveAdminTab('categories')} className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer whitespace-nowrap ${activeAdminTab === 'categories' ? 'bg-amber-400 text-slate-950 shadow' : 'text-slate-300 hover:bg-slate-800'}`}>
+          🏷️ Kelola Kategori
+        </button>
+        <button onClick={() => setActiveAdminTab('transactions')} className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer whitespace-nowrap ${activeAdminTab === 'transactions' ? 'bg-amber-400 text-slate-950 shadow' : 'text-slate-300 hover:bg-slate-800'}`}>
+          💰 Laporan Transaksi
+        </button>
+        <button onClick={() => setActiveAdminTab('profil')} className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer whitespace-nowrap ${activeAdminTab === 'profil' ? 'bg-amber-400 text-slate-950 shadow' : 'text-slate-300 hover:bg-slate-800'}`}>
+          🛡️ Profil & Ganti Password Admin
+        </button>
       </div>
 
       {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl mx-auto w-full p-4 md:p-6 pb-20">
+      <main className="flex-1 p-6 max-w-7xl mx-auto w-full">
         
-        {/* 1. OVERVIEW TAB */}
         {activeAdminTab === 'overview' && (
-          <div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-              <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Total Pengguna</p>
-                  <h3 className="text-3xl font-extrabold text-slate-800 mt-1">{totalUsers}</h3>
-                  <span className="text-[10px] text-emerald-600 font-semibold mt-1 inline-block">Domain @student.unklab.ac.id</span>
-                </div>
-                <div className="w-14 h-14 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center text-2xl shadow-inner">👥</div>
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+              <div className="bg-slate-800/60 border border-slate-700/60 p-6 rounded-3xl shadow-lg">
+                <p className="text-xs text-slate-400 font-semibold mb-1">Total Pengguna Aktif</p>
+                <h3 className="text-3xl font-black text-white">{users.length + 120}</h3>
+                <span className="text-[10px] text-emerald-400 font-bold mt-2 inline-block">Mahasiswa & Staff UNKLAB</span>
               </div>
-
-              <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Total Produk</p>
-                  <h3 className="text-3xl font-extrabold text-slate-800 mt-1">{totalProducts}</h3>
-                  <span className="text-[10px] text-blue-600 font-semibold mt-1 inline-block">Aktif di Katalog Utama</span>
-                </div>
-                <div className="w-14 h-14 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center text-2xl shadow-inner">📦</div>
+              <div className="bg-slate-800/60 border border-slate-700/60 p-6 rounded-3xl shadow-lg">
+                <p className="text-xs text-slate-400 font-semibold mb-1">Total Pendapatan Bruto</p>
+                <h3 className="text-2xl font-black text-amber-400 mt-1">Rp {totalRevenue.toLocaleString('id-ID')}</h3>
+                <span className="text-[10px] text-emerald-400 font-bold mt-2 inline-block">QRIS & COD Terverifikasi</span>
               </div>
-
-              <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Total Transaksi Bruto</p>
-                  <h3 className="text-2xl font-extrabold text-[#0F2C59] mt-1">Rp {totalRevenue.toLocaleString('id-ID')}</h3>
-                  <span className="text-[10px] text-emerald-600 font-semibold mt-1 inline-block">QRIS & Transfer Verified</span>
-                </div>
-                <div className="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-2xl shadow-inner">💳</div>
+              <div className="bg-slate-800/60 border border-slate-700/60 p-6 rounded-3xl shadow-lg">
+                <p className="text-xs text-slate-400 font-semibold mb-1">Komisi Platform (2.5%)</p>
+                <h3 className="text-2xl font-black text-emerald-400 mt-1">Rp {(totalRevenue * 0.025).toLocaleString('id-ID')}</h3>
+                <span className="text-[10px] text-slate-300 font-bold mt-2 inline-block">Kas Kemahasiswaan Kampus</span>
               </div>
-
-              <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Komisi Platform ({settings.platformFee}%)</p>
-                  <h3 className="text-2xl font-extrabold text-emerald-800 mt-1">Rp {(totalRevenue * (settings.platformFee/100)).toLocaleString('id-ID')}</h3>
-                  <span className="text-[10px] text-slate-500 mt-1 inline-block">Kas Kemahasiswaan UNKLAB</span>
-                </div>
-                <div className="w-14 h-14 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center text-2xl shadow-inner">🏛️</div>
+              <div className="bg-slate-800/60 border border-slate-700/60 p-6 rounded-3xl shadow-lg">
+                <p className="text-xs text-slate-400 font-semibold mb-1">Status Sistem SRS</p>
+                <h3 className="text-2xl font-black text-emerald-400 mt-1">Normal 99.9%</h3>
+                <span className="text-[10px] text-amber-400 font-bold mt-2 inline-block">Aman & Terenkripsi</span>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              <div className="lg:col-span-2 bg-white rounded-3xl p-6 md:p-8 border border-slate-200 shadow-sm">
-                <h3 className="font-bold text-slate-800 text-lg mb-6">Transaksi Terbaru Sistem (UC-27)</h3>
-                <div className="space-y-4">
-                  {transactions.map(t => (
-                    <div key={t.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-200">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="font-bold text-slate-800">{t.id}</span>
-                          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">{t.status}</span>
-                        </div>
-                        <p className="text-xs text-slate-500 mt-1">Pembeli: <span className="font-semibold text-slate-700">{t.buyer}</span> • Tenant: {t.seller}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-xs text-slate-400">{t.date}</p>
-                        <p className="font-extrabold text-[#0F2C59] mt-0.5">Rp {t.total.toLocaleString('id-ID')}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="bg-white rounded-3xl p-6 md:p-8 border border-slate-200 shadow-sm flex flex-col justify-between">
+            <div className="bg-slate-800/40 border border-slate-800 rounded-3xl p-8 shadow-xl">
+              <h3 className="text-sm font-black text-white mb-6">📈 Grafik Persentase Penjualan Tenant Kampus UNKLAB</h3>
+              <div className="space-y-4 text-xs">
                 <div>
-                  <h3 className="font-bold text-slate-800 text-lg mb-4">Log Aktivitas Admin</h3>
-                  <div className="space-y-3">
-                    {auditLogs.map(log => (
-                      <div key={log.id} className="p-3 bg-slate-50 rounded-2xl border border-slate-100">
-                        <p className="text-xs font-bold text-slate-800">{log.action}</p>
-                        <div className="flex justify-between items-center mt-1">
-                          <span className="text-[10px] text-blue-600 font-medium">{log.admin}</span>
-                          <span className="text-[10px] text-slate-400">{log.time}</span>
-                        </div>
-                      </div>
-                    ))}
+                  <div className="flex justify-between font-bold mb-1">
+                    <span>Kantin Asrama Putra (Makanan & Minuman)</span>
+                    <span className="text-amber-400">65% (Terlaris)</span>
+                  </div>
+                  <div className="w-full h-3 bg-slate-900 rounded-full overflow-hidden">
+                    <div className="bg-amber-400 h-full rounded-full" style={{ width: '65%' }}></div>
+                  </div>
+                </div>
+                <div>
+                  <div className="flex justify-between font-bold mb-1">
+                    <span>Koperasi / Atribut Resmi Kampus</span>
+                    <span className="text-blue-400">25%</span>
+                  </div>
+                  <div className="w-full h-3 bg-slate-900 rounded-full overflow-hidden">
+                    <div className="bg-blue-500 h-full rounded-full" style={{ width: '25%' }}></div>
+                  </div>
+                </div>
+                <div>
+                  <div className="flex justify-between font-bold mb-1">
+                    <span>Tenant Mahasiswa Mandiri (Fasilkom & FEB)</span>
+                    <span className="text-emerald-400">10%</span>
+                  </div>
+                  <div className="w-full h-3 bg-slate-900 rounded-full overflow-hidden">
+                    <div className="bg-emerald-500 h-full rounded-full" style={{ width: '10%' }}></div>
                   </div>
                 </div>
               </div>
@@ -210,28 +165,27 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        {/* 2. KELOLA PENGGUNA TAB */}
         {activeAdminTab === 'users' && (
-          <div className="bg-white rounded-3xl p-6 md:p-8 border border-slate-200 shadow-sm">
-            <h2 className="text-xl font-bold text-slate-800 mb-6">Manajemen Pengguna Sistem Shop-Mate (UC-21)</h2>
+          <div className="bg-slate-800/40 border border-slate-800 rounded-3xl p-8 shadow-xl space-y-4">
+            <h3 className="text-sm font-black text-white mb-4">Manajemen Pengguna Civitas Akademika</h3>
             <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
+              <table className="w-full text-left text-xs">
                 <thead>
-                  <tr className="border-b border-slate-200 text-xs font-semibold text-slate-400 uppercase">
-                    <th className="pb-3">Nama Lengkap</th>
-                    <th className="pb-3">Email UNKLAB</th>
-                    <th className="pb-3">Peran (Role)</th>
-                    <th className="pb-3 text-right">Aksi</th>
+                  <tr className="border-b border-slate-700 text-slate-400">
+                    <th className="pb-3 font-bold uppercase">Nama Lengkap</th>
+                    <th className="pb-3 font-bold uppercase">Email Resmi UNKLAB</th>
+                    <th className="pb-3 font-bold uppercase">Peran</th>
+                    <th className="pb-3 font-bold uppercase text-right">Aksi</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 text-sm">
+                <tbody className="divide-y divide-slate-800 text-slate-300">
                   {users.map(u => (
                     <tr key={u.id}>
-                      <td className="py-3.5 font-bold text-slate-800">{u.name}</td>
-                      <td className="py-3.5 text-slate-600 font-mono text-xs">{u.email}</td>
-                      <td className="py-3.5"><span className="px-2.5 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-800">{u.role.toUpperCase()}</span></td>
+                      <td className="py-3.5 font-bold text-white">{u.name}</td>
+                      <td>{u.email}</td>
+                      <td><span className="px-2.5 py-1 bg-amber-400/20 text-amber-400 font-bold rounded-lg text-[10px]">{u.role}</span></td>
                       <td className="py-3.5 text-right">
-                        <button onClick={() => { setUsers(users.filter(x => x.id !== u.id)); alert('Pengguna dihapus.'); }} className="bg-rose-50 text-rose-600 px-3 py-1 rounded-xl text-xs font-bold cursor-pointer">Hapus</button>
+                        <button onClick={() => { setUsers(users.filter(x => x.id !== u.id)); alert('Akun pengguna dihapus.'); }} className="px-3 py-1 bg-red-600/20 text-red-400 font-bold rounded-xl cursor-pointer">Hapus</button>
                       </td>
                     </tr>
                   ))}
@@ -241,73 +195,40 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        {/* 3. KELOLA PRODUK TAB */}
-        {activeAdminTab === 'products' && (
-          <div className="bg-white rounded-3xl p-6 md:p-8 border border-slate-200 shadow-sm">
-            <h2 className="text-xl font-bold text-slate-800 mb-6">Pemantauan & Pengelolaan Produk Kampus (UC-25)</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {products.map(p => (
-                <div key={p.id} className="bg-slate-50 rounded-3xl p-5 border border-slate-200 flex justify-between items-center">
-                  <div>
-                    <h3 className="font-bold text-slate-800">{p.name}</h3>
-                    <p className="text-xs text-slate-500">Tenant: {p.sellerName}</p>
-                    <p className="text-sm font-extrabold text-[#0F2C59] mt-1">Rp {p.price.toLocaleString('id-ID')}</p>
-                  </div>
-                  <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">Aktif</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* 4. KELOLA KATEGORI TAB */}
         {activeAdminTab === 'categories' && (
-          <div className="bg-white rounded-3xl p-6 md:p-8 border border-slate-200 shadow-sm max-w-3xl mx-auto">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold text-slate-800">Manajemen Kategori Produk (UC-26)</h2>
-              <button onClick={handleAddCategory} className="bg-[#0F2C59] text-[#F4CE14] font-bold px-4 py-2.5 rounded-xl text-xs shadow cursor-pointer">
-                + Tambah Kategori
-              </button>
-            </div>
-            <div className="space-y-3">
+          <div className="max-w-2xl mx-auto bg-slate-800/40 border border-slate-800 rounded-3xl p-8 shadow-xl space-y-4">
+            <h3 className="text-sm font-black text-white mb-4">Kelola Kategori Produk Kampus</h3>
+            <div className="space-y-3 text-xs">
               {categories.map(c => (
-                <div key={c.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-200">
-                  <div>
-                    <h4 className="font-bold text-slate-800">{c.name}</h4>
-                    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${c.inUse ? 'bg-blue-100 text-blue-800' : 'bg-slate-200 text-slate-600'}`}>
-                      {c.inUse ? 'Digunakan Produk' : 'Kosong'}
-                    </span>
-                  </div>
-                  <button onClick={() => handleDeleteCategory(c.id, c.name, c.inUse)} className="bg-rose-50 text-rose-600 px-3 py-1.5 rounded-xl text-xs font-bold cursor-pointer">
-                    Hapus
-                  </button>
+                <div key={c.id} className="flex justify-between items-center p-4 bg-slate-900 rounded-2xl border border-slate-700">
+                  <span className="font-bold text-white">{c.name}</span>
+                  <button onClick={() => setCategories(categories.filter(x => x.id !== c.id))} className="px-3 py-1 bg-red-600/20 text-red-400 font-bold rounded-xl cursor-pointer">Hapus</button>
                 </div>
               ))}
             </div>
           </div>
         )}
 
-        {/* 5. TRANSAKSI TAB */}
         {activeAdminTab === 'transactions' && (
-          <div className="bg-white rounded-3xl p-6 md:p-8 border border-slate-200 shadow-sm">
-            <h2 className="text-xl font-bold text-slate-800 mb-6">Melihat & Mengelola Transaksi Kampus (UC-27)</h2>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
+          <div className="bg-slate-800/40 border border-slate-800 rounded-3xl p-8 shadow-xl space-y-4">
+            <h3 className="text-sm font-black text-white mb-4">Rekapitulasi Transaksi Pembeli & Penjual</h3>
+            <div className="overflow-x-auto text-xs">
+              <table className="w-full text-left">
                 <thead>
-                  <tr className="border-b border-slate-200 text-xs font-semibold text-slate-400 uppercase">
-                    <th className="pb-3">ID Transaksi</th>
-                    <th className="pb-3">Pembeli</th>
-                    <th className="pb-3">Tenant Penjual</th>
-                    <th className="pb-3">Total Nominal</th>
+                  <tr className="border-b border-slate-700 text-slate-400">
+                    <th className="pb-3 font-bold uppercase">ID</th>
+                    <th className="pb-3 font-bold uppercase">Pembeli</th>
+                    <th className="pb-3 font-bold uppercase">Tenant Penjual</th>
+                    <th className="pb-3 font-bold uppercase">Total</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 text-sm">
+                <tbody className="divide-y divide-slate-800 text-slate-300">
                   {transactions.map(t => (
                     <tr key={t.id}>
-                      <td className="py-3.5 font-bold text-slate-800">{t.id}</td>
-                      <td className="py-3.5">{t.buyer}</td>
-                      <td className="py-3.5">{t.seller}</td>
-                      <td className="py-3.5 font-extrabold text-[#0F2C59]">Rp {t.total.toLocaleString('id-ID')}</td>
+                      <td className="py-3 font-bold text-amber-400">{t.id}</td>
+                      <td>{t.buyer}</td>
+                      <td>{t.seller}</td>
+                      <td className="font-extrabold text-white">Rp {t.total.toLocaleString('id-ID')}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -316,19 +237,62 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        {/* 6. SETTINGS TAB */}
-        {activeAdminTab === 'settings' && (
-          <div className="max-w-2xl mx-auto bg-white rounded-3xl p-6 md:p-8 border border-slate-200 shadow-sm">
-            <h2 className="text-xl font-bold text-slate-800 mb-6">Pengaturan Komisi & Sistem Marketplace</h2>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1">Persentase Komisi Platform (%)</label>
-                <input type="number" step="0.1" value={settings.platformFee} onChange={(e) => setSettings({...settings, platformFee: parseFloat(e.target.value)})} className="w-full border rounded-xl p-3 text-sm" />
-              </div>
-              <button onClick={() => alert('Pengaturan berhasil disimpan!')} className="w-full bg-[#0F2C59] text-[#F4CE14] font-bold py-3.5 rounded-xl shadow cursor-pointer">
-                Simpan Pengaturan Sistem ✓
-              </button>
+        {activeAdminTab === 'profil' && (
+          <div className="max-w-xl mx-auto bg-slate-800/60 border border-slate-700 rounded-3xl p-8 shadow-xl space-y-6 text-xs">
+            <div>
+              <h2 className="text-xl font-black text-white mb-1">Profil & Keamanan Akun Admin</h2>
+              <p className="text-slate-400">Ubah password secara berkala untuk mencegah akses login yang tidak sah.</p>
             </div>
+
+            <div className="p-4 bg-slate-900 rounded-2xl border border-slate-700 space-y-2">
+              <p><b>Nama:</b> {adminProfile.name}</p>
+              <p><b>Email:</b> {adminProfile.email}</p>
+              <p><b>Peran:</b> <span className="text-amber-400">{adminProfile.role}</span></p>
+              <p><b>No. WhatsApp:</b> {adminProfile.phone}</p>
+            </div>
+
+            <form onSubmit={handlePasswordChange} className="space-y-4 pt-4 border-t border-slate-700">
+              <h3 className="font-bold text-white uppercase tracking-wider">Form Ganti Password Admin</h3>
+              <div>
+                <label className="block text-slate-400 font-bold mb-1">Password Lama</label>
+                <input
+                  type="password"
+                  required
+                  value={passwordForm.oldPassword}
+                  onChange={(e) => setPasswordForm({ ...passwordForm, oldPassword: e.target.value })}
+                  className="w-full px-4 py-3 bg-slate-950 border border-slate-700 rounded-xl text-white"
+                  placeholder="••••••••"
+                />
+              </div>
+              <div>
+                <label className="block text-slate-400 font-bold mb-1">Password Baru</label>
+                <input
+                  type="password"
+                  required
+                  value={passwordForm.newPassword}
+                  onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
+                  className="w-full px-4 py-3 bg-slate-950 border border-slate-700 rounded-xl text-white"
+                  placeholder="••••••••"
+                />
+              </div>
+              <div>
+                <label className="block text-slate-400 font-bold mb-1">Konfirmasi Password Baru</label>
+                <input
+                  type="password"
+                  required
+                  value={passwordForm.confirmPassword}
+                  onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
+                  className="w-full px-4 py-3 bg-slate-950 border border-slate-700 rounded-xl text-white"
+                  placeholder="••••••••"
+                />
+              </div>
+              <button
+                type="submit"
+                className="w-full bg-amber-400 hover:bg-amber-500 text-slate-950 font-extrabold py-3.5 rounded-xl transition shadow cursor-pointer"
+              >
+                Simpan Password Baru ✓
+              </button>
+            </form>
           </div>
         )}
 
