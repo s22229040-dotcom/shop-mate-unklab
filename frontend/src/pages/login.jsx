@@ -9,18 +9,16 @@ export default function Login() {
 
   const [formData, setFormData] = useState({
     name: '',
-    regNumber: '',
     email: '',
     password: '',
     buyerOrSeller: 'Pembeli (Buyer)',
     address: ''
   });
 
-  // Database lokal penyimpanan akun civitas terdaftar (menyimpan data secara persisten selama sesi)
+  // Database memori lokal akun terdaftar (menyimpan data secara persisten selama sesi)
   const [registeredAccounts, setRegisteredAccounts] = useState([
     {
       name: 'Michael Tendean',
-      regNumber: '12320526',
       email: '12320526@student.unklab.ac.id',
       password: 'password123',
       role: 'Student (Mahasiswa)',
@@ -29,7 +27,6 @@ export default function Login() {
     },
     {
       name: 'Kantin Asri UNKLAB',
-      regNumber: '12210987',
       email: '12210987@student.unklab.ac.id',
       password: 'seller123',
       role: 'Penjual',
@@ -38,7 +35,6 @@ export default function Login() {
     },
     {
       name: 'Dr. Citra Lestari',
-      regNumber: 'STAFF001',
       email: 'citra.lestari@unklab.ac.id',
       password: 'dosen123',
       role: 'Dosen / Staff',
@@ -47,7 +43,6 @@ export default function Login() {
     },
     {
       name: 'Administrator Sistem',
-      regNumber: 'ADMIN01',
       email: 'admin@unklab.ac.id',
       password: 'admin123',
       role: 'Admin',
@@ -62,8 +57,6 @@ export default function Login() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
-    const inputReg = formData.regNumber.trim();
     const inputEmail = formData.email.trim().toLowerCase();
 
     // 1. Validasi Login Admin Khusus
@@ -80,23 +73,21 @@ export default function Login() {
 
     // 2. Mode Pendaftaran (Register)
     if (mode === 'register') {
-      const existingReg = registeredAccounts.find(acc => acc.regNumber.toLowerCase() === inputReg.toLowerCase());
-      if (existingReg) {
-        alert('Maaf, Nomor Registrasi ini sudah terdaftar! Akun Anda sudah ada, silakan langsung login.');
+      const existingEmail = registeredAccounts.find(acc => acc.email.toLowerCase() === inputEmail);
+      if (existingEmail) {
+        alert('Maaf, email ini sudah terdaftar! Akun Anda sudah ada, silakan langsung login.');
         setMode('login');
         return;
       }
 
-      const existingEmail = registeredAccounts.find(acc => acc.email.toLowerCase() === inputEmail);
-      if (existingEmail) {
-        alert('Maaf, email ini sudah terdaftar dalam sistem!');
-        setMode('login');
+      const existingName = registeredAccounts.find(acc => acc.name.toLowerCase() === formData.name.trim().toLowerCase());
+      if (existingName) {
+        alert('Maaf, nama lengkap tersebut sudah digunakan oleh akun lain.');
         return;
       }
 
       const newAcc = { 
         ...formData, 
-        regNumber: inputReg,
         email: inputEmail,
         role: selectedRole 
       };
@@ -104,25 +95,21 @@ export default function Login() {
       setRegisteredAccounts([...registeredAccounts, newAcc]);
       alert('Registrasi akun berhasil dan disimpan! Silakan lakukan login.');
       setMode('login');
-      setFormData({ name: '', regNumber: '', email: '', password: '', buyerOrSeller: 'Pembeli (Buyer)', address: '' });
+      setFormData({ name: '', email: '', password: '', buyerOrSeller: 'Pembeli (Buyer)', address: '' });
     
     } 
-    // 3. Mode Masuk (Login) berdasarkan Nomor Registrasi / No. Reg
+    // 3. Mode Masuk (Login) Berdasarkan Email Resmi UNKLAB (Nomor Registrasi di Depan)
     else if (mode === 'login') {
-      const matchedAccount = registeredAccounts.find(
-        acc => acc.regNumber.toLowerCase() === inputReg.toLowerCase() || acc.email.toLowerCase() === inputEmail
-      );
+      const matchedAccount = registeredAccounts.find(acc => acc.email.toLowerCase() === inputEmail);
 
-      // Jika nomor reg atau akun belum terdaftar sama sekali
       if (!matchedAccount) {
-        alert('Maaf, Nomor Registrasi (No. Reg) belum terdaftar! Silakan lakukan registrasi terlebih dahulu.');
+        alert('Maaf, Email Resmi UNKLAB belum terdaftar atau belum pernah melakukan registrasi. Silakan lakukan registrasi terlebih dahulu!');
         setMode('register');
         return;
       }
 
-      // Jika nomor reg benar tapi password salah -> Arahkan ke fitur Lupa Password
       if (matchedAccount.password !== formData.password) {
-        alert('Password salah untuk Nomor Registrasi ini! Silakan gunakan menu "Lupa password?" di bawah untuk memperbarui sandi.');
+        alert('Password salah untuk email ini! Silakan gunakan menu "Lupa password?" di bawah untuk memperbarui sandi.');
         setMode('forgot');
         return;
       }
@@ -142,20 +129,18 @@ export default function Login() {
     } 
     // 4. Mode Lupa Password (Forgot)
     else if (mode === 'forgot') {
-      const account = registeredAccounts.find(
-        acc => acc.regNumber.toLowerCase() === inputReg.toLowerCase() || acc.email.toLowerCase() === inputEmail
-      );
+      const account = registeredAccounts.find(acc => acc.email.toLowerCase() === inputEmail);
 
       if (!account) {
-        alert('Nomor Registrasi atau Email tidak ditemukan dalam database sistem kampus. Silakan registrasi baru.');
+        alert('Email tidak ditemukan dalam database sistem kampus kami. Silakan registrasi baru.');
         setMode('register');
         return;
       }
       
       account.password = formData.password;
-      alert(`Password baru berhasil diperbarui untuk akun ${account.name} (No. Reg: ${account.regNumber})! Silakan login.`);
+      alert(`Password baru berhasil diperbarui untuk akun ${account.name} (${account.email})! Silakan login.`);
       setMode('login');
-      setFormData({ name: '', regNumber: '', email: '', password: '', buyerOrSeller: 'Pembeli (Buyer)', address: '' });
+      setFormData({ name: '', email: '', password: '', buyerOrSeller: 'Pembeli (Buyer)', address: '' });
     }
   };
 
@@ -176,7 +161,7 @@ export default function Login() {
             </div>
             <h1 className="text-2xl font-black tracking-tight text-white drop-shadow-md">Shop-Mate UNKLAB</h1>
             <p className="text-xs text-amber-200 leading-relaxed font-medium drop-shadow">
-              Platform e-commerce eksklusif civitas akademika Universitas Klabat menggunakan Nomor Registrasi Mahasiswa & Tenant.
+              Platform e-commerce eksklusif civitas akademika Universitas Klabat menggunakan Email Resmi Kampus.
             </p>
           </div>
           <div className="absolute bottom-6 text-[10px] text-amber-300 z-10 font-semibold">
@@ -191,7 +176,7 @@ export default function Login() {
               <h2 className="text-xl font-black text-[#3a105c] tracking-wide">Universitas Klabat</h2>
               <p className="text-xs text-slate-500 mt-0.5 font-medium">
                 {mode === 'register' && 'Form Registrasi Akun Civitas'}
-                {mode === 'login' && 'Silakan masukkan No. Registrasi & Password'}
+                {mode === 'login' && 'Silakan masukkan Email Resmi & Password'}
                 {mode === 'forgot' && 'Pemulihan / Reset Password Akun'}
               </p>
             </div>
@@ -255,21 +240,7 @@ export default function Login() {
                 </>
               )}
 
-              {/* INPUT NOMOR REGISTRASI / NO. REG */}
-              <div>
-                <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">Nomor Registrasi / No. Reg / NIM</label>
-                <input
-                  type="text"
-                  name="regNumber"
-                  required
-                  placeholder="Contoh: 12320526 atau S22219041"
-                  value={formData.regNumber}
-                  onChange={handleChange}
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800"
-                />
-              </div>
-
-              {/* INPUT EMAIL KAMPUS */}
+              {/* INPUT EMAIL KAMPUS (MENGGANTIKAN NO. REG DI TAMPILAN LOGIN) */}
               <div>
                 <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">Email Resmi UNKLAB</label>
                 <input
