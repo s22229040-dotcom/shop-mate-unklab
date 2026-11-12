@@ -27,13 +27,13 @@ export default function Login() {
     }
     return [
       {
-        name: 'Mahasiswa Contoh UNKLAB',
-        email: '12320526@student.unklab.ac.id',
+        name: 'Kartika Sari',
+        email: 's22229040@student.unklab.ac.id',
         phone: '081234567890',
         password: 'password123',
         role: 'Student (Mahasiswa)',
         buyerOrSeller: 'Pembeli (Buyer)',
-        address: 'Asrama Putra UNKLAB'
+        address: 'kost/filkom'
       },
       {
         name: 'Kantin Asri UNKLAB',
@@ -114,7 +114,7 @@ export default function Login() {
         return;
       }
 
-      // SIMPAN SESI AKUN YANG SEDANG AKTIF DI LOCALSTORAGE
+      // SIMPAN SESI AKUN AKTIF
       localStorage.setItem('shopmate_active_user', JSON.stringify(matchedAccount));
 
       alert(`Login Berhasil! Selamat datang kembali, ${matchedAccount.name}.`);
@@ -124,7 +124,7 @@ export default function Login() {
       } else if (matchedAccount.role === 'Penjual' || matchedAccount.buyerOrSeller.includes('Penjual')) {
         navigate('/seller-dashboard');
       } else {
-        navigate('/dashboard');
+        navigate('/dashboard'); // Diarahkan ke Katalog Pembeli
       }
     }
   };
@@ -177,13 +177,13 @@ export default function Login() {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">Nomor HP</label>
+                    <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">Nomor WhatsApp</label>
                     <input type="text" name="phone" required placeholder="Contoh: 081234567890" value={formData.phone} onChange={handleChange}
                       className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800" />
                   </div>
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">Alamat</label>
-                    <input type="text" name="address" required placeholder="Contoh: Asrama Putra / Fakultas Fasilkom" value={formData.address} onChange={handleChange}
+                    <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">Alamat (Contoh: Outsider / Jasmine Kamar 203)</label>
+                    <input type="text" name="address" required placeholder="Masukkan alamat atau lokasi anda" value={formData.address} onChange={handleChange}
                       className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800" />
                   </div>
                 </>
@@ -191,7 +191,7 @@ export default function Login() {
 
               <div>
                 <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">Email Resmi UNKLAB</label>
-                <input type="email" name="email" required placeholder="Contoh: 12320526@student.unklab.ac.id" value={formData.email} onChange={handleChange}
+                <input type="email" name="email" required placeholder="Contoh: s22229040@student.unklab.ac.id" value={formData.email} onChange={handleChange}
                   className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800" />
               </div>
 

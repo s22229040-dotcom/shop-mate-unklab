@@ -36,7 +36,7 @@ export default function BuyerProfile() {
   return (
     <div className="min-h-screen bg-[#131b2e] font-sans text-white">
       
-      {/* NAVBAR ATAS */}
+      {/* NAVBAR ATAS (Sudah Berfungsi Penuh) */}
       <div className="bg-[#0b101d] px-8 py-4 flex justify-between items-center border-b border-slate-800">
         <div className="flex items-center space-x-3 cursor-pointer" onClick={() => navigate('/dashboard')}>
           <div className="w-10 h-10 bg-amber-400 rounded-xl flex items-center justify-center text-slate-900 font-black">🛒</div>
@@ -49,14 +49,14 @@ export default function BuyerProfile() {
           <button onClick={() => navigate('/dashboard')} className="hover:text-amber-400 transition cursor-pointer">Katalog</button>
           <button onClick={() => navigate('/cart')} className="hover:text-amber-400 transition cursor-pointer">Keranjang</button>
           <button onClick={() => navigate('/notifications')} className="hover:text-amber-400 transition cursor-pointer">Notifikasi</button>
-          <span className="bg-amber-400 text-slate-900 px-4 py-2 rounded-xl font-extrabold shadow">Profil Saya</span>
+          <button onClick={() => navigate('/profile')} className="bg-amber-400 text-slate-900 px-4 py-2 rounded-xl font-extrabold shadow cursor-pointer">Profil Saya</button>
           <button onClick={() => { localStorage.removeItem('shopmate_active_user'); navigate('/login'); }} className="bg-rose-500/20 text-rose-400 px-4 py-2 rounded-xl font-bold hover:bg-rose-500/30 transition cursor-pointer">
             Keluar
           </button>
         </div>
       </div>
 
-      {/* KONTEN UTAMA */}
+      {/* KONTEN UTAMA PROFIL */}
       <div className="max-w-3xl mx-auto mt-10 p-8 bg-[#1e293b] rounded-3xl shadow-2xl border border-slate-700">
         <div className="flex justify-between items-center mb-6 border-b border-slate-700 pb-4">
           <h2 className="text-lg font-black text-white">Profil Pembeli Civitas</h2>
