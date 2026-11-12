@@ -6,14 +6,15 @@ export default function Login() {
   const [isRegistering, setIsRegistering] = useState(false);
   const [isForgotPass, setIsForgotPass] = useState(false);
   
-  // State form
-  const [role, setRole] = useState('Pembeli');
+  // State form Login (dengan pilihan 4 peran) & Registrasi (Pembeli/Penjual)
+  const [loginRole, setLoginRole] = useState('Student (Mahasiswa)');
+  const [registerRole, setRegisterRole] = useState('Pembeli');
+  
   const [fullName, setFullName] = useState('');
   const [address, setAddress] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
 
   const handleAuth = (e) => {
     e.preventDefault();
@@ -24,22 +25,24 @@ export default function Login() {
         return;
       }
       localStorage.setItem('shopmate_reset_email', email);
-      alert(`Link pemulihan sandi telah dikirim ke email ${email}. Silakan buat password baru.`);
+      alert(`Instruksi pemulihan sandi telah dikirim ke email ${email}.`);
       setIsForgotPass(false);
     } else if (isRegistering) {
-      // Logika Registrasi
-      const newUser = { role, fullName, address, phone, email, password };
+      // Logika Registrasi (Nama Lengkap, Alamat, No HP, Email, Password, Peran Pembeli/Penjual)
+      const newUser = { role: registerRole, fullName, address, phone, email, password };
       localStorage.setItem('shopmate_registered_user', JSON.stringify(newUser));
       alert('Registrasi berhasil! Silakan masuk.');
       setIsRegistering(false);
     } else {
-      // Logika Login
+      // Logika Login Berdasarkan Peran yang dipilih di awal
       localStorage.setItem('shopmate_active_user', email);
       
-      if (email.includes('admin')) {
+      if (loginRole.includes('Admin') || email.includes('admin')) {
         navigate('/admin-dashboard');
-      } else if (role === 'Penjual') {
+      } else if (loginRole.includes('Penjual')) {
         navigate('/seller-dashboard');
+      } else if (loginRole.includes('Dosen')) {
+        navigate('/faculty-dashboard');
       } else {
         navigate('/dashboard');
       }
@@ -82,22 +85,40 @@ export default function Login() {
               ? 'Masukkan email kampus Anda untuk mereset sandi.' 
               : isRegistering 
               ? 'Lengkapi data diri untuk mendaftarkan akun baru.' 
-              : 'Silakan masuk menggunakan email kampus terdaftar.'}
+              : 'Pilih peran dan masuk menggunakan email kampus terdaftar.'}
           </p>
 
           <form onSubmit={handleAuth} className="space-y-3">
-            {/* TAMPILAN KETIKA REGISTRASI */}
+            
+            {/* 1. PILIHAN PERAN KETIKA LOGIN (4 Peran) */}
+            {!isRegistering && !isForgotPass && (
+              <div>
+                <label className="text-[11px] font-bold text-amber-400 uppercase tracking-wider">Pilih Peran / Status Anda</label>
+                <select value={loginRole} onChange={(e) => setLoginRole(e.target.value)} 
+                  className="w-full mt-1 bg-[#1e293b] border border-amber-400/40 rounded-xl px-4 py-2.5 text-xs text-white font-bold focus:outline-none focus:border-amber-400 shadow-inner">
+                  <option value="Student (Mahasiswa)">Student (Mahasiswa)</option>
+                  <option value="Dosen / Staff">Dosen / Staff</option>
+                  <option value="Penjual / Tenant">Penjual / Tenant</option>
+                  <option value="Admin">Admin</option>
+                </select>
+              </div>
+            )}
+
+            {/* 2. PILIHAN PERAN KETIKA REGISTRASI (Pembeli / Penjual) */}
+            {isRegistering && !isForgotPass && (
+              <div>
+                <label className="text-[11px] font-bold text-amber-400 uppercase tracking-wider">Pilih Peran / Status Anda</label>
+                <select value={registerRole} onChange={(e) => setRegisterRole(e.target.value)} 
+                  className="w-full mt-1 bg-[#1e293b] border border-amber-400/40 rounded-xl px-4 py-2 text-xs text-white font-bold focus:outline-none focus:border-amber-400 shadow-inner">
+                  <option value="Pembeli">Pembeli</option>
+                  <option value="Penjual">Penjual</option>
+                </select>
+              </div>
+            )}
+
+            {/* 3. FIELD TAMBAHAN KHUSUS REGISTRASI (Nama, Alamat, No HP) */}
             {isRegistering && !isForgotPass && (
               <>
-                <div>
-                  <label className="text-[11px] font-bold text-amber-400 uppercase tracking-wider">Pilih Peran / Status Anda</label>
-                  <select value={role} onChange={(e) => setRole(e.target.value)} 
-                    className="w-full mt-1 bg-[#1e293b] border border-amber-400/40 rounded-xl px-4 py-2 text-xs text-white font-bold focus:outline-none focus:border-amber-400 shadow-inner">
-                    <option value="Pembeli">Pembeli</option>
-                    <option value="Penjual">Penjual</option>
-                  </select>
-                </div>
-
                 <div>
                   <label className="text-[11px] font-bold text-slate-300 uppercase">Nama Lengkap</label>
                   <input type="text" placeholder="Masukkan nama lengkap" value={fullName} onChange={(e) => setFullName(e.target.value)} required
@@ -118,14 +139,14 @@ export default function Login() {
               </>
             )}
 
-            {/* INPUT EMAIL (Selalu Muncul) */}
+            {/* INPUT EMAIL */}
             <div>
               <label className="text-[11px] font-bold text-slate-300 uppercase">Email Resmi Unklab</label>
               <input type="email" placeholder="Contoh: s12345678@student.unklab.ac.id" value={email} onChange={(e) => setEmail(e.target.value)} required
                 className="w-full mt-1 bg-[#1e293b] border border-slate-700 rounded-xl px-4 py-2 text-xs text-white focus:outline-none focus:border-amber-400" />
             </div>
 
-            {/* INPUT PASSWORD (Tidak muncul saat mode Lupa Password) */}
+            {/* INPUT PASSWORD */}
             {!isForgotPass && (
               <div>
                 <label className="text-[11px] font-bold text-slate-300 uppercase">
@@ -142,7 +163,7 @@ export default function Login() {
             </button>
           </form>
 
-          {/* LINK NAVIGASI BAWAH (Lupa Password & Pindah Form) */}
+          {/* LINK NAVIGASI BAWAH */}
           <div className="mt-5 space-y-2 text-center">
             {!isForgotPass && !isRegistering && (
               <div>
