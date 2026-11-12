@@ -7,30 +7,18 @@ import AdminDashboard from './pages/AdminDashboard';
 import FacultyDashboard from './pages/FacultyDashboard';
 import Profile from './pages/Profile';
 
-function App() {
+export default function App() {
   return (
     <Router>
       <Routes>
-        {/* Halaman Utama / Login & Registrasi */}
         <Route path="/" element={<Login />} />
-        
-        {/* Halaman Dashboard Pembeli / Mahasiswa */}
+        <Route path="/login" element={<Login />} />
         <Route path="/dashboard" element={<Dashboard />} />
-        
-        {/* Halaman Profil Pembeli */}
-        <Route path="/profile" element={<Profile />} />
-
-        {/* Halaman Dashboard Penjual / Tenant Kampus */}
         <Route path="/seller-dashboard" element={<SellerDashboard />} />
-        
-        {/* Halaman Dashboard Administrator Sistem */}
         <Route path="/admin-dashboard" element={<AdminDashboard />} />
-        
-        {/* Halaman Portal Dosen & Staff */}
         <Route path="/faculty-dashboard" element={<FacultyDashboard />} />
+        <Route path="/profile" element={<Profile />} />
       </Routes>
     </Router>
   );
 }
-
-export default App;
