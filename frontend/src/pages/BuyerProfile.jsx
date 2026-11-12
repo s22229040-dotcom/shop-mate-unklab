@@ -11,7 +11,7 @@ export default function BuyerProfile() {
       name: 'Kartika Sari',
       email: 's22229040@student.unklab.ac.id',
       phone: '081234567890',
-      address: 'Jasmine Kamar 203'
+      address: 'kost/filkom'
     };
   });
 
@@ -36,7 +36,7 @@ export default function BuyerProfile() {
   return (
     <div className="min-h-screen bg-[#131b2e] font-sans text-white">
       
-      {/* NAVBAR ATAS (Menu sudah bisa diklik/diakses) */}
+      {/* NAVBAR ATAS */}
       <div className="bg-[#0b101d] px-8 py-4 flex justify-between items-center border-b border-slate-800">
         <div className="flex items-center space-x-3 cursor-pointer" onClick={() => navigate('/dashboard')}>
           <div className="w-10 h-10 bg-amber-400 rounded-xl flex items-center justify-center text-slate-900 font-black">🛒</div>
