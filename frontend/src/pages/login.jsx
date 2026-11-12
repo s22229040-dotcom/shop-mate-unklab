@@ -10,6 +10,7 @@ export default function Login() {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
+    phone: '', // Kolom baru untuk nomor HP
     password: '',
     buyerOrSeller: 'Pembeli (Buyer)',
     address: ''
@@ -25,11 +26,12 @@ export default function Login() {
         console.error("Gagal memuat data akun lokal", e);
       }
     }
-    // Contoh akun default umum kampus (bebas privasi pribadi)
+    // Akun default awal sistem kampus
     return [
       {
         name: 'Mahasiswa Contoh UNKLAB',
         email: '12320526@student.unklab.ac.id',
+        phone: '081234567890',
         password: 'password123',
         role: 'Student (Mahasiswa)',
         buyerOrSeller: 'Pembeli (Buyer)',
@@ -38,6 +40,7 @@ export default function Login() {
       {
         name: 'Kantin Asri UNKLAB',
         email: 'tenantkantin@student.unklab.ac.id',
+        phone: '082198765432',
         password: 'seller123',
         role: 'Penjual',
         buyerOrSeller: 'Penjual (Seller/Tenant)',
@@ -46,6 +49,7 @@ export default function Login() {
       {
         name: 'Dr. Dosen UNKLAB',
         email: 'dosen.unklab@unklab.ac.id',
+        phone: '081122334455',
         password: 'dosen123',
         role: 'Dosen / Staff',
         buyerOrSeller: 'Staff Kampus',
@@ -54,6 +58,7 @@ export default function Login() {
       {
         name: 'Administrator Sistem',
         email: 'admin@unklab.ac.id',
+        phone: '080000000000',
         password: 'admin123',
         role: 'Admin',
         buyerOrSeller: 'Admin',
@@ -113,21 +118,19 @@ export default function Login() {
       
       alert('Registrasi akun berhasil dan tersimpan permanen! Silakan lakukan login.');
       setMode('login');
-      setFormData({ name: '', email: '', password: '', buyerOrSeller: 'Pembeli (Buyer)', address: '' });
+      setFormData({ name: '', email: '', phone: '', password: '', buyerOrSeller: 'Pembeli (Buyer)', address: '' });
     
     } 
     // 3. Mode Masuk (Login)
     else if (mode === 'login') {
       const matchedAccount = registeredAccounts.find(acc => acc.email.toLowerCase() === inputEmail);
 
-      // Jika email belum pernah terdaftar sama sekali
       if (!matchedAccount) {
         alert('Maaf, Email Resmi UNKLAB belum terdaftar atau belum pernah melakukan registrasi. Silakan lakukan registrasi terlebih dahulu!');
         setMode('register');
         return;
       }
 
-      // Jika password salah
       if (matchedAccount.password !== formData.password) {
         alert('Password salah untuk email ini! Silakan gunakan menu "Lupa password?" di bawah untuk memperbarui sandi.');
         setMode('forgot');
@@ -136,7 +139,6 @@ export default function Login() {
 
       alert(`Login Berhasil! Selamat datang kembali, ${matchedAccount.name}.`);
       
-      // Arahkan ke halaman sesuai peran
       if (matchedAccount.role === 'Admin') {
         navigate('/admin-dashboard');
       } else if (matchedAccount.role === 'Penjual' || matchedAccount.buyerOrSeller.includes('Penjual')) {
@@ -164,7 +166,7 @@ export default function Login() {
 
       alert(`Password baru berhasil diperbarui untuk akun (${inputEmail})! Silakan login.`);
       setMode('login');
-      setFormData({ name: '', email: '', password: '', buyerOrSeller: 'Pembeli (Buyer)', address: '' });
+      setFormData({ name: '', email: '', phone: '', password: '', buyerOrSeller: 'Pembeli (Buyer)', address: '' });
     }
   };
 
@@ -172,7 +174,7 @@ export default function Login() {
     <div className="min-h-screen bg-[#2d0c4a] flex items-center justify-center p-4 font-sans">
       <div className="bg-white rounded-3xl overflow-hidden shadow-2xl max-w-4xl w-full grid grid-cols-1 md:grid-cols-2">
         
-        {/* SISI KIRI */}
+        {/* SISI KIRI: Background Kampus Nuansa Ungu & Kuning UNKLAB */}
         <div 
           className="p-8 flex flex-col justify-center items-center text-center text-white relative bg-cover bg-center"
           style={{ 
@@ -193,7 +195,7 @@ export default function Login() {
           </div>
         </div>
 
-        {/* SISI KANAN */}
+        {/* SISI KANAN: Form Autentikasi */}
         <div className="p-8 flex flex-col justify-between bg-white overflow-y-auto max-h-[90vh]">
           <div>
             <div className="text-center mb-5">
@@ -250,7 +252,19 @@ export default function Login() {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">Alamat Lengkap / Asrama / Fakultas</label>
+                    <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">Nomor HP</label>
+                    <input
+                      type="text"
+                      name="phone"
+                      required
+                      placeholder="Contoh: 081234567890"
+                      value={formData.phone}
+                      onChange={handleChange}
+                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">Alamat</label>
                     <input
                       type="text"
                       name="address"
