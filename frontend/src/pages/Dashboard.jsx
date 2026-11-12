@@ -1,50 +1,29 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-export default function BuyerProfile() {
+export default function Dashboard() {
   const navigate = useNavigate();
+  const [cart, setCart] = useState([]);
+  const [selectedProduct, setSelectedProduct] = useState(null); // Untuk Modal Detail Produk
 
-  // State untuk mode edit (false = lihat profil, true = sedang edit)
-  const [isEditing, setIsEditing] = useState(false);
+  // Daftar produk sesuai SRS (Lanyard, Makanan, Minuman)
+  const products = [
+    { id: 1, category: 'Atribut Kampus', name: 'Lanyard Resmi UNKLAB Premium', price: 25000, tenant: 'Koperasi UNKLAB', phone: '6281234567891', image: '/download.jpg', desc: 'Lanyard resmi standar universitas dengan bahan berkualitas tinggi dan pengait kokoh.' },
+    { id: 2, category: 'Makanan', name: 'Nasi Kuning Special Asrama', price: 15000, tenant: 'Kantin Asrama Putra', phone: '6281298765432', image: '/download.jpg', desc: 'Nasi kuning hangat lengkap dengan abon, telur, sambal khas kantin asrama.' },
+    { id: 3, category: 'Minuman', name: 'Air Mineral Aqua / Cleo 600ml', price: 4000, tenant: 'Tenant Fasilkom', phone: '6281355556666', image: '/download.jpg', desc: 'Air mineral segar ukuran 600ml untuk menemani aktivitas kuliah Anda.' },
+    { id: 4, category: 'Minuman', name: 'Es Teh Manis Segar Kampus', price: 5000, tenant: 'Kantin Utama', phone: '6281112223334', image: '/download.jpg', desc: 'Es teh manis segar pelepas dahaga di tengah cuaca kampus.' }
+  ];
 
-  // Mengambil data pengguna aktif dari localStorage
-  const [profile, setProfile] = useState(() => {
-    const activeUser = localStorage.getItem('shopmate_active_user');
-    return activeUser ? JSON.parse(activeUser) : {
-      name: 'Michael Tendean',
-      email: 's22229040@student.unklab.ac.id',
-      phone: '081234567890',
-      address: 'Asrama Putra UNKLAB, Kamar 204'
-    };
-  });
-
-  const handleChange = (e) => {
-    setProfile({ ...profile, [e.target.name]: e.target.value });
-  };
-
-  const handleSave = (e) => {
-    e.preventDefault();
-    
-    // 1. Simpan pembaruan ke sesi aktif
-    localStorage.setItem('shopmate_active_user', JSON.stringify(profile));
-
-    // 2. Sinkronkan juga ke daftar utama akun (shopmate_accounts)
-    let allAccounts = JSON.parse(localStorage.getItem('shopmate_accounts')) || [];
-    allAccounts = allAccounts.map(acc => 
-      acc.email.toLowerCase() === profile.email.toLowerCase() ? { ...acc, phone: profile.phone, address: profile.address } : acc
-    );
-    localStorage.setItem('shopmate_accounts', JSON.stringify(allAccounts));
-
-    setIsEditing(false);
-    alert('Nomor HP dan Alamat berhasil diperbarui secara permanen!');
+  const addToCart = (product) => {
+    setCart([...cart, product]);
+    alert(`Berhasil menambahkan "${product.name}" ke Keranjang!`);
   };
 
   return (
     <div className="min-h-screen bg-[#131b2e] font-sans text-white">
-      
       {/* NAVBAR ATAS */}
-      <div className="bg-[#0b101d] px-8 py-4 flex justify-between items-center border-b border-slate-800">
-        <div className="flex items-center space-x-3">
+      <div className="bg-[#0b101d] px-8 py-4 flex justify-between items-center border-b border-slate-800 sticky top-0 z-50">
+        <div className="flex items-center space-x-3 cursor-pointer" onClick={() => navigate('/dashboard')}>
           <div className="w-10 h-10 bg-amber-400 rounded-xl flex items-center justify-center text-slate-900 font-black">🛒</div>
           <div>
             <h1 className="text-sm font-black tracking-wider text-white">SHOP-MATE UNKLAB</h1>
@@ -52,103 +31,84 @@ export default function BuyerProfile() {
           </div>
         </div>
         <div className="flex items-center space-x-6 text-xs font-semibold">
-          <button onClick={() => navigate('/dashboard')} className="hover:text-amber-400 transition cursor-pointer">Katalog</button>
-          <button onClick={() => navigate('/cart')} className="hover:text-amber-400 transition cursor-pointer">Keranjang</button>
+          <span className="text-amber-400 font-bold cursor-pointer">Katalog</span>
+          <button onClick={() => navigate('/cart')} className="hover:text-amber-400 transition cursor-pointer relative">
+            Keranjang {cart.length > 0 && <span className="absolute -top-2 -right-4 bg-rose-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-bold">{cart.length}</span>}
+          </button>
           <button onClick={() => navigate('/notifications')} className="hover:text-amber-400 transition cursor-pointer">Notifikasi</button>
-          <span className="bg-amber-400 text-slate-900 px-4 py-2 rounded-xl font-extrabold shadow">Profil Saya</span>
+          <button onClick={() => navigate('/profile')} className="hover:text-amber-400 transition cursor-pointer">Profil Saya</button>
           <button onClick={() => { localStorage.removeItem('shopmate_active_user'); navigate('/login'); }} className="bg-rose-500/20 text-rose-400 px-4 py-2 rounded-xl font-bold hover:bg-rose-500/30 transition cursor-pointer">
-            ← Keluar
+            Keluar
           </button>
         </div>
       </div>
 
-      {/* KONTEN UTAMA PROFIL */}
-      <div className="max-w-3xl mx-auto mt-12 p-8 bg-[#1e293b] rounded-3xl shadow-2xl border border-slate-700">
-        <div className="flex justify-between items-center mb-6 border-b border-slate-700 pb-4">
-          <h2 className="text-lg font-black text-white">Profil Pembeli Civitas</h2>
-          {!isEditing && (
-            <button 
-              onClick={() => setIsEditing(true)} 
-              className="bg-amber-400 hover:bg-amber-500 text-slate-900 px-4 py-2 rounded-xl text-xs font-extrabold shadow transition cursor-pointer"
-            >
-              ✏️ Edit Profil (HP & Alamat)
-            </button>
-          )}
+      {/* KONTEN KATALOG UTAMA */}
+      <div className="max-w-6xl mx-auto px-6 py-10">
+        <div className="mb-8">
+          <h2 className="text-2xl font-black text-white">Katalog Produk Kampus</h2>
+          <p className="text-xs text-slate-400 mt-1">Temukan berbagai kebutuhan kuliah, makanan, dan minuman dari tenant resmi UNKLAB.</p>
         </div>
 
-        {!isEditing ? (
-          /* TAMPILAN INFORMASI BIASA */
-          <div className="space-y-4">
-            <div className="bg-[#131b2e] p-4 rounded-2xl border border-slate-700 flex justify-between items-center">
-              <span className="text-xs text-slate-400 font-bold uppercase">Nama:</span>
-              <span className="text-sm font-bold text-white">{profile.name}</span>
-            </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {products.map((item) => (
+            <div key={item.id} className="bg-[#1e293b] rounded-2xl overflow-hidden border border-slate-700 shadow-xl flex flex-col justify-between">
+              <div>
+                <div className="h-40 bg-slate-800 flex items-center justify-center text-slate-500 font-bold overflow-hidden relative">
+                  <span className="absolute top-3 left-3 bg-amber-400/90 text-slate-900 text-[10px] font-extrabold px-2.5 py-1 rounded-lg">
+                    {item.category}
+                  </span>
+                  🛒 Produk UNKLAB
+                </div>
+                <div className="p-5">
+                  <p className="text-[11px] text-amber-400 font-bold uppercase">Tenant: {item.tenant}</p>
+                  <h3 className="text-sm font-black text-white mt-1">{item.name}</h3>
+                  <p className="text-xs font-extrabold text-amber-300 mt-2">Rp {item.price.toLocaleString()}</p>
+                  <p className="text-[11px] text-slate-400 mt-2">💬 WhatsApp: {item.phone}</p>
+                </div>
+              </div>
 
-            <div className="bg-[#131b2e] p-4 rounded-2xl border border-slate-700 flex justify-between items-center">
-              <span className="text-xs text-slate-400 font-bold uppercase">Email UNKLAB:</span>
-              <span className="text-sm font-bold text-amber-300">{profile.email}</span>
+              <div className="p-5 pt-0 flex gap-2">
+                <button onClick={() => setSelectedProduct(item)}
+                  className="flex-1 bg-slate-700 hover:bg-slate-600 text-white font-bold py-2.5 rounded-xl text-xs transition cursor-pointer">
+                  Detail
+                </button>
+                <button onClick={() => addToCart(item)}
+                  className="flex-1 bg-amber-400 hover:bg-amber-500 text-slate-900 font-extrabold py-2.5 rounded-xl text-xs transition shadow cursor-pointer">
+                  + Keranjang
+                </button>
+              </div>
             </div>
+          ))}
+        </div>
+      </div>
 
-            <div className="bg-[#131b2e] p-4 rounded-2xl border border-slate-700 flex justify-between items-center">
-              <span className="text-xs text-slate-400 font-bold uppercase">Nomor WhatsApp / HP:</span>
-              <span className="text-sm font-bold text-white">{profile.phone}</span>
+      {/* MODAL DETAIL PRODUK */}
+      {selectedProduct && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+          <div className="bg-[#1e293b] max-w-lg w-full p-6 rounded-3xl border border-slate-700 shadow-2xl relative">
+            <h3 className="text-lg font-black text-white mb-2">{selectedProduct.name}</h3>
+            <p className="text-xs text-amber-400 font-bold mb-4">Tenant: {selectedProduct.tenant}</p>
+            <p className="text-xs text-slate-300 bg-[#131b2e] p-4 rounded-2xl border border-slate-700 mb-4 leading-relaxed">
+              {selectedProduct.desc}
+            </p>
+            <div className="flex justify-between items-center mb-6">
+              <span className="text-sm font-extrabold text-amber-300">Harga: Rp {selectedProduct.price.toLocaleString()}</span>
+              <span className="text-xs text-slate-400">Kontak: {selectedProduct.phone}</span>
             </div>
-
-            <div className="bg-[#131b2e] p-4 rounded-2xl border border-slate-700 flex justify-between items-center">
-              <span className="text-xs text-slate-400 font-bold uppercase">Alamat / Asrama:</span>
-              <span className="text-sm font-bold text-white">{profile.address}</span>
-            </div>
-
-            <div className="pt-4 text-center">
-              <button 
-                onClick={() => navigate('/dashboard')} 
-                className="w-full bg-amber-400 hover:bg-amber-500 text-slate-900 font-extrabold py-3 rounded-xl transition text-xs shadow-lg cursor-pointer"
-              >
-                ← Kembali ke Katalog Belanja
+            <div className="flex gap-3">
+              <button onClick={() => { addToCart(selectedProduct); setSelectedProduct(null); }}
+                className="flex-1 bg-amber-400 hover:bg-amber-500 text-slate-900 font-extrabold py-3 rounded-xl text-xs transition cursor-pointer">
+                Tambah ke Keranjang
+              </button>
+              <button onClick={() => setSelectedProduct(null)}
+                className="px-6 bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 rounded-xl text-xs transition cursor-pointer">
+                Tutup
               </button>
             </div>
           </div>
-        ) : (
-          /* FORM EDIT PROFIL */
-          <form onSubmit={handleSave} className="space-y-4">
-            <div>
-              <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Nama Lengkap (Terkunci)</label>
-              <input type="text" value={profile.name} disabled 
-                className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-400 cursor-not-allowed" />
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Email Resmi UNKLAB (Terkunci)</label>
-              <input type="email" value={profile.email} disabled 
-                className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-400 cursor-not-allowed" />
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-amber-400 uppercase mb-1">Nomor WhatsApp / HP Baru</label>
-              <input type="text" name="phone" required value={profile.phone} onChange={handleChange} 
-                className="w-full px-4 py-3 bg-[#131b2e] border border-amber-400/50 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400" />
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-amber-400 uppercase mb-1">Alamat / Asrama Baru</label>
-              <textarea name="address" required rows="3" value={profile.address} onChange={handleChange} 
-                className="w-full px-4 py-3 bg-[#131b2e] border border-amber-400/50 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400" />
-            </div>
-
-            <div className="flex gap-3 pt-2">
-              <button type="submit" 
-                className="flex-1 bg-amber-400 hover:bg-amber-500 text-slate-900 font-extrabold py-3 rounded-xl transition text-xs shadow-lg cursor-pointer">
-                Simpan Perubahan
-              </button>
-              <button type="button" onClick={() => setIsEditing(false)} 
-                className="px-6 bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 rounded-xl transition text-xs cursor-pointer">
-                Batal
-              </button>
-            </div>
-          </form>
-        )}
-
-      </div>
+        </div>
+      )}
     </div>
   );
 }
