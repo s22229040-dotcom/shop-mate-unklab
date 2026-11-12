@@ -1,96 +1,162 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 export default function Profile() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const userRole = queryParams.get('role') || 'Student (Mahasiswa)';
 
-  // Mengambil data pengguna aktif dari localStorage
-  const [profile, setProfile] = useState(() => {
-    const activeUser = localStorage.getItem('shopmate_active_user');
-    return activeUser ? JSON.parse(activeUser) : {
-      name: 'Pengguna Kampus',
-      email: 'user@student.unklab.ac.id',
-      phone: '081234567890',
-      address: 'Asrama / Fakultas UNKLAB',
-      role: 'Student (Mahasiswa)'
-    };
+  // State profil pengguna
+  const [profile, setProfile] = useState({
+    name: 'Michael Tendean',
+    email: 'michael@student.unklab.ac.id',
+    faculty: 'Fakultas Ilmu Komputer (FASILKOM)',
+    phone: '081234567890',
+    address: 'Asrama Putra UNKLAB, Kamar 204'
   });
+
+  const [isEditing, setIsEditing] = useState(false);
 
   const handleChange = (e) => {
     setProfile({ ...profile, [e.target.name]: e.target.value });
   };
 
-  const handleSaveProfile = (e) => {
+  const handleSave = (e) => {
     e.preventDefault();
-    
-    // 1. Perbarui sesi aktif di localStorage
-    localStorage.setItem('shopmate_active_user', JSON.stringify(profile));
-
-    // 2. Perbarui juga data di daftar akun utama (shopmate_accounts)
-    let allAccounts = JSON.parse(localStorage.getItem('shopmate_accounts')) || [];
-    allAccounts = allAccounts.map(acc => acc.email.toLowerCase() === profile.email.toLowerCase() ? profile : acc);
-    localStorage.setItem('shopmate_accounts', JSON.stringify(allAccounts));
-
-    alert('Nomor HP dan Alamat berhasil diperbarui secara permanen!');
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem('shopmate_active_user');
-    alert('Anda telah keluar.');
-    navigate('/login');
+    setIsEditing(false);
+    alert('Profil berhasil diperbarui!');
   };
 
   return (
-    <div className="min-h-screen bg-slate-100 p-6 font-sans">
-      <div className="max-w-2xl mx-auto bg-white rounded-3xl shadow-xl overflow-hidden p-8">
-        
-        <div className="flex justify-between items-center border-b pb-4 mb-6">
-          <div>
-            <h1 className="text-xl font-black text-[#3a105c]">Kelola Profil Pengguna</h1>
-            <p className="text-xs text-slate-500">Perbarui informasi kontak dan alamat pengiriman Anda di UNKLAB.</p>
-          </div>
-          <button onClick={() => navigate(-1)} className="text-xs bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-lg font-bold text-slate-700">
-            &larr; Kembali
+    <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col font-sans">
+      
+      {/* NAVBAR */}
+      <header className="bg-slate-950 border-b border-slate-800 px-6 py-4 flex items-center justify-between shadow-md">
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={() => navigate(`/dashboard?role=${userRole}`)}
+            className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-amber-400 text-xs font-bold rounded-xl transition cursor-pointer flex items-center gap-1.5"
+          >
+            <span>&larr;</span> Kembali ke Katalog
           </button>
         </div>
+        <h1 className="font-extrabold text-sm text-white tracking-wide">PROFIL AKUN CIVITAS</h1>
+        <button 
+          onClick={() => navigate('/')}
+          className="px-3.5 py-2 bg-red-600/20 hover:bg-red-600/30 text-red-400 font-bold text-xs rounded-xl transition cursor-pointer"
+        >
+          Keluar
+        </button>
+      </header>
 
-        <form onSubmit={handleSaveProfile} className="space-y-4">
-          <div>
-            <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">Nama Lengkap</label>
-            <input type="text" name="name" value={profile.name} disabled
-              className="w-full px-3.5 py-2.5 bg-slate-100 border border-slate-200 rounded-xl text-xs text-slate-500 cursor-not-allowed" />
-            <span className="text-[10px] text-slate-400 mt-0.5 block">Nama lengkap tidak dapat diubah (sesuai SIAK).</span>
+      {/* KONTEN PROFIL */}
+      <main className="flex-1 p-6 max-w-2xl mx-auto w-full my-auto">
+        <div className="bg-slate-800/60 border border-slate-700/80 rounded-3xl p-8 shadow-2xl">
+          
+          <div className="flex items-center gap-4 mb-6 pb-6 border-b border-slate-700">
+            <div className="w-16 h-16 bg-amber-400 text-slate-950 rounded-2xl flex items-center justify-center font-black text-2xl shadow">
+              🎓
+            </div>
+            <div>
+              <h2 className="text-xl font-black text-white">{profile.name}</h2>
+              <p className="text-xs text-amber-400 font-semibold uppercase">{userRole}</p>
+            </div>
           </div>
 
-          <div>
-            <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">Email Resmi UNKLAB</label>
-            <input type="email" value={profile.email} disabled
-              className="w-full px-3.5 py-2.5 bg-slate-100 border border-slate-200 rounded-xl text-xs text-slate-500 cursor-not-allowed" />
-          </div>
+          {!isEditing ? (
+            <div className="space-y-4 text-xs">
+              <div className="p-4 bg-slate-900/80 rounded-2xl border border-slate-700 flex justify-between">
+                <span className="text-slate-400 font-bold">Email Resmi UNKLAB:</span>
+                <span className="text-white font-semibold">{profile.email}</span>
+              </div>
+              <div className="p-4 bg-slate-900/80 rounded-2xl border border-slate-700 flex justify-between">
+                <span className="text-slate-400 font-bold">Fakultas / Unit:</span>
+                <span className="text-white font-semibold">{profile.faculty}</span>
+              </div>
+              <div className="p-4 bg-slate-900/80 rounded-2xl border border-slate-700 flex justify-between">
+                <span className="text-slate-400 font-bold">Nomor WhatsApp:</span>
+                <span className="text-white font-semibold">{profile.phone}</span>
+              </div>
+              <div className="p-4 bg-slate-900/80 rounded-2xl border border-slate-700 flex justify-between">
+                <span className="text-slate-400 font-bold">Alamat Pengiriman / Asrama:</span>
+                <span className="text-white font-semibold">{profile.address}</span>
+              </div>
 
-          <div>
-            <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">Nomor HP</label>
-            <input type="text" name="phone" required value={profile.phone} onChange={handleChange} placeholder="Contoh: 081234567890"
-              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 font-medium focus:ring-2 focus:ring-[#3a105c]" />
-          </div>
+              <button
+                onClick={() => setIsEditing(true)}
+                className="w-full mt-4 bg-amber-400 hover:bg-amber-500 text-slate-950 font-extrabold py-3.5 rounded-xl transition text-xs shadow-md cursor-pointer"
+              >
+                ✏️ Edit Profil Saya
+              </button>
+            </div>
+          ) : (
+            <form onSubmit={handleSave} className="space-y-4 text-xs">
+              <div>
+                <label className="block font-bold text-slate-400 uppercase mb-1">Nama Lengkap</label>
+                <input
+                  type="text"
+                  name="name"
+                  value={profile.name}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 bg-slate-950 border border-slate-700 rounded-xl text-white"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block font-bold text-slate-400 uppercase mb-1">Fakultas / Unit</label>
+                <input
+                  type="text"
+                  name="faculty"
+                  value={profile.faculty}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 bg-slate-950 border border-slate-700 rounded-xl text-white"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block font-bold text-slate-400 uppercase mb-1">Nomor WhatsApp</label>
+                <input
+                  type="text"
+                  name="phone"
+                  value={profile.phone}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 bg-slate-950 border border-slate-700 rounded-xl text-white"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block font-bold text-slate-400 uppercase mb-1">Alamat Asrama / Pengiriman</label>
+                <textarea
+                  name="address"
+                  value={profile.address}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 bg-slate-950 border border-slate-700 rounded-xl text-white"
+                  rows="2"
+                  required
+                />
+              </div>
 
-          <div>
-            <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">Alamat</label>
-            <textarea name="address" required rows="3" value={profile.address} onChange={handleChange} placeholder="Contoh: Asrama Putra / Fakultas Fasilkom UNKLAB"
-              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 font-medium focus:ring-2 focus:ring-[#3a105c]" />
-          </div>
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsEditing(false)}
+                  className="flex-1 py-3 bg-slate-700 hover:bg-slate-600 text-slate-200 font-bold rounded-xl cursor-pointer"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 py-3 bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-extrabold rounded-xl cursor-pointer"
+                >
+                  Simpan Perubahan ✓
+                </button>
+              </div>
+            </form>
+          )}
 
-          <div className="pt-4 flex gap-3">
-            <button type="submit" className="flex-1 bg-[#3a105c] hover:bg-[#4d167a] text-amber-300 font-extrabold py-3 rounded-xl transition text-xs shadow-md cursor-pointer">
-              Simpan Perubahan Profil
-            </button>
-            <button type="button" onClick={handleLogout} className="px-5 bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold py-3 rounded-xl transition text-xs cursor-pointer">
-              Log out
-            </button>
-          </div>
-        </form>
-
-      </div>
+        </div>
+      </main>
     </div>
   );
 }

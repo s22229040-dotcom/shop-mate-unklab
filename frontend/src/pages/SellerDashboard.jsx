@@ -1,94 +1,272 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 export default function SellerDashboard() {
-  const [products, setProducts] = useState(() => {
-    const saved = localStorage.getItem('shopmate_products');
-    return saved ? JSON.parse(saved) : [
-      { id: 1, name: 'Tas Backpack UNKLAB', price: 180000, stock: 15, category: 'Atribut', image: '📦' },
-      { id: 2, name: 'Set Alat Tulis Kuliah', price: 45000, stock: 20, category: 'Alat Tulis', image: '✏️' }
-    ];
-  });
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState('produk');
 
-  const [form, setForm] = useState({ name: '', price: '', stock: '', category: 'Atribut', image: '🛍️' });
+  // State produk tenant dengan link gambar Google/Unsplash berkualitas
+  const [products, setProducts] = useState([
+    { id: 1, name: 'Nasi Kuning Special Asrama', price: 15000, stock: 25, category: 'Makanan', img: 'https://images.unsplash.com/photo-1555126634-323283e090fa?q=80&w=400&auto=format&fit=crop' },
+    { id: 2, name: 'Es Teh Manis Segar', price: 5000, stock: 40, category: 'Minuman', img: 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?q=80&w=400&auto=format&fit=crop' }
+  ]);
 
-  // Simpan produk otomatis ke localStorage agar tidak hilang saat keluar/masuk ulang
-  useEffect(() => {
-    localStorage.setItem('shopmate_products', JSON.stringify(products));
-  }, [products]);
+  const [newProduct, setNewProduct] = useState({ name: '', price: '', stock: '', category: 'Makanan', img: '' });
+  const [isAddModal, setIsAddModal] = useState(false);
+
+  // State Pesanan Masuk & Tombol Kirim Notifikasi Real-time ke Pembeli
+  const [incomingOrders, setIncomingOrders] = useState([
+    { id: 'ORD-9821', buyer: 'Michael Tendean (Student)', item: 'Nasi Kuning Special Asrama (1x)', total: 'Rp 15.000', payment: 'QRIS', status: 'Menunggu Disiapkan' },
+    { id: 'ORD-9822', buyer: 'Christina P. (Student)', item: 'Es Teh Manis Segar (2x)', total: 'Rp 10.000', payment: 'Cash (COD)', status: 'Menunggu Disiapkan' }
+  ]);
 
   const handleAddProduct = (e) => {
     e.preventDefault();
-    const newProduct = {
-      id: Date.now(),
-      name: form.name,
-      price: Number(form.price),
-      stock: Number(form.stock),
-      category: form.category,
-      image: form.image
+    const productToAdd = {
+      id: products.length + 1,
+      ...newProduct,
+      price: Number(newProduct.price),
+      stock: Number(newProduct.stock),
+      img: newProduct.img || 'https://images.unsplash.com/photo-1548839140-29a749e1cf4d?q=80&w=400&auto=format&fit=crop'
     };
+    setProducts([...products, productToAdd]);
+    setNewProduct({ name: '', price: '', stock: '', category: 'Makanan', img: '' });
+    setIsAddModal(false);
+    alert('Produk baru berhasil ditambahkan ke katalog toko!');
+  };
 
-    const updated = [newProduct, ...products];
-    setProducts(updated);
-    alert('Produk berhasil ditambahkan dan langsung tersedia di Katalog Pembeli secara permanen!');
-    setForm({ name: '', price: '', stock: '', category: 'Atribut', image: '🛍️' });
+  const updateOrderStatus = (id, newStatus) => {
+    setIncomingOrders(incomingOrders.map(o => o.id === id ? { ...o, status: newStatus } : o));
+    alert(`Status pesanan ${id} diperbarui menjadi: "${newStatus}". Notifikasi terkirim ke pembeli!`);
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 p-6 font-sans">
-      <div className="max-w-5xl mx-auto space-y-6">
-        
-        <div className="bg-[#3a105c] text-white p-6 rounded-3xl shadow-xl flex justify-between items-center">
-          <div>
-            <h1 className="text-xl font-black">Dashboard Penjual (Tenant Kampus)</h1>
-            <p className="text-xs text-amber-200 mt-1">Kelola produk toko Anda di Shop-Mate UNKLAB.</p>
+    <div className="min-h-screen bg-slate-900 text-slate-100 flex font-sans">
+      
+      {/* Sidebar Penjual */}
+      <div className="w-64 bg-slate-950 border-r border-slate-800 p-6 flex flex-col justify-between">
+        <div>
+          <div className="flex items-center gap-3 mb-8">
+            <div className="w-10 h-10 bg-amber-400 text-slate-950 rounded-xl flex items-center justify-center font-bold text-lg shadow">
+              🏪
+            </div>
+            <div>
+              <h1 className="font-extrabold text-sm text-white">Tenant / Penjual</h1>
+              <p className="text-[10px] text-amber-400">Shop-Mate UNKLAB</p>
+            </div>
           </div>
+
+          <nav className="space-y-2 text-xs font-semibold">
+            <button 
+              onClick={() => setActiveTab('produk')}
+              className={`w-full text-left px-4 py-3 rounded-xl transition cursor-pointer flex items-center gap-2.5 ${activeTab === 'produk' ? 'bg-amber-400 text-slate-950 font-extrabold shadow' : 'text-slate-300 hover:bg-slate-800'}`}
+            >
+              <span>📦</span> Kelola Produk & Stok
+            </button>
+            <button 
+              onClick={() => setActiveTab('pesanan')}
+              className={`w-full text-left px-4 py-3 rounded-xl transition cursor-pointer flex items-center gap-2.5 ${activeTab === 'pesanan' ? 'bg-amber-400 text-slate-950 font-extrabold shadow' : 'text-slate-300 hover:bg-slate-800'}`}
+            >
+              <span>🛒</span> Pesanan Masuk ({incomingOrders.length})
+            </button>
+            <button 
+              onClick={() => setActiveTab('keuangan')}
+              className={`w-full text-left px-4 py-3 rounded-xl transition cursor-pointer flex items-center gap-2.5 ${activeTab === 'keuangan' ? 'bg-amber-400 text-slate-950 font-extrabold shadow' : 'text-slate-300 hover:bg-slate-800'}`}
+            >
+              <span>💰</span> Laporan Saldo & Keuangan
+            </button>
+          </nav>
         </div>
 
-        {/* Form Tambah Produk */}
-        <div className="bg-white p-6 rounded-3xl shadow-md border border-slate-100">
-          <h2 className="text-sm font-extrabold text-[#3a105c] mb-4">🏪 Tambah Produk Baru ke Katalog</h2>
-          <form onSubmit={handleAddProduct} className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div>
-              <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">Nama Produk</label>
-              <input type="text" required value={form.name} onChange={(e) => setForm({...form, name: e.target.value})} placeholder="Contoh: Kemeja Formal"
-                className="w-full px-3 py-2 bg-slate-50 border rounded-xl text-xs" />
-            </div>
-            <div>
-              <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">Harga (Rp)</label>
-              <input type="number" required value={form.price} onChange={(e) => setForm({...form, price: e.target.value})} placeholder="Contoh: 150000"
-                className="w-full px-3 py-2 bg-slate-50 border rounded-xl text-xs" />
-            </div>
-            <div>
-              <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">Stok</label>
-              <input type="number" required value={form.stock} onChange={(e) => setForm({...form, stock: e.target.value})} placeholder="Contoh: 10"
-                className="w-full px-3 py-2 bg-slate-50 border rounded-xl text-xs" />
-            </div>
-            <div className="flex items-end">
-              <button type="submit" className="w-full bg-[#3a105c] hover:bg-[#4d167a] text-amber-300 font-bold py-2.5 rounded-xl text-xs shadow">
-                + Tambah Produk
-              </button>
-            </div>
-          </form>
-        </div>
+        <button 
+          onClick={() => navigate('/')}
+          className="w-full bg-red-600/20 hover:bg-red-600/30 text-red-400 font-bold py-3 rounded-xl text-xs transition cursor-pointer flex items-center justify-center gap-2"
+        >
+          <span>🚪</span> Keluar (Logout)
+        </button>
+      </div>
 
-        {/* Daftar Produk Toko */}
-        <div className="bg-white p-6 rounded-3xl shadow-md border border-slate-100">
-          <h2 className="text-sm font-extrabold text-[#3a105c] mb-4">📦 Daftar Produk Toko Anda</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {/* Konten Utama */}
+      <div className="flex-1 p-8 overflow-y-auto">
+        <header className="flex justify-between items-center mb-8 pb-4 border-b border-slate-800">
+          <div>
+            <h2 className="text-xl font-black text-white">
+              {activeTab === 'produk' && 'Manajemen Produk Toko / Tenant'}
+              {activeTab === 'pesanan' && 'Kelola Pesanan Masuk & Kirim Notifikasi'}
+              {activeTab === 'keuangan' && 'Rekapitulasi Saldo & Pendapatan Penjual'}
+            </h2>
+            <p className="text-xs text-slate-400">Dashboard operasional penjual resmi civitas akademika UNKLAB.</p>
+          </div>
+          {activeTab === 'produk' && (
+            <button 
+              onClick={() => setIsAddModal(true)}
+              className="px-4 py-2.5 bg-amber-400 hover:bg-amber-500 text-slate-950 font-extrabold text-xs rounded-xl shadow transition cursor-pointer"
+            >
+              + Tambah Produk Baru
+            </button>
+          )}
+        </header>
+
+        {/* TAB 1: PRODUK */}
+        {activeTab === 'produk' && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
             {products.map((p) => (
-              <div key={p.id} className="p-4 bg-slate-50 border rounded-2xl flex items-center justify-between">
+              <div key={p.id} className="bg-slate-800/60 border border-slate-700/60 rounded-2xl overflow-hidden shadow-lg flex flex-col justify-between">
                 <div>
-                  <span className="text-2xl">{p.image}</span>
-                  <h3 className="text-xs font-bold text-slate-800 mt-1">{p.name}</h3>
-                  <p className="text-[11px] text-amber-700 font-extrabold">Rp {p.price.toLocaleString()}</p>
-                  <p className="text-[10px] text-slate-500">Stok: {p.stock}</p>
+                  <div className="h-40 overflow-hidden">
+                    <img src={p.img} alt={p.name} className="w-full h-full object-cover" />
+                  </div>
+                  <div className="p-4">
+                    <span className="text-[10px] bg-slate-900 text-amber-400 px-2 py-0.5 rounded font-bold">{p.category}</span>
+                    <h3 className="text-sm font-extrabold text-white mt-1 mb-1">{p.name}</h3>
+                    <p className="text-xs text-amber-400 font-black">Rp {p.price.toLocaleString()} • Stok: {p.stock}</p>
+                  </div>
+                </div>
+                <div className="p-4 pt-0">
+                  <button onClick={() => alert(`Edit produk ${p.name}`)} className="w-full py-2 bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs font-bold rounded-xl cursor-pointer">
+                    Edit Produk
+                  </button>
                 </div>
               </div>
             ))}
           </div>
-        </div>
+        )}
+
+        {/* TAB 2: PESANAN MASUK & NOTIFIKASI */}
+        {activeTab === 'pesanan' && (
+          <div className="space-y-4">
+            {incomingOrders.map((ord) => (
+              <div key={ord.id} className="bg-slate-800/40 border border-slate-800 p-6 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-xs font-extrabold text-amber-400">{ord.id}</span>
+                    <span className="text-[10px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded font-bold">Bayar: {ord.payment}</span>
+                    <span className="text-[10px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded font-bold">{ord.status}</span>
+                  </div>
+                  <p className="text-xs font-bold text-white">{ord.item}</p>
+                  <p className="text-[11px] text-slate-400">Pemesan: {ord.buyer}</p>
+                </div>
+                
+                {/* Tombol aksi notifikasi ke pembeli */}
+                <div className="flex flex-wrap gap-2">
+                  <button onClick={() => updateOrderStatus(ord.id, 'Sedang Disiapkan')} className="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-xl text-xs cursor-pointer">
+                    1. Siapkan Pesanan
+                  </button>
+                  <button onClick={() => updateOrderStatus(ord.id, 'Sedang Diantar Kurir')} className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs cursor-pointer">
+                    2. Kirim Kurir
+                  </button>
+                  <button onClick={() => updateOrderStatus(ord.id, 'Selesai diantar')} className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs cursor-pointer">
+                    3. Selesai ✓
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* TAB 3: KEUANGAN */}
+        {activeTab === 'keuangan' && (
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-slate-800/60 p-6 rounded-2xl border border-slate-700">
+                <p className="text-xs text-slate-400 mb-1">Total Pendapatan (Bulan Ini)</p>
+                <h3 className="text-2xl font-black text-amber-400">Rp 1.450.000</h3>
+              </div>
+              <div className="bg-slate-800/60 p-6 rounded-2xl border border-slate-700">
+                <p className="text-xs text-slate-400 mb-1">Saldo Siap Dicairkan</p>
+                <h3 className="text-2xl font-black text-emerald-400">Rp 980.000</h3>
+              </div>
+              <div className="bg-slate-800/60 p-6 rounded-2xl border border-slate-700">
+                <p className="text-xs text-slate-400 mb-1">Transaksi Sukses</p>
+                <h3 className="text-2xl font-black text-white">45 Pesanan</h3>
+              </div>
+            </div>
+
+            <button onClick={() => alert('Permintaan pencairan saldo berhasil dikirim ke Admin UNKLAB!')} className="px-5 py-3 bg-amber-400 hover:bg-amber-500 text-slate-950 font-extrabold rounded-xl text-xs cursor-pointer shadow">
+              Withdraw (Cairkan Saldo ke Rekening Kampus)
+            </button>
+          </div>
+        )}
 
       </div>
+
+      {/* MODAL TAMBAH PRODUK */}
+      {isAddModal && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-md w-full p-6 shadow-2xl text-slate-100 space-y-4">
+            <h3 className="text-lg font-black">Tambah Produk Toko Baru</h3>
+            <form onSubmit={handleAddProduct} className="space-y-3 text-xs">
+              <div>
+                <label className="block font-bold text-slate-400 uppercase mb-1">Nama Produk</label>
+                <input
+                  type="text"
+                  placeholder="Contoh: Burger Khas Kampus"
+                  value={newProduct.name}
+                  onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}
+                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-white"
+                  required
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-bold text-slate-400 uppercase mb-1">Harga (Rp)</label>
+                  <input
+                    type="number"
+                    placeholder="15000"
+                    value={newProduct.price}
+                    onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })}
+                    className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-white"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-slate-400 uppercase mb-1">Stok Awal</label>
+                  <input
+                    type="number"
+                    placeholder="20"
+                    value={newProduct.stock}
+                    onChange={(e) => setNewProduct({ ...newProduct, stock: e.target.value })}
+                    className="w-full px-3.5 py-3 bg-slate-950 border border-slate-700 rounded-xl text-white"
+                    required
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block font-bold text-slate-400 uppercase mb-1">Kategori</label>
+                <select
+                  value={newProduct.category}
+                  onChange={(e) => setNewProduct({ ...newProduct, category: e.target.value })}
+                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-white cursor-pointer"
+                >
+                  <option value="Makanan">Makanan</option>
+                  <option value="Minuman">Minuman</option>
+                  <option value="Atribut Kampus">Atribut Kampus</option>
+                </select>
+              </div>
+              <div>
+                <label className="block font-bold text-slate-400 uppercase mb-1">Link Gambar Produk (URL Google/Unsplash)</label>
+                <input
+                  type="text"
+                  placeholder="https://images.unsplash.com/..."
+                  value={newProduct.img}
+                  onChange={(e) => setNewProduct({ ...newProduct, img: e.target.value })}
+                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-white"
+                />
+              </div>
+
+              <div className="flex gap-3 pt-3">
+                <button type="button" onClick={() => setIsAddModal(false)} className="flex-1 py-3 bg-slate-800 text-slate-300 font-bold rounded-xl cursor-pointer">
+                  Batal
+                </button>
+                <button type="submit" className="flex-1 py-3 bg-amber-400 text-slate-950 font-extrabold rounded-xl cursor-pointer">
+                  Simpan Produk ✓
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
