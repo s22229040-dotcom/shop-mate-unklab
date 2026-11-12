@@ -5,24 +5,27 @@ export default function Login() {
   const navigate = useNavigate();
   const [isRegistering, setIsRegistering] = useState(false);
   
-  // State form
-  const [role, setRole] = useState('Mahasiswa');
+  // State form dengan role diletakkan di sebelum login/registrasi
+  const [role, setRole] = useState('Student (Mahasiswa)');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
   const handleAuth = (e) => {
     e.preventDefault();
     if (isRegistering) {
-      // Logika Registrasi Sesuai Permintaan
+      // Logika Registrasi
       const newUser = { role, email, password };
       localStorage.setItem('shopmate_registered_user', JSON.stringify(newUser));
       alert('Registrasi berhasil! Silakan masuk.');
       setIsRegistering(false);
     } else {
-      // Logika Login
+      // Logika Login Berdasarkan Peran
       localStorage.setItem('shopmate_active_user', email);
-      if (email.includes('admin')) {
+      
+      if (role.includes('Admin') || email.includes('admin')) {
         navigate('/admin-dashboard');
+      } else if (role.includes('Penjual')) {
+        navigate('/seller-dashboard');
       } else {
         navigate('/dashboard');
       }
@@ -30,31 +33,30 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0b101d] flex items-center justify-center p-4 font-sans text-white">
+    <div className="min-h-screen bg-[#070913] flex items-center justify-center p-4 font-sans text-white">
       <div className="max-w-4xl w-full bg-[#131b2e] rounded-3xl overflow-hidden shadow-2xl border border-slate-800 grid grid-cols-1 md:grid-cols-2">
         
-        {/* KIRI: BANNER DENGAN POSISI TENGAH (CENTER), LOGO DIPERBESAR & BACKGROUND LOKAL */}
-        <div className="p-8 flex flex-col justify-between items-center text-center relative bg-slate-900 overflow-hidden">
-          {/* Background dari file public/download.jpg */}
-          <div className="absolute inset-0 bg-cover bg-center opacity-35" 
+        {/* KIRI: BANNER NUANSA UNKLAB (UNGU & KUNING) */}
+        <div className="p-8 flex flex-col justify-between items-center text-center relative bg-gradient-to-br from-[#2e1065] via-[#1e1b4b] to-[#0f172a] overflow-hidden">
+          {/* Background Gambar Kampus Unklab dengan Overlay */}
+          <div className="absolute inset-0 bg-cover bg-center opacity-25 mix-blend-overlay" 
                style={{ backgroundImage: `url('/download.jpg')` }}>
           </div>
-          <div className="absolute inset-0 bg-gradient-to-br from-[#1e1b4b]/85 to-[#0f172a]/95"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-[#2e1065]/90 via-[#1e1b4b]/80 to-transparent"></div>
 
-          {/* Konten Kiri (Diatur ke tengah & Logo diperbesar) */}
+          {/* Konten Kiri (Logo & Judul di Tengah) */}
           <div className="relative z-10 flex flex-col items-center justify-center my-auto py-6">
-            {/* Logo dari file public/logo.png (diperbesar ukurannya menjadi w-20 h-20) */}
-            <div className="w-20 h-20 bg-amber-400/10 rounded-2xl flex items-center justify-center p-2 mb-6 border border-amber-400/30 shadow-xl">
-              <img src="/logo.png" alt="Logo Unklab" className="w-full h-full object-contain" />
+            <div className="w-24 h-24 bg-amber-400/20 rounded-3xl flex items-center justify-center p-3 mb-6 border-2 border-amber-400/50 shadow-2xl backdrop-blur-md">
+              <img src="/logo.png" alt="Logo Unklab" className="w-full h-full object-contain filter drop-shadow-[0_4px_6px_rgba(0,0,0,0.5)]" />
             </div>
-            <h1 className="text-2xl font-black text-white tracking-wide">Shop-Mate UNKLAB</h1>
-            <p className="text-xs text-slate-300 mt-2 leading-relaxed max-w-xs">
+            <h1 className="text-2xl font-black text-amber-300 tracking-wide drop-shadow">Shop-Mate UNKLAB</h1>
+            <p className="text-xs text-slate-200 mt-2 leading-relaxed max-w-xs font-medium">
               Platform e-commerce eksklusif civitas akademika Universitas Klabat menggunakan Email Resmi Kampus.
             </p>
           </div>
           
           <div className="relative z-10">
-            <p className="text-[10px] text-slate-400 font-medium">© 2026 Universitas Klabat • Restricted Access</p>
+            <p className="text-[10px] text-amber-300/80 font-semibold tracking-wider">© 2026 Universitas Klabat • Restricted Access</p>
           </div>
         </div>
 
@@ -64,25 +66,26 @@ export default function Login() {
             {isRegistering ? 'Form Registrasi Akun Civitas' : 'Masuk ke Akun Anda'}
           </h2>
           <p className="text-xs text-slate-400 mb-6">
-            {isRegistering ? 'Daftar menggunakan peran dan email resmi kampus.' : 'Silakan masuk menggunakan email kampus terdaftar.'}
+            {isRegistering ? 'Daftar menggunakan peran dan email resmi kampus.' : 'Pilih peran dan masuk menggunakan email kampus terdaftar.'}
           </p>
 
           <form onSubmit={handleAuth} className="space-y-4">
-            {isRegistering && (
-              <div>
-                <label className="text-[11px] font-bold text-slate-300 uppercase">Pilih Peran / Status</label>
-                <select value={role} onChange={(e) => setRole(e.target.value)} 
-                  className="w-full mt-1 bg-[#1e293b] border border-slate-700 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-amber-400">
-                  <option value="Mahasiswa">Mahasiswa</option>
-                  <option value="Penjual (Tenant Kampus)">Penjual (Tenant Kampus)</option>
-                  <option value="Fakultas / Staff">Fakultas / Staff</option>
-                </select>
-              </div>
-            )}
+            {/* PILIHAN PERAN SEBELUM LOGIN / REGISTRASI */}
+            <div>
+              <label className="text-[11px] font-bold text-amber-400 uppercase tracking-wider">Pilih Peran / Status Anda</label>
+              <select value={role} onChange={(e) => setRole(e.target.value)} 
+                className="w-full mt-1 bg-[#1e293b] border border-amber-400/40 rounded-xl px-4 py-2.5 text-xs text-white font-bold focus:outline-none focus:border-amber-400 shadow-inner">
+                <option value="Student (Mahasiswa)">Student (Mahasiswa)</option>
+                <option value="Dosen / Staff">Dosen / Staff</option>
+                <option value="Penjual / Tenant">Penjual / Tenant</option>
+                <option value="Admin">Admin</option>
+              </select>
+            </div>
 
             <div>
               <label className="text-[11px] font-bold text-slate-300 uppercase">Email Resmi Unklab</label>
-              <input type="email" placeholder="Contoh: s22229040@student.unklab.ac.id" value={email} onChange={(e) => setEmail(e.target.value)} required
+              {/* Contoh email menggunakan angka lain (s12345678) */}
+              <input type="email" placeholder="Contoh: s12345678@student.unklab.ac.id" value={email} onChange={(e) => setEmail(e.target.value)} required
                 className="w-full mt-1 bg-[#1e293b] border border-slate-700 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-amber-400" />
             </div>
 
