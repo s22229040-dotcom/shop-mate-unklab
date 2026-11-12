@@ -13,7 +13,7 @@ export default function Login() {
   const handleAuth = (e) => {
     e.preventDefault();
     if (isRegistering) {
-      // Logika Registrasi
+      // Logika Registrasi Sesuai Permintaan
       const newUser = { role, email, password };
       localStorage.setItem('shopmate_registered_user', JSON.stringify(newUser));
       alert('Registrasi berhasil! Silakan masuk.');
@@ -33,20 +33,33 @@ export default function Login() {
     <div className="min-h-screen bg-[#0b101d] flex items-center justify-center p-4 font-sans text-white">
       <div className="max-w-4xl w-full bg-[#131b2e] rounded-3xl overflow-hidden shadow-2xl border border-slate-800 grid grid-cols-1 md:grid-cols-2">
         
-        {/* KIRI: BANNER / INFO DENGAN LOGO & BACKGROUND UTUH */}
-        <div className="p-8 flex flex-col justify-between bg-gradient-to-br from-[#1e1b4b] to-[#0f172a] relative">
-          <div>
-            <div className="w-12 h-12 bg-amber-400 rounded-2xl flex items-center justify-center text-slate-900 font-black mb-6 text-xl shadow-lg">🛒</div>
-            <h1 className="text-2xl font-black text-white">Shop-Mate UNKLAB</h1>
+        {/* KIRI: BANNER DENGAN BACKGROUND & LOGO LOKAL ANDA */}
+        <div className="p-8 flex flex-col justify-between relative bg-slate-900 overflow-hidden">
+          {/* Background dari file public/download.jpg */}
+          <div className="absolute inset-0 bg-cover bg-center opacity-35" 
+               style={{ backgroundImage: `url('/download.jpg')` }}>
+          </div>
+          <div className="absolute inset-0 bg-gradient-to-br from-[#1e1b4b]/85 to-[#0f172a]/95"></div>
+
+          {/* Konten Kiri (Logo & Teks) */}
+          <div className="relative z-10">
+            {/* Logo dari file public/logo.png */}
+            <div className="w-14 h-14 bg-amber-400/10 rounded-2xl flex items-center justify-center p-1 mb-6 border border-amber-400/30 shadow-lg">
+              <img src="/logo.png" alt="Logo Unklab" className="w-full h-full object-contain" />
+            </div>
+            <h1 className="text-2xl font-black text-white tracking-wide">Shop-Mate UNKLAB</h1>
             <p className="text-xs text-slate-300 mt-2 leading-relaxed">
               Platform e-commerce eksklusif civitas akademika Universitas Klabat menggunakan Email Resmi Kampus.
             </p>
           </div>
-          <p className="text-[10px] text-slate-500 mt-10">© 2026 Universitas Klabat • Restricted Access</p>
+          
+          <div className="relative z-10 mt-10">
+            <p className="text-[10px] text-slate-400 font-medium">© 2026 Universitas Klabat • Restricted Access</p>
+          </div>
         </div>
 
         {/* KANAN: FORM LOGIN / REGISTRASI */}
-        <div className="p-8 flex flex-col justify-center">
+        <div className="p-8 flex flex-col justify-center bg-[#131b2e]">
           <h2 className="text-xl font-black text-white mb-1">
             {isRegistering ? 'Form Registrasi Akun Civitas' : 'Masuk ke Akun Anda'}
           </h2>
