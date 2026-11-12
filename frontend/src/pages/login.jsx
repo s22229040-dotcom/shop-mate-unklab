@@ -5,7 +5,7 @@ export default function Login() {
   const navigate = useNavigate();
   const [isRegistering, setIsRegistering] = useState(false);
   
-  // State form (tanpa nama lengkap dan alamat/asrama)
+  // State form
   const [role, setRole] = useState('Mahasiswa');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -33,10 +33,10 @@ export default function Login() {
     <div className="min-h-screen bg-[#0b101d] flex items-center justify-center p-4 font-sans text-white">
       <div className="max-w-4xl w-full bg-[#131b2e] rounded-3xl overflow-hidden shadow-2xl border border-slate-800 grid grid-cols-1 md:grid-cols-2">
         
-        {/* KIRI: BANNER / INFO */}
+        {/* KIRI: BANNER / INFO DENGAN LOGO & BACKGROUND UTUH */}
         <div className="p-8 flex flex-col justify-between bg-gradient-to-br from-[#1e1b4b] to-[#0f172a] relative">
           <div>
-            <div className="w-12 h-12 bg-amber-400 rounded-2xl flex items-center justify-center text-slate-900 font-black mb-6 text-xl">🛒</div>
+            <div className="w-12 h-12 bg-amber-400 rounded-2xl flex items-center justify-center text-slate-900 font-black mb-6 text-xl shadow-lg">🛒</div>
             <h1 className="text-2xl font-black text-white">Shop-Mate UNKLAB</h1>
             <p className="text-xs text-slate-300 mt-2 leading-relaxed">
               Platform e-commerce eksklusif civitas akademika Universitas Klabat menggunakan Email Resmi Kampus.
