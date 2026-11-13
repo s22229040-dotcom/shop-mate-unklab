@@ -21,15 +21,39 @@ export default function SellerDashboard() {
     ];
   });
 
-  // Simpan ke localStorage setiap kali products berubah agar sinkron dengan pembeli
   useEffect(() => {
     localStorage.setItem('shopmate_products', JSON.stringify(products));
   }, [products]);
 
-  // State Form Tambah / Edit Produk (Dilengkapi Deskripsi)
+  // State Form Tambah / Edit Produk
   const [newProduct, setNewProduct] = useState({ name: '', price: '', stock: '', category: 'Makanan', img: '', desc: '' });
   const [isAddModal, setIsAddModal] = useState(false);
-  const [editingProduct, setEditingProduct] = useState(null); // Mode Edit
+  const [editingProduct, setEditingProduct] = useState(null);
+
+  // State Profil Penjual (Bisa Diedit)
+  const [sellerProfile, setSellerProfile] = useState(() => {
+    const savedProfile = localStorage.getItem('shopmate_seller_profile');
+    if (savedProfile) {
+      try { return JSON.parse(savedProfile); } catch (e) { console.error(e); }
+    }
+    return {
+      name: 'Ibu Hesti M.',
+      tenantName: 'Kantin Asrama Putra UNKLAB',
+      email: 'hesti@unklab.ac.id',
+      phone: '6281298765432',
+      address: 'Kantin Utama / Asrama Putra UNKLAB'
+    };
+  });
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [tempProfile, setTempProfile] = useState(sellerProfile);
+
+  const handleSaveProfile = (e) => {
+    e.preventDefault();
+    setSellerProfile(tempProfile);
+    localStorage.setItem('shopmate_seller_profile', JSON.stringify(tempProfile));
+    setIsEditingProfile(false);
+    alert('Profil Penjual / Tenant berhasil diperbarui!');
+  };
 
   // State Pesanan Masuk
   const [incomingOrders, setIncomingOrders] = useState([
@@ -40,26 +64,26 @@ export default function SellerDashboard() {
   const handleSaveProduct = (e) => {
     e.preventDefault();
     if (editingProduct) {
-      // Logika Update / Edit Produk
       const updatedList = products.map(p => p.id === editingProduct.id ? {
         ...p,
         ...newProduct,
         price: Number(newProduct.price),
         stock: Number(newProduct.stock),
+        tenant: sellerProfile.tenantName,
+        sellerPhone: sellerProfile.phone,
         img: newProduct.img || p.img
       } : p);
       setProducts(updatedList);
       setEditingProduct(null);
       alert('Produk berhasil diperbarui dan disinkronkan ke pembeli!');
     } else {
-      // Logika Tambah Produk Baru
       const productToAdd = {
-        id: Date.now(), // Unique ID berdasarkan timestamp
+        id: Date.now(),
         ...newProduct,
         price: Number(newProduct.price),
         stock: Number(newProduct.stock),
-        tenant: 'Tenant Kampus UNKLAB',
-        sellerPhone: '6281234567890',
+        tenant: sellerProfile.tenantName,
+        sellerPhone: sellerProfile.phone,
         img: newProduct.img || 'https://images.unsplash.com/photo-1548839140-29a749e1cf4d?q=80&w=400&auto=format&fit=crop',
         desc: newProduct.desc || 'Produk berkualitas pilihan civitas akademika UNKLAB.'
       };
@@ -107,7 +131,7 @@ export default function SellerDashboard() {
               🏪
             </div>
             <div>
-              <h1 className="font-extrabold text-sm text-white">Tenant / Penjual</h1>
+              <h1 className="font-extrabold text-sm text-white">{sellerProfile.tenantName}</h1>
               <p className="text-[10px] text-amber-400">Shop-Mate UNKLAB</p>
             </div>
           </div>
@@ -131,6 +155,12 @@ export default function SellerDashboard() {
             >
               <span>💰</span> Laporan Saldo & Keuangan
             </button>
+            <button 
+              onClick={() => setActiveTab('profil')}
+              className={`w-full text-left px-4 py-3 rounded-xl transition cursor-pointer flex items-center gap-2.5 ${activeTab === 'profil' ? 'bg-amber-400 text-slate-950 font-extrabold shadow' : 'text-slate-300 hover:bg-slate-800'}`}
+            >
+              <span>👤</span> Profil Saya
+            </button>
           </nav>
         </div>
 
@@ -150,6 +180,7 @@ export default function SellerDashboard() {
               {activeTab === 'produk' && 'Manajemen Produk Toko / Tenant'}
               {activeTab === 'pesanan' && 'Kelola Pesanan Masuk & Kirim Notifikasi'}
               {activeTab === 'keuangan' && 'Rekapitulasi Saldo & Pendapatan Penjual'}
+              {activeTab === 'profil' && 'Profil Toko & Informasi Penjual'}
             </h2>
             <p className="text-xs text-slate-400">Dashboard operasional penjual resmi civitas akademika UNKLAB.</p>
           </div>
@@ -251,9 +282,113 @@ export default function SellerDashboard() {
           </div>
         )}
 
+        {/* TAB 4: PROFIL PENJUAL (DAPAT DIEDIT) */}
+        {activeTab === 'profil' && (
+          <div className="max-w-xl mx-auto bg-slate-800/60 border border-slate-700 rounded-3xl p-8 shadow-xl space-y-4">
+            <div className="flex justify-between items-center pb-3 border-b border-slate-700">
+              <h2 className="text-xl font-black text-white">Profil Toko & Informasi Penjual</h2>
+              {!isEditingProfile && (
+                <button 
+                  onClick={() => { setTempProfile(sellerProfile); setIsEditingProfile(true); }}
+                  className="px-4 py-2 bg-amber-400 text-slate-950 font-bold text-xs rounded-xl hover:bg-amber-500 transition cursor-pointer"
+                >
+                  ✏️ Edit Profil
+                </button>
+              )}
+            </div>
+
+            {!isEditingProfile ? (
+              <div className="space-y-3 text-xs">
+                <div className="p-3 bg-slate-900 rounded-xl flex justify-between">
+                  <span className="text-slate-400 font-bold">Nama Penjual:</span>
+                  <span className="text-white font-semibold">{sellerProfile.name}</span>
+                </div>
+                <div className="p-3 bg-slate-900 rounded-xl flex justify-between">
+                  <span className="text-slate-400 font-bold">Nama Tenant / Toko:</span>
+                  <span className="text-amber-400 font-bold">{sellerProfile.tenantName}</span>
+                </div>
+                <div className="p-3 bg-slate-900 rounded-xl flex justify-between">
+                  <span className="text-slate-400 font-bold">Email UNKLAB:</span>
+                  <span className="text-white font-semibold">{sellerProfile.email}</span>
+                </div>
+                <div className="p-3 bg-slate-900 rounded-xl flex justify-between">
+                  <span className="text-slate-400 font-bold">Nomor WhatsApp:</span>
+                  <span className="text-white font-semibold">{sellerProfile.phone}</span>
+                </div>
+                <div className="p-3 bg-slate-900 rounded-xl flex justify-between">
+                  <span className="text-slate-400 font-bold">Lokasi / Alamat Toko:</span>
+                  <span className="text-white font-semibold">{sellerProfile.address}</span>
+                </div>
+              </div>
+            ) : (
+              <form onSubmit={handleSaveProfile} className="space-y-3 text-xs">
+                <div>
+                  <label className="block font-bold text-slate-400 uppercase mb-1">Nama Penjual</label>
+                  <input
+                    type="text"
+                    value={tempProfile.name}
+                    onChange={(e) => setTempProfile({ ...tempProfile, name: e.target.value })}
+                    className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-white"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-slate-400 uppercase mb-1">Nama Tenant / Toko</label>
+                  <input
+                    type="text"
+                    value={tempProfile.tenantName}
+                    onChange={(e) => setTempProfile({ ...tempProfile, tenantName: e.target.value })}
+                    className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-white"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-slate-400 uppercase mb-1">Email Resmi Unklab</label>
+                  <input
+                    type="email"
+                    value={tempProfile.email}
+                    onChange={(e) => setTempProfile({ ...tempProfile, email: e.target.value })}
+                    className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-white"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-slate-400 uppercase mb-1">Nomor WhatsApp</label>
+                  <input
+                    type="text"
+                    value={tempProfile.phone}
+                    onChange={(e) => setTempProfile({ ...tempProfile, phone: e.target.value })}
+                    className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-white"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-slate-400 uppercase mb-1">Lokasi / Alamat Toko</label>
+                  <input
+                    type="text"
+                    value={tempProfile.address}
+                    onChange={(e) => setTempProfile({ ...tempProfile, address: e.target.value })}
+                    className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-white"
+                    required
+                  />
+                </div>
+
+                <div className="flex gap-3 pt-3">
+                  <button type="button" onClick={() => setIsEditingProfile(false)} className="flex-1 py-3 bg-slate-800 text-slate-300 font-bold rounded-xl cursor-pointer">
+                    Batal
+                  </button>
+                  <button type="submit" className="flex-1 py-3 bg-amber-400 text-slate-950 font-extrabold rounded-xl cursor-pointer">
+                    Simpan Perubahan ✓
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        )}
+
       </div>
 
-      {/* MODAL TAMBAH / EDIT PRODUK DENGAN DETAIL LENGKAP */}
+      {/* MODAL TAMBAH / EDIT PRODUK */}
       {isAddModal && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-md w-full p-6 shadow-2xl text-slate-100 space-y-4">
