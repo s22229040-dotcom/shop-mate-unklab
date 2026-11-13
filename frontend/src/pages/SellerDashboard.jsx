@@ -5,7 +5,7 @@ export default function SellerDashboard() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('produk');
 
-  // State produk tenant disinkronkan dengan localStorage (aman dan tidak akan ter-reset)
+  // State produk tenant disinkronkan dengan localStorage
   const [products, setProducts] = useState(() => {
     const saved = localStorage.getItem('shopmate_products');
     if (saved) {
@@ -66,8 +66,10 @@ export default function SellerDashboard() {
 
   const handleSaveProduct = (e) => {
     e.preventDefault();
+    let updatedProducts;
+
     if (editingProduct) {
-      const updatedList = products.map(p => p.id === editingProduct.id ? {
+      updatedProducts = products.map(p => p.id === editingProduct.id ? {
         ...p,
         ...newProduct,
         price: Number(newProduct.price),
@@ -76,7 +78,6 @@ export default function SellerDashboard() {
         sellerPhone: sellerProfile.phone,
         img: newProduct.img || p.img
       } : p);
-      setProducts(updatedList);
       setEditingProduct(null);
       alert('Produk berhasil diperbarui dan disinkronkan ke pembeli!');
     } else {
@@ -90,9 +91,12 @@ export default function SellerDashboard() {
         img: newProduct.img || 'https://images.unsplash.com/photo-1548839140-29a749e1cf4d?q=80&w=400&auto=format&fit=crop',
         desc: newProduct.desc || 'Produk berkualitas pilihan civitas akademika UNKLAB.'
       };
-      setProducts([...products, productToAdd]);
+      updatedProducts = [...products, productToAdd];
       alert('Produk baru berhasil ditambahkan ke katalog toko!');
     }
+
+    setProducts(updatedProducts);
+    localStorage.setItem('shopmate_products', JSON.stringify(updatedProducts));
 
     setNewProduct({ name: '', price: '', stock: '', category: 'Makanan', img: '', desc: '' });
     setIsAddModal(false);
@@ -113,7 +117,9 @@ export default function SellerDashboard() {
 
   const handleDeleteProduct = (id) => {
     if (window.confirm('Yakin ingin menghapus produk ini dari katalog?')) {
-      setProducts(products.filter(p => p.id !== id));
+      const filtered = products.filter(p => p.id !== id);
+      setProducts(filtered);
+      localStorage.setItem('shopmate_products', JSON.stringify(filtered));
       alert('Produk berhasil dihapus.');
     }
   };
