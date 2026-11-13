@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 export default function Dashboard() {
@@ -10,53 +10,85 @@ export default function Dashboard() {
 
   const [activeTab, setActiveTab] = useState('katalog');
 
-  // Katalog Produk lengkap dengan Nomor WhatsApp Penjual / Tenant
-  const [products] = useState([
-    { 
-      id: 1, 
-      name: 'Lanyard Resmi UNKLAB Premium', 
-      category: 'Atribut Kampus', 
-      price: 25000, 
-      stock: 15, 
-      tenant: 'Koperasi UNKLAB', 
-      sellerPhone: '6281234567891', 
-      img: 'https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?q=80&w=600&auto=format&fit=crop',
-      desc: 'Lanyard resmi berstandar universitas dengan bahan berkualitas tinggi.' 
-    },
-    { 
-      id: 2, 
-      name: 'Nasi Kuning Special Asrama', 
-      category: 'Makanan', 
-      price: 15000, 
-      stock: 25, 
-      tenant: 'Kantin Asrama Putra', 
-      sellerPhone: '6281298765432', 
-      img: 'https://images.unsplash.com/photo-1555126634-323283e090fa?q=80&w=600&auto=format&fit=crop',
-      desc: 'Nasi kuning hangat dengan lauk abon dan telur pindang khas kantin asrama.' 
-    },
-    { 
-      id: 3, 
-      name: 'Air Mineral Aqua / Cleo 600ml', 
-      category: 'Minuman', 
-      price: 4000, 
-      stock: 50, 
-      tenant: 'Tenant Fasilkom', 
-      sellerPhone: '6281355556666', 
-      img: 'https://images.unsplash.com/photo-1548839140-29a749e1cf4d?q=80&w=600&auto=format&fit=crop',
-      desc: 'Air mineral steril kemasan botol 600ml untuk menyegarkan hari kuliah.' 
-    },
-    { 
-      id: 4, 
-      name: 'Es Teh Manis Segar Kampus', 
-      category: 'Minuman', 
-      price: 5000, 
-      stock: 30, 
-      tenant: 'Kantin Utama', 
-      sellerPhone: '6281211112222', 
-      img: 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?q=80&w=600&auto=format&fit=crop',
-      desc: 'Teh melati manis segar disajikan dingin dengan es batu pilihan.' 
+  // Katalog Produk disinkronkan dengan localStorage agar terhubung dengan Penjual
+  const [products, setProducts] = useState(() => {
+    const savedProducts = localStorage.getItem('shopmate_products');
+    if (savedProducts) {
+      try {
+        return JSON.parse(savedProducts);
+      } catch (e) {
+        console.error(e);
+      }
     }
-  ]);
+    // Default produk awal jika localStorage kosong
+    return [
+      { 
+        id: 1, 
+        name: 'Lanyard Resmi UNKLAB Premium', 
+        category: 'Atribut Kampus', 
+        price: 25000, 
+        stock: 15, 
+        tenant: 'Koperasi UNKLAB', 
+        sellerPhone: '6281234567891', 
+        img: 'https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?q=80&w=600&auto=format&fit=crop',
+        desc: 'Lanyard resmi berstandar universitas dengan bahan berkualitas tinggi.' 
+      },
+      { 
+        id: 2, 
+        name: 'Nasi Kuning Special Asrama', 
+        category: 'Makanan', 
+        price: 15000, 
+        stock: 25, 
+        tenant: 'Kantin Asrama Putra', 
+        sellerPhone: '6281298765432', 
+        img: 'https://images.unsplash.com/photo-1555126634-323283e090fa?q=80&w=600&auto=format&fit=crop',
+        desc: 'Nasi kuning hangat dengan lauk abon dan telur pindang khas kantin asrama.' 
+      },
+      { 
+        id: 3, 
+        name: 'Air Mineral Aqua / Cleo 600ml', 
+        category: 'Minuman', 
+        price: 4000, 
+        stock: 50, 
+        tenant: 'Tenant Fasilkom', 
+        sellerPhone: '6281355556666', 
+        img: 'https://images.unsplash.com/photo-1548839140-29a749e1cf4d?q=80&w=600&auto=format&fit=crop',
+        desc: 'Air mineral steril kemasan botol 600ml untuk menyegarkan hari kuliah.' 
+      },
+      { 
+        id: 4, 
+        name: 'Es Teh Manis Segar Kampus', 
+        category: 'Minuman', 
+        price: 5000, 
+        stock: 30, 
+        tenant: 'Kantin Utama', 
+        sellerPhone: '6281211112222', 
+        img: 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?q=80&w=600&auto=format&fit=crop',
+        desc: 'Teh melati manis segar disajikan dingin dengan es batu pilihan.' 
+      }
+    ];
+  });
+
+  // Sinkronisasi otomatis jika penjual menambah/mengedit produk di tab lain atau session
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const updated = localStorage.getItem('shopmate_products');
+      if (updated) {
+        try {
+          setProducts(JSON.parse(updated));
+        } catch (e) {
+          console.error(e);
+        }
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+    // Interval check untuk sinkronisasi dalam satu browser
+    const interval = setInterval(handleStorageChange, 1000);
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      clearInterval(interval);
+    };
+  }, []);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Semua');
@@ -219,9 +251,9 @@ export default function Dashboard() {
                       >
                         {p.name}
                       </h3>
-                      <p className="text-sm font-black text-amber-400 mb-3">Rp {p.price.toLocaleString()}</p>
+                      <p className="text-sm font-black text-amber-400 mb-2">Rp {Number(p.price).toLocaleString()}</p>
+                      <p className="text-xs text-slate-300 line-clamp-2 mb-3">{p.desc}</p>
                       
-                      {/* Tombol Hubungi WhatsApp Penjual */}
                       <a
                         href={`https://wa.me/${p.sellerPhone}?text=Halo%20${encodeURIComponent(p.tenant)},%20saya%20tertarik%20dengan%20produk%20${encodeURIComponent(p.name)}%20di%20Shop-Mate%20UNKLAB.`}
                         target="_blank"
@@ -270,17 +302,17 @@ export default function Dashboard() {
                       <img src={item.img} alt={item.name} className="w-14 h-14 object-cover rounded-xl" />
                       <div>
                         <h4 className="text-xs font-bold text-white">{item.name}</h4>
-                        <p className="text-[11px] text-amber-400">Rp {item.price.toLocaleString()} x {item.qty}</p>
+                        <p className="text-[11px] text-amber-400">Rp {Number(item.price).toLocaleString()} x {item.qty}</p>
                       </div>
                     </div>
-                    <span className="text-xs font-black text-white">Rp {(item.price * item.qty).toLocaleString()}</span>
+                    <span className="text-xs font-black text-white">Rp {(Number(item.price) * item.qty).toLocaleString()}</span>
                   </div>
                 ))}
 
                 <div className="pt-6 border-t border-slate-700 flex items-center justify-between font-black text-base">
                   <span>Total Pembayaran:</span>
                   <span className="text-amber-400">
-                    Rp {cart.reduce((sum, i) => sum + (i.price * i.qty), 0).toLocaleString()}
+                    Rp {cart.reduce((sum, i) => sum + (Number(i.price) * i.qty), 0).toLocaleString()}
                   </span>
                 </div>
 
@@ -399,7 +431,7 @@ export default function Dashboard() {
                 </a>
               </div>
               <div className="flex items-center justify-between pt-4 border-t border-slate-800">
-                <span className="text-lg font-black text-amber-400">Rp {selectedProduct.price.toLocaleString()}</span>
+                <span className="text-lg font-black text-amber-400">Rp {Number(selectedProduct.price).toLocaleString()}</span>
                 <button
                   onClick={() => {
                     addToCart(selectedProduct);

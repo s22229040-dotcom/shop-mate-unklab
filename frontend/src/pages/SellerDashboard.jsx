@@ -1,38 +1,94 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 export default function SellerDashboard() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('produk');
 
-  // State produk tenant dengan link gambar Google/Unsplash berkualitas
-  const [products, setProducts] = useState([
-    { id: 1, name: 'Nasi Kuning Special Asrama', price: 15000, stock: 25, category: 'Makanan', img: 'https://images.unsplash.com/photo-1555126634-323283e090fa?q=80&w=400&auto=format&fit=crop' },
-    { id: 2, name: 'Es Teh Manis Segar', price: 5000, stock: 40, category: 'Minuman', img: 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?q=80&w=400&auto=format&fit=crop' }
-  ]);
+  // State produk tenant disinkronkan dengan localStorage
+  const [products, setProducts] = useState(() => {
+    const saved = localStorage.getItem('shopmate_products');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    return [
+      { id: 1, name: 'Nasi Kuning Special Asrama', price: 15000, stock: 25, category: 'Makanan', tenant: 'Kantin Asrama Putra', sellerPhone: '6281298765432', img: 'https://images.unsplash.com/photo-1555126634-323283e090fa?q=80&w=400&auto=format&fit=crop', desc: 'Nasi kuning hangat dengan lauk abon dan telur pindang khas kantin asrama.' },
+      { id: 2, name: 'Es Teh Manis Segar', price: 5000, stock: 40, category: 'Minuman', tenant: 'Kantin Utama', sellerPhone: '6281211112222', img: 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?q=80&w=400&auto=format&fit=crop', desc: 'Teh melati manis segar disajikan dingin dengan es batu pilihan.' }
+    ];
+  });
 
-  const [newProduct, setNewProduct] = useState({ name: '', price: '', stock: '', category: 'Makanan', img: '' });
+  // Simpan ke localStorage setiap kali products berubah agar sinkron dengan pembeli
+  useEffect(() => {
+    localStorage.setItem('shopmate_products', JSON.stringify(products));
+  }, [products]);
+
+  // State Form Tambah / Edit Produk (Dilengkapi Deskripsi)
+  const [newProduct, setNewProduct] = useState({ name: '', price: '', stock: '', category: 'Makanan', img: '', desc: '' });
   const [isAddModal, setIsAddModal] = useState(false);
+  const [editingProduct, setEditingProduct] = useState(null); // Mode Edit
 
-  // State Pesanan Masuk & Tombol Kirim Notifikasi Real-time ke Pembeli
+  // State Pesanan Masuk
   const [incomingOrders, setIncomingOrders] = useState([
     { id: 'ORD-9821', buyer: 'Michael Tendean (Student)', item: 'Nasi Kuning Special Asrama (1x)', total: 'Rp 15.000', payment: 'QRIS', status: 'Menunggu Disiapkan' },
     { id: 'ORD-9822', buyer: 'Christina P. (Student)', item: 'Es Teh Manis Segar (2x)', total: 'Rp 10.000', payment: 'Cash (COD)', status: 'Menunggu Disiapkan' }
   ]);
 
-  const handleAddProduct = (e) => {
+  const handleSaveProduct = (e) => {
     e.preventDefault();
-    const productToAdd = {
-      id: products.length + 1,
-      ...newProduct,
-      price: Number(newProduct.price),
-      stock: Number(newProduct.stock),
-      img: newProduct.img || 'https://images.unsplash.com/photo-1548839140-29a749e1cf4d?q=80&w=400&auto=format&fit=crop'
-    };
-    setProducts([...products, productToAdd]);
-    setNewProduct({ name: '', price: '', stock: '', category: 'Makanan', img: '' });
+    if (editingProduct) {
+      // Logika Update / Edit Produk
+      const updatedList = products.map(p => p.id === editingProduct.id ? {
+        ...p,
+        ...newProduct,
+        price: Number(newProduct.price),
+        stock: Number(newProduct.stock),
+        img: newProduct.img || p.img
+      } : p);
+      setProducts(updatedList);
+      setEditingProduct(null);
+      alert('Produk berhasil diperbarui dan disinkronkan ke pembeli!');
+    } else {
+      // Logika Tambah Produk Baru
+      const productToAdd = {
+        id: Date.now(), // Unique ID berdasarkan timestamp
+        ...newProduct,
+        price: Number(newProduct.price),
+        stock: Number(newProduct.stock),
+        tenant: 'Tenant Kampus UNKLAB',
+        sellerPhone: '6281234567890',
+        img: newProduct.img || 'https://images.unsplash.com/photo-1548839140-29a749e1cf4d?q=80&w=400&auto=format&fit=crop',
+        desc: newProduct.desc || 'Produk berkualitas pilihan civitas akademika UNKLAB.'
+      };
+      setProducts([...products, productToAdd]);
+      alert('Produk baru berhasil ditambahkan ke katalog toko!');
+    }
+
+    setNewProduct({ name: '', price: '', stock: '', category: 'Makanan', img: '', desc: '' });
     setIsAddModal(false);
-    alert('Produk baru berhasil ditambahkan ke katalog toko!');
+  };
+
+  const startEditProduct = (p) => {
+    setEditingProduct(p);
+    setNewProduct({
+      name: p.name,
+      price: p.price,
+      stock: p.stock,
+      category: p.category,
+      img: p.img,
+      desc: p.desc || ''
+    });
+    setIsAddModal(true);
+  };
+
+  const handleDeleteProduct = (id) => {
+    if (window.confirm('Yakin ingin menghapus produk ini dari katalog?')) {
+      setProducts(products.filter(p => p.id !== id));
+      alert('Produk berhasil dihapus.');
+    }
   };
 
   const updateOrderStatus = (id, newStatus) => {
@@ -99,7 +155,11 @@ export default function SellerDashboard() {
           </div>
           {activeTab === 'produk' && (
             <button 
-              onClick={() => setIsAddModal(true)}
+              onClick={() => {
+                setEditingProduct(null);
+                setNewProduct({ name: '', price: '', stock: '', category: 'Makanan', img: '', desc: '' });
+                setIsAddModal(true);
+              }}
               className="px-4 py-2.5 bg-amber-400 hover:bg-amber-500 text-slate-950 font-extrabold text-xs rounded-xl shadow transition cursor-pointer"
             >
               + Tambah Produk Baru
@@ -119,12 +179,16 @@ export default function SellerDashboard() {
                   <div className="p-4">
                     <span className="text-[10px] bg-slate-900 text-amber-400 px-2 py-0.5 rounded font-bold">{p.category}</span>
                     <h3 className="text-sm font-extrabold text-white mt-1 mb-1">{p.name}</h3>
-                    <p className="text-xs text-amber-400 font-black">Rp {p.price.toLocaleString()} • Stok: {p.stock}</p>
+                    <p className="text-xs text-amber-400 font-black mb-1">Rp {Number(p.price).toLocaleString()} | Stok: {p.stock}</p>
+                    <p className="text-[11px] text-slate-300 line-clamp-2">{p.desc}</p>
                   </div>
                 </div>
-                <div className="p-4 pt-0">
-                  <button onClick={() => alert(`Edit produk ${p.name}`)} className="w-full py-2 bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs font-bold rounded-xl cursor-pointer">
-                    Edit Produk
+                <div className="p-4 pt-0 flex gap-2">
+                  <button onClick={() => startEditProduct(p)} className="flex-1 py-2 bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs font-bold rounded-xl cursor-pointer">
+                    Edit Detail
+                  </button>
+                  <button onClick={() => handleDeleteProduct(p.id)} className="px-3 py-2 bg-red-600/20 hover:bg-red-600/30 text-red-400 text-xs font-bold rounded-xl cursor-pointer">
+                    Hapus
                   </button>
                 </div>
               </div>
@@ -147,7 +211,6 @@ export default function SellerDashboard() {
                   <p className="text-[11px] text-slate-400">Pemesan: {ord.buyer}</p>
                 </div>
                 
-                {/* Tombol aksi notifikasi ke pembeli */}
                 <div className="flex flex-wrap gap-2">
                   <button onClick={() => updateOrderStatus(ord.id, 'Sedang Disiapkan')} className="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-xl text-xs cursor-pointer">
                     1. Siapkan Pesanan
@@ -190,12 +253,12 @@ export default function SellerDashboard() {
 
       </div>
 
-      {/* MODAL TAMBAH PRODUK */}
+      {/* MODAL TAMBAH / EDIT PRODUK DENGAN DETAIL LENGKAP */}
       {isAddModal && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-md w-full p-6 shadow-2xl text-slate-100 space-y-4">
-            <h3 className="text-lg font-black">Tambah Produk Toko Baru</h3>
-            <form onSubmit={handleAddProduct} className="space-y-3 text-xs">
+            <h3 className="text-lg font-black">{editingProduct ? 'Edit Detail Produk Toko' : 'Tambah Produk Toko Baru'}</h3>
+            <form onSubmit={handleSaveProduct} className="space-y-3 text-xs">
               <div>
                 <label className="block font-bold text-slate-400 uppercase mb-1">Nama Produk</label>
                 <input
@@ -244,7 +307,17 @@ export default function SellerDashboard() {
                 </select>
               </div>
               <div>
-                <label className="block font-bold text-slate-400 uppercase mb-1">Link Gambar Produk (URL Google/Unsplash)</label>
+                <label className="block font-bold text-slate-400 uppercase mb-1">Deskripsi / Detail Produk</label>
+                <textarea
+                  placeholder="Jelaskan detail bahan, rasa, atau ukuran produk..."
+                  value={newProduct.desc}
+                  onChange={(e) => setNewProduct({ ...newProduct, desc: e.target.value })}
+                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-white h-20 resize-none"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block font-bold text-slate-400 uppercase mb-1">Link Gambar Produk (URL)</label>
                 <input
                   type="text"
                   placeholder="https://images.unsplash.com/..."
@@ -259,7 +332,7 @@ export default function SellerDashboard() {
                   Batal
                 </button>
                 <button type="submit" className="flex-1 py-3 bg-amber-400 text-slate-950 font-extrabold rounded-xl cursor-pointer">
-                  Simpan Produk ✓
+                  {editingProduct ? 'Simpan Perubahan ✓' : 'Simpan Produk ✓'}
                 </button>
               </div>
             </form>
