@@ -15,13 +15,13 @@ export default function Dashboard() {
     const savedProducts = localStorage.getItem('shopmate_products');
     if (savedProducts) {
       try {
-        return JSON.parse(savedProducts);
+        const parsed = JSON.parse(savedProducts);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
       } catch (e) {
         console.error(e);
       }
     }
-    // Default produk awal jika localStorage kosong
-    return [
+    const defaultProducts = [
       { 
         id: 1, 
         name: 'Lanyard Resmi UNKLAB Premium', 
@@ -67,22 +67,24 @@ export default function Dashboard() {
         desc: 'Teh melati manis segar disajikan dingin dengan es batu pilihan.' 
       }
     ];
+    localStorage.setItem('shopmate_products', JSON.stringify(defaultProducts));
+    return defaultProducts;
   });
 
-  // Sinkronisasi otomatis jika penjual menambah/mengedit produk di tab lain atau session
+  // Sinkronisasi otomatis setiap ada perubahan produk dari Penjual
   useEffect(() => {
     const handleStorageChange = () => {
       const updated = localStorage.getItem('shopmate_products');
       if (updated) {
         try {
-          setProducts(JSON.parse(updated));
+          const parsed = JSON.parse(updated);
+          if (Array.isArray(parsed)) setProducts(parsed);
         } catch (e) {
           console.error(e);
         }
       }
     };
     window.addEventListener('storage', handleStorageChange);
-    // Interval check untuk sinkronisasi dalam satu browser
     const interval = setInterval(handleStorageChange, 1000);
     return () => {
       window.removeEventListener('storage', handleStorageChange);
@@ -126,7 +128,7 @@ export default function Dashboard() {
   };
 
   const confirmCheckout = () => {
-    const totalAmount = cart.reduce((sum, i) => sum + (i.price * i.qty), 0);
+    const totalAmount = cart.reduce((sum, i) => sum + (Number(i.price) * i.qty), 0);
     const newOrder = {
       id: `ORD-${Math.floor(1000 + Math.random() * 9000)}`,
       item: cart.map(i => `${i.name} (${i.qty}x)`).join(', '),
@@ -268,7 +270,7 @@ export default function Dashboard() {
                   <div className="p-5 pt-0">
                     <button
                       onClick={() => addToCart(p)}
-                      className="w-full bg-amber-400 hover:bg-amber-500 text-slate-950 font-extrabold py-2.5 rounded-xl transition text-xs shadow-md cursor-pointer flex items-center justify-center gap-2"
+                      className="w-full bg-amber-400 hover:bg-amber-500 text-slate-950 font-extrabold py-2.5 rounded-xl transition text-xs shadow-lg cursor-pointer flex items-center justify-center gap-2"
                     >
                       <span>🛒 + Tambah ke Keranjang</span>
                     </button>

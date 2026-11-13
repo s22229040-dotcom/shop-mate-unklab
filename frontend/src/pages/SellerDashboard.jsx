@@ -5,20 +5,23 @@ export default function SellerDashboard() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('produk');
 
-  // State produk tenant disinkronkan dengan localStorage
+  // State produk tenant disinkronkan dengan localStorage (aman dan tidak akan ter-reset)
   const [products, setProducts] = useState(() => {
     const saved = localStorage.getItem('shopmate_products');
     if (saved) {
       try {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
       } catch (e) {
         console.error(e);
       }
     }
-    return [
+    const defaultProducts = [
       { id: 1, name: 'Nasi Kuning Special Asrama', price: 15000, stock: 25, category: 'Makanan', tenant: 'Kantin Asrama Putra', sellerPhone: '6281298765432', img: 'https://images.unsplash.com/photo-1555126634-323283e090fa?q=80&w=400&auto=format&fit=crop', desc: 'Nasi kuning hangat dengan lauk abon dan telur pindang khas kantin asrama.' },
       { id: 2, name: 'Es Teh Manis Segar', price: 5000, stock: 40, category: 'Minuman', tenant: 'Kantin Utama', sellerPhone: '6281211112222', img: 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?q=80&w=400&auto=format&fit=crop', desc: 'Teh melati manis segar disajikan dingin dengan es batu pilihan.' }
     ];
+    localStorage.setItem('shopmate_products', JSON.stringify(defaultProducts));
+    return defaultProducts;
   });
 
   useEffect(() => {
