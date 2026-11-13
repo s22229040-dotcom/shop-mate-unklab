@@ -6,7 +6,7 @@ export default function Login() {
   const [isRegistering, setIsRegistering] = useState(false);
   const [isForgotPass, setIsForgotPass] = useState(false);
   
-  // State form Login (dengan pilihan 4 peran) & Registrasi (Pembeli/Penjual)
+  // State form Login (4 peran) & Registrasi (Pembeli / Penjual)
   const [loginRole, setLoginRole] = useState('Student (Mahasiswa)');
   const [registerRole, setRegisterRole] = useState('Pembeli');
   
@@ -19,7 +19,6 @@ export default function Login() {
   const handleAuth = (e) => {
     e.preventDefault();
     if (isForgotPass) {
-      // Logika Lupa Password
       if (!email) {
         alert('Silakan masukkan email resmi Unklab Anda terlebih dahulu.');
         return;
@@ -28,13 +27,33 @@ export default function Login() {
       alert(`Instruksi pemulihan sandi telah dikirim ke email ${email}.`);
       setIsForgotPass(false);
     } else if (isRegistering) {
-      // Logika Registrasi (Nama Lengkap, Alamat, No HP, Email, Password, Peran Pembeli/Penjual)
+      // Simpan data registrasi lengkap dengan perannya (Pembeli atau Penjual)
       const newUser = { role: registerRole, fullName, address, phone, email, password };
       localStorage.setItem('shopmate_registered_user', JSON.stringify(newUser));
-      alert('Registrasi berhasil! Silakan masuk.');
+      alert(`Registrasi sebagai ${registerRole} berhasil! Silakan masuk.`);
       setIsRegistering(false);
     } else {
-      // Logika Login Berdasarkan Peran yang dipilih di awal
+      // Logika Login dengan Validasi Peran Penjual vs Pembeli
+      const savedUserStr = localStorage.getItem('shopmate_registered_user');
+      let registeredRole = '';
+      
+      if (savedUserStr) {
+        const savedUser = JSON.parse(savedUserStr);
+        registeredRole = savedUser.role;
+      }
+
+      // Validasi khusus: Jika akun terdaftar sebagai Penjual, tidak boleh login sebagai Pembeli/Student/Dosen (kecuali Admin)
+      if (registeredRole === 'Penjual' && loginRole !== 'Penjual / Tenant' && !email.includes('admin')) {
+        alert('Akun ini terdaftar sebagai Penjual. Silakan pilih peran "Penjual / Tenant" untuk masuk.');
+        return;
+      }
+
+      // Validasi sebaliknya: Jika terdaftar sebagai Pembeli, tidak boleh login via peran Penjual
+      if (registeredRole === 'Pembeli' && loginRole === 'Penjual / Tenant') {
+        alert('Akun ini terdaftar sebagai Pembeli. Anda tidak dapat masuk menggunakan peran Penjual.');
+        return;
+      }
+
       localStorage.setItem('shopmate_active_user', email);
       
       if (loginRole.includes('Admin') || email.includes('admin')) {
