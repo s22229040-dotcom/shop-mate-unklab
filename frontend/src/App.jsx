@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Login from './pages/login';
+import Register from './pages/Register'; // <-- 1. IMPORT HALAMAN REGISTER
 import Dashboard from './pages/Dashboard';
 import SellerDashboard from './pages/SellerDashboard';
 import AdminDashboard from './pages/AdminDashboard';
@@ -11,8 +12,11 @@ function App() {
   return (
     <Router>
       <Routes>
-        {/* Halaman Utama / Login & Registrasi */}
+        {/* Halaman Utama / Login */}
         <Route path="/" element={<Login />} />
+        
+        {/* Halaman Registrasi Akun Khusus UNKLAB */}
+        <Route path="/register" element={<Register />} /> {/* <-- 2. TAMBAHKAN RUTE INI */}
         
         {/* Halaman Dashboard Pembeli / Mahasiswa */}
         <Route path="/dashboard" element={<Dashboard />} />

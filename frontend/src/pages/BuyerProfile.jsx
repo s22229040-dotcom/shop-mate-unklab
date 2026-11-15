@@ -11,7 +11,7 @@ export default function BuyerProfile() {
       name: 'Michael Tendean',
       email: 's22229040@student.unklab.ac.id',
       phone: '081234567890',
-      address: 'Jasmine Kamar 203'
+      address: 'Asrama Putra UNKLAB, Kamar 204'
     };
   });
 
@@ -42,19 +42,19 @@ export default function BuyerProfile() {
           onClick={() => navigate(-1)} 
           className="bg-slate-800 hover:bg-slate-700 text-slate-300 px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer"
         >
-          ← Kembali
+          ← Kembali ke Katalog Belanja
         </button>
       </div>
 
       <div className="max-w-3xl mx-auto p-8 bg-[#1e293b] rounded-3xl shadow-2xl border border-slate-700">
         <div className="flex justify-between items-center mb-6 border-b border-slate-700 pb-4">
-          <h2 className="text-lg font-black text-white">Profil Pembeli Civitas</h2>
+          <h2 className="text-xl font-black text-white">Profil Pembeli Civitas</h2>
           {!isEditing && (
             <button 
               onClick={() => setIsEditing(true)} 
               className="bg-amber-400 hover:bg-amber-500 text-slate-900 px-4 py-2 rounded-xl text-xs font-extrabold shadow transition cursor-pointer"
             >
-              Edit Profil
+              ✏️ Edit Profil
             </button>
           )}
         </div>
@@ -77,20 +77,29 @@ export default function BuyerProfile() {
             </div>
 
             <div className="bg-[#131b2e] p-4 rounded-2xl border border-slate-700 flex justify-between items-center">
-              <span className="text-xs text-slate-400 font-bold uppercase">Alamat:</span>
+              <span className="text-xs text-slate-400 font-bold uppercase">Alamat / Asrama:</span>
               <span className="text-sm font-bold text-white">{profile.address}</span>
+            </div>
+
+            <div className="pt-4">
+              <button 
+                onClick={() => navigate(-1)} 
+                className="w-full bg-amber-400 hover:bg-amber-500 text-slate-900 font-extrabold py-3 rounded-2xl transition text-xs shadow-lg cursor-pointer"
+              >
+                ← Kembali ke Katalog Belanja
+              </button>
             </div>
           </div>
         ) : (
           <form onSubmit={handleSave} className="space-y-4">
             <div>
-              <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Nama Lengkap</label>
+              <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Nama</label>
               <input type="text" value={profile.name} disabled 
                 className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-400 cursor-not-allowed" />
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Email Resmi UNKLAB</label>
+              <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Email UNKLAB</label>
               <input type="email" value={profile.email} disabled 
                 className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-400 cursor-not-allowed" />
             </div>
@@ -102,7 +111,7 @@ export default function BuyerProfile() {
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-amber-400 uppercase mb-1">Alamat (Contoh: Outsider / Jasmine Kamar 203)</label>
+              <label className="block text-xs font-bold text-amber-400 uppercase mb-1">Alamat / Asrama</label>
               <textarea name="address" required rows="3" value={profile.address} onChange={handleChange} 
                 className="w-full px-4 py-3 bg-[#131b2e] border border-amber-400/50 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400" />
             </div>
@@ -110,7 +119,7 @@ export default function BuyerProfile() {
             <div className="flex gap-3 pt-2">
               <button type="submit" 
                 className="flex-1 bg-amber-400 hover:bg-amber-500 text-slate-900 font-extrabold py-3 rounded-xl transition text-xs shadow-lg cursor-pointer">
-                Simpan
+                Simpan Perubahan
               </button>
               <button type="button" onClick={() => setIsEditing(false)} 
                 className="px-6 bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 rounded-xl transition text-xs cursor-pointer">
