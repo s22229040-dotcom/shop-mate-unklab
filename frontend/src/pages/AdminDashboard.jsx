@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 export default function AdminDashboard() {
@@ -36,6 +36,19 @@ export default function AdminDashboard() {
     { id: 'TRX-501', date: '2026-11-10 10:30', buyer: 'Christina Pattilamonia', seller: 'Kantin Asri & Snack', total: 30000, status: 'Berhasil', method: 'QRIS UNKLAB' },
     { id: 'TRX-502', date: '2026-11-09 14:15', buyer: 'Michael Tendean', seller: 'Ayu Merchandise', total: 185000, status: 'Berhasil', method: 'Transfer BSI' }
   ]);
+
+  // State untuk Manajemen QRIS Pembayaran Pusat (Tersinkronisasi via localStorage)
+  const [qrisImage, setQrisImage] = useState(() => {
+    return localStorage.getItem('shopmate_qris_image') || 'https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=ShopMate-UNKLAB-Official-QRIS';
+  });
+  const [tempQrisUrl, setTempQrisUrl] = useState(qrisImage);
+
+  const handleSaveQris = (e) => {
+    e.preventDefault();
+    setQrisImage(tempQrisUrl);
+    localStorage.setItem('shopmate_qris_image', tempQrisUrl);
+    alert('Barcode QRIS pembayaran pusat berhasil diperbarui dan disinkronkan ke seluruh pembeli!');
+  };
 
   const totalRevenue = transactions.reduce((sum, t) => sum + t.total, 0);
 
@@ -96,6 +109,9 @@ export default function AdminDashboard() {
         </button>
         <button onClick={() => setActiveAdminTab('transactions')} className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer whitespace-nowrap ${activeAdminTab === 'transactions' ? 'bg-amber-400 text-slate-950 shadow' : 'text-slate-300 hover:bg-slate-800'}`}>
           💰 Laporan Transaksi
+        </button>
+        <button onClick={() => setActiveAdminTab('qris')} className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer whitespace-nowrap ${activeAdminTab === 'qris' ? 'bg-amber-400 text-slate-950 shadow' : 'text-slate-300 hover:bg-slate-800'}`}>
+          💳 Kelola QRIS Pembayaran
         </button>
         <button onClick={() => setActiveAdminTab('profil')} className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer whitespace-nowrap ${activeAdminTab === 'profil' ? 'bg-amber-400 text-slate-950 shadow' : 'text-slate-300 hover:bg-slate-800'}`}>
           🛡️ Profil & Ganti Password Admin
@@ -234,6 +250,44 @@ export default function AdminDashboard() {
                 </tbody>
               </table>
             </div>
+          </div>
+        )}
+
+        {/* TAB BARU: KELOLA QRIS PEMBAYARAN */}
+        {activeAdminTab === 'qris' && (
+          <div className="max-w-xl mx-auto bg-slate-800/60 border border-slate-700 rounded-3xl p-8 shadow-xl space-y-6 text-xs">
+            <div>
+              <h2 className="text-xl font-black text-white mb-1">Pengaturan Barcode QRIS Pusat</h2>
+              <p className="text-slate-400">Unggah atau ubah tautan gambar QRIS yang akan dipindai oleh pembeli saat melakukan pembayaran non-tunai.</p>
+            </div>
+
+            <div className="flex flex-col items-center justify-center p-6 bg-slate-900 rounded-2xl border border-slate-700 space-y-3">
+              <p className="font-bold text-amber-400 uppercase tracking-wider">Preview Barcode QRIS Aktif Saat Ini</p>
+              <div className="w-48 h-48 bg-white p-2 rounded-2xl shadow-md flex items-center justify-center">
+                <img src={qrisImage} alt="QRIS Preview" className="w-full h-full object-contain" />
+              </div>
+            </div>
+
+            <form onSubmit={handleSaveQris} className="space-y-4 pt-2">
+              <div>
+                <label className="block text-slate-400 font-bold mb-1 uppercase">URL Gambar / Barcode QRIS Baru</label>
+                <input
+                  type="text"
+                  required
+                  value={tempQrisUrl}
+                  onChange={(e) => setTempQrisUrl(e.target.value)}
+                  className="w-full px-4 py-3 bg-slate-950 border border-slate-700 rounded-xl text-white font-mono text-[11px]"
+                  placeholder="https://images.unsplash.com/... atau URL gambar QRIS"
+                />
+                <p className="text-[10px] text-slate-400 mt-1">Masukkan URL gambar QRIS valid atau tautan hosting gambar Anda.</p>
+              </div>
+              <button
+                type="submit"
+                className="w-full bg-amber-400 hover:bg-amber-500 text-slate-950 font-extrabold py-3.5 rounded-xl transition shadow cursor-pointer"
+              >
+                Simpan & Perbarui QRIS Pusat ✓
+              </button>
+            </form>
           </div>
         )}
 
