@@ -15,6 +15,4 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
-
-// EKSPOR AUTH AGAR BISA DIBACA OLEH LOGIN.JSX
 export const auth = getAuth(app);
