@@ -22,11 +22,23 @@ export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
+  // Menentukan placeholder email secara dinamis berdasarkan peran yang dipilih
+  const getEmailPlaceholder = () => {
+    if (loginRole.includes('Admin')) {
+      return ''; // Dikosongkan khusus untuk Admin
+    } else if (loginRole.includes('Dosen')) {
+      return 'Contoh: nama.dosen@unklab.ac.id';
+    } else if (loginRole.includes('Penjual')) {
+      return 'Contoh: tenant.kantin@unklab.ac.id';
+    } else {
+      return 'Contoh: s12345678@student.unklab.ac.id';
+    }
+  };
+
   // Cek sesi login aktif secara otomatis (Persistent Login)
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
-        // Jika user sudah login sebelumnya, arahkan ke dashboard sesuai role
         const savedUserStr = localStorage.getItem('shopmate_registered_user');
         let registeredRole = 'Pembeli';
         if (savedUserStr) {
@@ -55,7 +67,6 @@ export default function Login() {
     
     try {
       if (isForgotPass) {
-        // --- 1. LUPA PASSWORD (Kirim email asli via Firebase) ---
         if (!email) {
           alert('Silakan masukkan email resmi Unklab Anda terlebih dahulu.');
           return;
@@ -65,8 +76,6 @@ export default function Login() {
         setIsForgotPass(false);
 
       } else if (isRegistering) {
-        // --- 2. REGISTRASI AKUN BARU KE FIREBASE ---
-        // Cek duplikasi email di localStorage atau Firebase
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         
         const newUser = { 
@@ -85,7 +94,6 @@ export default function Login() {
         setPassword('');
 
       } else {
-        // --- 3. LOGIN KE FIREBASE ---
         await signInWithEmailAndPassword(auth, email, password);
         localStorage.setItem('shopmate_active_user', email);
 
@@ -100,7 +108,6 @@ export default function Login() {
           }
         }
 
-        // Validasi Peran Penjual vs Pembeli
         if (registeredRole === 'Penjual' && loginRole !== 'Penjual / Tenant' && !email.includes('admin')) {
           alert('Akun ini terdaftar sebagai PENJUAL. Silakan pilih peran "Penjual / Tenant".');
           return;
@@ -111,7 +118,6 @@ export default function Login() {
           return;
         }
 
-        // Arahkan ke dashboard tujuan
         if (loginRole.includes('Admin') || email.includes('admin')) {
           navigate('/admin-dashboard');
         } else if (loginRole.includes('Penjual')) {
@@ -171,7 +177,7 @@ export default function Login() {
               <div>
                 <label className="text-[11px] font-bold text-amber-400 uppercase tracking-wider">Pilih Peran / Status Anda</label>
                 <select value={loginRole} onChange={(e) => setLoginRole(e.target.value)} 
-                  className="w-full mt-1 bg-[#1e293b] border border-amber-400/40 rounded-xl px-4 py-2.5 text-xs text-white font-bold focus:outline-none focus:border-amber-400 shadow-inner">
+                  className="w-full mt-1 bg-[#1e293b] border border-amber-400/40 rounded-xl px-4 py-2.5 text-xs text-white font-bold focus:outline-none focus:border-amber-400 shadow-inner cursor-pointer">
                   <option value="Student (Mahasiswa)">Student (Mahasiswa)</option>
                   <option value="Dosen / Staff">Dosen / Staff</option>
                   <option value="Penjual / Tenant">Penjual / Tenant</option>
@@ -184,7 +190,7 @@ export default function Login() {
               <div>
                 <label className="text-[11px] font-bold text-amber-400 uppercase tracking-wider">Pilih Peran / Status Anda</label>
                 <select value={registerRole} onChange={(e) => setRegisterRole(e.target.value)} 
-                  className="w-full mt-1 bg-[#1e293b] border border-amber-400/40 rounded-xl px-4 py-2 text-xs text-white font-bold focus:outline-none focus:border-amber-400 shadow-inner">
+                  className="w-full mt-1 bg-[#1e293b] border border-amber-400/40 rounded-xl px-4 py-2 text-xs text-white font-bold focus:outline-none focus:border-amber-400 shadow-inner cursor-pointer">
                   <option value="Pembeli">Pembeli</option>
                   <option value="Penjual">Penjual</option>
                 </select>
@@ -215,7 +221,7 @@ export default function Login() {
               <label className="text-[11px] font-bold text-slate-300 uppercase">Email Resmi Unklab</label>
               <input 
                 type="email" 
-                placeholder="Contoh: s12345678@student.unklab.ac.id" 
+                placeholder={getEmailPlaceholder()} 
                 value={email} 
                 onChange={(e) => setEmail(e.target.value)} 
                 required
