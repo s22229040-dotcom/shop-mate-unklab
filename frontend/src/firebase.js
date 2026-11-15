@@ -1,20 +1,28 @@
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
-import { getAnalytics } from "firebase/analytics";
+import { getAnalytics, isSupported } from "firebase/analytics";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyDnQS_oburIlNQgQ9dswwJK0EzCEZYF8LU",
-  authDomain: "fir-1befe.firebaseapp.com",
-  projectId: "fir-1befe",
-  storageBucket: "fir-1befe.firebasestorage.app",
-  messagingSenderId: "543605091322",
-  appId: "1:543605091322:web:6ef1b2595907404267d243",
-  measurementId: "G-N5VTLXPT7S"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
+// Cek cepat: kalau undefined, env belum terbaca (hapus setelah beres)
+console.log("Firebase API key terbaca:", !!firebaseConfig.apiKey);
 
-// Tambahkan baris export auth ini agar fitur login berfungsi
+const app = initializeApp(firebaseConfig);
+
 export const auth = getAuth(app);
+
+// Analytics hanya jalan di browser yang mendukung
+export let analytics = null;
+isSupported().then((ok) => {
+  if (ok) analytics = getAnalytics(app);
+});
+
+export default app;
