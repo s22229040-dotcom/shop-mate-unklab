@@ -12,6 +12,9 @@ const firebaseConfig = {
   measurementId: "G-N5VTLXPT7S"
 };
 
+// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
+
+// Tambahkan baris export auth ini agar fitur login berfungsi
 export const auth = getAuth(app);
