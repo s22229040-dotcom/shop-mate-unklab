@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 export default function AdminDashboard() {
@@ -253,7 +253,7 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        {/* TAB BARU: KELOLA QRIS PEMBAYARAN */}
+        {/* TAB: KELOLA QRIS PEMBAYARAN */}
         {activeAdminTab === 'qris' && (
           <div className="max-w-xl mx-auto bg-slate-800/60 border border-slate-700 rounded-3xl p-8 shadow-xl space-y-6 text-xs">
             <div>
