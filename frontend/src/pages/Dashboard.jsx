@@ -99,12 +99,43 @@ export default function Dashboard() {
   const [isCheckoutModal, setIsCheckoutModal] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('QRIS');
 
-  const [userProfile] = useState({
-    name: 'Michael Tendean',
-    email: 's22229040@student.unklab.ac.id',
-    phone: '081234567890',
-    address: 'Asrama Putra UNKLAB, Kamar 204'
+  // State Profil dengan Fitur Edit Profil
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [userProfile, setUserProfile] = useState(() => {
+    const saved = localStorage.getItem('shopmate_active_profile');
+    if (saved) {
+      try { return JSON.parse(saved); } catch(e) {}
+    }
+    const registered = localStorage.getItem('shopmate_registered_user');
+    if (registered) {
+      try {
+        const regData = JSON.parse(registered);
+        return {
+          name: regData.fullName || 'Michael Tendean',
+          email: regData.email || 's22229040@student.unklab.ac.id',
+          phone: regData.phone || '081234567890',
+          address: regData.address || 'Asrama Putra UNKLAB, Kamar 204'
+        };
+      } catch(e) {}
+    }
+    return {
+      name: 'Michael Tendean',
+      email: 's22229040@student.unklab.ac.id',
+      phone: '081234567890',
+      address: 'Asrama Putra UNKLAB, Kamar 204'
+    };
   });
+
+  const handleProfileChange = (e) => {
+    setUserProfile({ ...userProfile, [e.target.name]: e.target.value });
+  };
+
+  const handleSaveProfile = (e) => {
+    e.preventDefault();
+    localStorage.setItem('shopmate_active_profile', JSON.stringify(userProfile));
+    setIsEditingProfile(false);
+    alert('Profil berhasil diperbarui!');
+  };
 
   const [orders, setOrders] = useState([
     { 
@@ -143,6 +174,12 @@ export default function Dashboard() {
     setIsCheckoutModal(false);
     setActiveTab('pesanan');
     alert(`Checkout Berhasil via ${paymentMethod}!`);
+  };
+
+  // Fungsi Logout yang Berfungsi Bersihkan Sesi
+  const handleLogout = () => {
+    localStorage.removeItem('shopmate_active_user');
+    navigate('/');
   };
 
   const filteredProducts = products.filter(p => {
@@ -195,7 +232,7 @@ export default function Dashboard() {
 
         <div className="flex items-center gap-3">
           <button 
-            onClick={() => navigate('/')}
+            onClick={handleLogout}
             className="px-3.5 py-2 bg-red-600/20 hover:bg-red-600/30 text-red-400 font-bold text-xs rounded-xl transition cursor-pointer flex items-center gap-1"
           >
             <span>&larr;</span> Keluar
@@ -372,28 +409,69 @@ export default function Dashboard() {
 
         {activeTab === 'profil' && (
           <div className="max-w-xl mx-auto bg-slate-800/60 border border-slate-700 rounded-3xl p-8 shadow-xl space-y-4">
-            <h2 className="text-xl font-black text-white mb-2 pb-3 border-b border-slate-700">Profil Pembeli Civitas</h2>
-            <div className="space-y-3 text-xs">
-              <div className="p-3 bg-slate-900 rounded-xl flex justify-between">
-                <span className="text-slate-400 font-bold">Nama:</span>
-                <span className="text-white font-semibold">{userProfile.name}</span>
-              </div>
-              <div className="p-3 bg-slate-900 rounded-xl flex justify-between">
-                <span className="text-slate-400 font-bold">Email UNKLAB:</span>
-                <span className="text-white font-semibold">{userProfile.email}</span>
-              </div>
-              <div className="p-3 bg-slate-900 rounded-xl flex justify-between">
-                <span className="text-slate-400 font-bold">Nomor WhatsApp:</span>
-                <span className="text-white font-semibold">{userProfile.phone}</span>
-              </div>
-              <div className="p-3 bg-slate-900 rounded-xl flex justify-between">
-                <span className="text-slate-400 font-bold">Alamat / Asrama:</span>
-                <span className="text-white font-semibold">{userProfile.address}</span>
-              </div>
+            <div className="flex justify-between items-center pb-3 border-b border-slate-700">
+              <h2 className="text-xl font-black text-white">Profil Pembeli Civitas</h2>
+              {!isEditingProfile && (
+                <button
+                  onClick={() => setIsEditingProfile(true)}
+                  className="bg-amber-400 hover:bg-amber-500 text-slate-950 font-extrabold px-3.5 py-2 rounded-xl text-xs cursor-pointer shadow"
+                >
+                  ✏️ Edit Profil
+                </button>
+              )}
             </div>
+
+            {!isEditingProfile ? (
+              <div className="space-y-3 text-xs">
+                <div className="p-3 bg-slate-900 rounded-xl flex justify-between">
+                  <span className="text-slate-400 font-bold">Nama:</span>
+                  <span className="text-white font-semibold">{userProfile.name}</span>
+                </div>
+                <div className="p-3 bg-slate-900 rounded-xl flex justify-between">
+                  <span className="text-slate-400 font-bold">Email UNKLAB:</span>
+                  <span className="text-white font-semibold">{userProfile.email}</span>
+                </div>
+                <div className="p-3 bg-slate-900 rounded-xl flex justify-between">
+                  <span className="text-slate-400 font-bold">Nomor WhatsApp:</span>
+                  <span className="text-white font-semibold">{userProfile.phone}</span>
+                </div>
+                <div className="p-3 bg-slate-900 rounded-xl flex justify-between">
+                  <span className="text-slate-400 font-bold">Alamat / Asrama:</span>
+                  <span className="text-white font-semibold">{userProfile.address}</span>
+                </div>
+              </div>
+            ) : (
+              <form onSubmit={handleSaveProfile} className="space-y-3 text-xs">
+                <div>
+                  <label className="block font-bold text-slate-400 mb-1">Nama</label>
+                  <input type="text" value={userProfile.name} disabled className="w-full p-3 bg-slate-950 rounded-xl border border-slate-700 text-slate-400 cursor-not-allowed" />
+                </div>
+                <div>
+                  <label className="block font-bold text-slate-400 mb-1">Email UNKLAB</label>
+                  <input type="email" value={userProfile.email} disabled className="w-full p-3 bg-slate-950 rounded-xl border border-slate-700 text-slate-400 cursor-not-allowed" />
+                </div>
+                <div>
+                  <label className="block font-bold text-amber-400 mb-1">Nomor WhatsApp</label>
+                  <input type="text" name="phone" value={userProfile.phone} onChange={handleProfileChange} required className="w-full p-3 bg-slate-900 rounded-xl border border-amber-400/50 text-white focus:outline-none focus:ring-2 focus:ring-amber-400" />
+                </div>
+                <div>
+                  <label className="block font-bold text-amber-400 mb-1">Alamat / Asrama</label>
+                  <textarea name="address" rows="3" value={userProfile.address} onChange={handleProfileChange} required className="w-full p-3 bg-slate-900 rounded-xl border border-amber-400/50 text-white focus:outline-none focus:ring-2 focus:ring-amber-400" />
+                </div>
+                <div className="flex gap-3 pt-2">
+                  <button type="submit" className="flex-1 bg-amber-400 hover:bg-amber-500 text-slate-950 font-extrabold py-3 rounded-xl cursor-pointer">
+                    Simpan Perubahan
+                  </button>
+                  <button type="button" onClick={() => setIsEditingProfile(false)} className="px-5 bg-slate-700 text-white font-bold py-3 rounded-xl cursor-pointer">
+                    Batal
+                  </button>
+                </div>
+              </form>
+            )}
+
             <button
               onClick={() => setActiveTab('katalog')}
-              className="w-full mt-4 bg-amber-400 hover:bg-amber-500 text-slate-950 font-extrabold py-3 rounded-xl text-xs cursor-pointer shadow"
+              className="w-full mt-4 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold py-3 rounded-xl text-xs cursor-pointer shadow"
             >
               &larr; Kembali ke Katalog Belanja
             </button>
