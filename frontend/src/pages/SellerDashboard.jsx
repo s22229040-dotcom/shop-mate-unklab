@@ -182,7 +182,7 @@ export default function SellerDashboard() {
       </div>
 
       {/* Konten Utama */}
-      <div className="flex-1 p-8 overflow-y-auto">
+      <main className="flex-1 p-8 overflow-y-auto">
         <header className="flex justify-between items-center mb-8 pb-4 border-b border-slate-800">
           <div>
             <h2 className="text-xl font-black text-white">
@@ -395,7 +395,7 @@ export default function SellerDashboard() {
           </div>
         )}
 
-      </div>
+      </main>
 
       {/* MODAL TAMBAH / EDIT PRODUK */}
       {isAddModal && (
@@ -460,15 +460,28 @@ export default function SellerDashboard() {
                   required
                 />
               </div>
+
+              {/* TAMBAHAN: UPLOAD GAMBAR DARI GALERI PERANGKAT (HP/LAPTOP) */}
               <div>
-                <label className="block font-bold text-slate-400 uppercase mb-1">Link Gambar Produk (URL)</label>
+                <label className="block font-bold text-amber-400 uppercase mb-1">Upload Gambar dari Galeri Perangkat</label>
                 <input
-                  type="text"
-                  placeholder="https://images.unsplash.com/..."
-                  value={newProduct.img}
-                  onChange={(e) => setNewProduct({ ...newProduct, img: e.target.value })}
-                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-white"
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                      const reader = new FileReader();
+                      reader.onloadend = () => {
+                        setNewProduct({ ...newProduct, img: reader.result });
+                      };
+                      reader.readAsDataURL(file);
+                    }
+                  }}
+                  className="w-full p-2 bg-slate-950 border border-slate-700 rounded-xl text-white text-xs file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-amber-400 file:text-slate-950 hover:file:bg-amber-500 cursor-pointer"
                 />
+                {newProduct.img && (
+                  <p className="text-[10px] text-emerald-400 mt-1">✓ Gambar berhasil dipilih dan siap disimpan.</p>
+                )}
               </div>
 
               <div className="flex gap-3 pt-3">
