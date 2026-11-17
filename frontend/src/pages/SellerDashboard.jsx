@@ -58,11 +58,53 @@ export default function SellerDashboard() {
     alert('Profil Penjual / Tenant berhasil diperbarui!');
   };
 
-  // State Pesanan Masuk
-  const [incomingOrders, setIncomingOrders] = useState([
-    { id: 'ORD-9821', buyer: 'Michael Tendean (Student)', item: 'Nasi Kuning Special Asrama (1x)', total: 'Rp 15.000', payment: 'QRIS', status: 'Menunggu Disiapkan' },
-    { id: 'ORD-9822', buyer: 'Christina P. (Student)', item: 'Es Teh Manis Segar (2x)', total: 'Rp 10.000', payment: 'Cash (COD)', status: 'Menunggu Disiapkan' }
-  ]);
+  // State Pesanan Masuk disinkronkan dengan localStorage dari pembeli
+  const [incomingOrders, setIncomingOrders] = useState(() => {
+    const saved = localStorage.getItem('shopmate_orders');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed.map(o => ({
+            id: o.id,
+            buyer: 'Civitas UNKLAB',
+            item: o.item,
+            total: o.total,
+            payment: o.payment,
+            status: o.status === 'Menunggu Konfirmasi Tenant' ? 'Menunggu Disiapkan' : o.status
+          }));
+        }
+      } catch (e) {}
+    }
+    return [
+      { id: 'ORD-9821', buyer: 'Michael Tendean (Student)', item: 'Nasi Kuning Special Asrama (1x)', total: 'Rp 15.000', payment: 'QRIS', status: 'Menunggu Disiapkan' }
+    ];
+  });
+
+  // Sinkronisasi otomatis setiap 1 detik agar pesanan dari pembeli langsung muncul
+  useEffect(() => {
+    const syncOrders = () => {
+      const saved = localStorage.getItem('shopmate_orders');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed)) {
+            const formatted = parsed.map(o => ({
+              id: o.id,
+              buyer: 'Civitas UNKLAB',
+              item: o.item,
+              total: o.total,
+              payment: o.payment,
+              status: o.status === 'Menunggu Konfirmasi Tenant' ? 'Menunggu Disiapkan' : o.status
+            }));
+            setIncomingOrders(formatted);
+          }
+        } catch (e) {}
+      }
+    };
+    const interval = setInterval(syncOrders, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleSaveProduct = (e) => {
     e.preventDefault();
@@ -125,7 +167,23 @@ export default function SellerDashboard() {
   };
 
   const updateOrderStatus = (id, newStatus) => {
-    setIncomingOrders(incomingOrders.map(o => o.id === id ? { ...o, status: newStatus } : o));
+    let notifMessage = 'Pesanan sedang diproses oleh tenant.';
+    if (newStatus === 'Sedang Diantar Kurir') notifMessage = 'Kurir sedang mengantarkan pesanan ke alamat Anda.';
+    if (newStatus === 'Selesai diantar') notifMessage = 'Tenant telah mengonfirmasi: Pesanan Anda telah sampai di lobi asrama!';
+
+    const updatedOrders = incomingOrders.map(o => o.id === id ? { ...o, status: newStatus } : o);
+    setIncomingOrders(updatedOrders);
+
+    // Simpan perubahan ke shopmate_orders agar pembeli bisa melihat status & notifikasinya secara real-time
+    const saved = localStorage.getItem('shopmate_orders');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        const synced = parsed.map(o => o.id === id ? { ...o, status: newStatus, notification: notifMessage } : o);
+        localStorage.setItem('shopmate_orders', JSON.stringify(synced));
+      } catch (e) {}
+    }
+
     alert(`Status pesanan ${id} diperbarui menjadi: "${newStatus}". Notifikasi terkirim ke pembeli!`);
   };
 
@@ -248,7 +306,7 @@ export default function SellerDashboard() {
                     <span className="text-[10px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded font-bold">{ord.status}</span>
                   </div>
                   <p className="text-xs font-bold text-white">{ord.item}</p>
-                  <p className="text-[11px] text-slate-400">Pemesan: {ord.buyer}</p>
+                  <p className="text-[11px] text-slate-400">Total: {ord.total} | Pemesan: {ord.buyer}</p>
                 </div>
                 
                 <div className="flex flex-wrap gap-2">
@@ -461,7 +519,7 @@ export default function SellerDashboard() {
                 />
               </div>
 
-              {/* TAMBAHAN: UPLOAD GAMBAR DARI GALERI PERANGKAT (HP/LAPTOP) */}
+              {/* UPLOAD GAMBAR DARI GALERI PERANGKAT (HP/LAPTOP) */}
               <div>
                 <label className="block font-bold text-amber-400 uppercase mb-1">Upload Gambar dari Galeri Perangkat</label>
                 <input
