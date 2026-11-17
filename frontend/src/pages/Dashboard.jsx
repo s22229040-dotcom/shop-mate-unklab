@@ -10,6 +10,16 @@ export default function Dashboard() {
 
   const [activeTab, setActiveTab] = useState('katalog');
 
+  // State untuk Tema (Dark / Light Mode) yang tersimpan di localStorage
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    const savedTheme = localStorage.getItem('shopmate_theme');
+    return savedTheme ? savedTheme === 'dark' : true; // Default Dark Mode
+  });
+
+  useEffect(() => {
+    localStorage.setItem('shopmate_theme', isDarkMode ? 'dark' : 'light');
+  }, [isDarkMode]);
+
   // Katalog Produk disinkronkan dengan localStorage agar terhubung dengan Penjual
   const [products, setProducts] = useState(() => {
     const savedProducts = localStorage.getItem('shopmate_products');
@@ -95,6 +105,8 @@ export default function Dashboard() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Semua');
   const [selectedProduct, setSelectedProduct] = useState(null);
+  
+  // State keranjang dengan fitur checkbox ala Shopee
   const [cart, setCart] = useState([]);
   const [isCheckoutModal, setIsCheckoutModal] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('QRIS');
@@ -137,28 +149,55 @@ export default function Dashboard() {
     alert('Profil berhasil diperbarui!');
   };
 
-  const [orders, setOrders] = useState([
-    { 
-      id: 'ORD-9821', 
-      item: 'Nasi Kuning Special Asrama (1x)', 
-      total: 'Rp 15.000', 
-      payment: 'QRIS (Paid)',
-      status: 'Selesai diantar ke Asrama', 
-      notification: 'Tenant telah mengonfirmasi: Pesanan Anda telah sampai di lobi asrama!' 
+  const [orders, setOrders] = useState(() => {
+    const savedOrders = localStorage.getItem('shopmate_orders');
+    if (savedOrders) {
+      try {
+        const parsed = JSON.parse(savedOrders);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      } catch (e) {}
     }
-  ]);
+    return [
+      { 
+        id: 'ORD-9821', 
+        item: 'Nasi Kuning Special Asrama (1x)', 
+        total: 'Rp 15.000', 
+        payment: 'QRIS (Verified)',
+        status: 'Selesai diantar ke Asrama', 
+        notification: 'Tenant telah mengonfirmasi: Pesanan Anda telah sampai di lobi asrama!' 
+      }
+    ];
+  });
+
+  // Sinkronisasi otomatis notifikasi status pesanan
+  useEffect(() => {
+    const syncOrders = () => {
+      const savedOrders = localStorage.getItem('shopmate_orders');
+      if (savedOrders) {
+        try {
+          const parsed = JSON.parse(savedOrders);
+          if (Array.isArray(parsed)) setOrders(parsed);
+        } catch (e) {}
+      }
+    };
+    const interval = setInterval(syncOrders, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   const addToCart = (product) => {
     const existing = cart.find(item => item.id === product.id);
     if (existing) {
       setCart(cart.map(item => item.id === product.id ? { ...item, qty: item.qty + 1 } : item));
     } else {
-      setCart([...cart, { ...product, qty: 1 }]);
+      setCart([...cart, { ...product, qty: 1, selected: true }]);
     }
     alert(`Berhasil menambahkan "${product.name}" ke keranjang!`);
   };
 
-  // Fungsi Baru untuk Mengelola Keranjang (Tambah, Kurang, Hapus) ala Shopee
+  const toggleSelectCartItem = (id) => {
+    setCart(cart.map(item => item.id === id ? { ...item, selected: !item.selected } : item));
+  };
+
   const updateCartQty = (id, delta) => {
     setCart(cart.map(item => {
       if (item.id === id) {
@@ -174,24 +213,32 @@ export default function Dashboard() {
   };
 
   const confirmCheckout = () => {
-    const totalAmount = cart.reduce((sum, i) => sum + (Number(i.price) * i.qty), 0);
+    const selectedItems = cart.filter(i => i.selected);
+    if (selectedItems.length === 0) {
+      alert('Pilih minimal satu produk yang ingin dibeli terlebih dahulu!');
+      return;
+    }
+
+    const totalAmount = selectedItems.reduce((sum, i) => sum + (Number(i.price) * i.qty), 0);
     const newOrder = {
       id: `ORD-${Math.floor(1000 + Math.random() * 9000)}`,
-      item: cart.map(i => `${i.name} (${i.qty}x)`).join(', '),
+      item: selectedItems.map(i => `${i.name} (${i.qty}x)`).join(', '),
       total: `Rp ${totalAmount.toLocaleString()}`,
       payment: paymentMethod === 'QRIS' ? 'QRIS (Verified)' : 'Cash on Delivery (COD)',
       status: 'Menunggu Konfirmasi Tenant',
       notification: 'Pesanan diterima oleh sistem. Tenant sedang menyiapkan pesanan Anda.'
     };
 
-    setOrders([newOrder, ...orders]);
-    setCart([]);
+    const updatedOrders = [newOrder, ...orders];
+    setOrders(updatedOrders);
+    localStorage.setItem('shopmate_orders', JSON.stringify(updatedOrders));
+
+    setCart(cart.filter(i => !i.selected));
     setIsCheckoutModal(false);
     setActiveTab('pesanan');
     alert(`Checkout Berhasil via ${paymentMethod}!`);
   };
 
-  // Fungsi Logout yang Berfungsi Bersihkan Sesi
   const handleLogout = () => {
     localStorage.removeItem('shopmate_active_user');
     navigate('/');
@@ -204,51 +251,82 @@ export default function Dashboard() {
   });
 
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col font-sans">
+    <div className={`min-h-screen flex flex-col font-sans transition-colors duration-300 ${isDarkMode ? 'bg-slate-900 text-slate-100' : 'bg-slate-50 text-slate-900'}`}>
       
       {/* NAVBAR */}
-      <header className="bg-slate-950 border-b border-slate-800 px-6 py-4 flex items-center justify-between sticky top-0 z-40 shadow-md">
+      <header className={`border-b px-6 py-4 flex items-center justify-between sticky top-0 z-40 shadow-md transition-colors duration-300 ${
+        isDarkMode ? 'bg-slate-950 border-slate-800' : 'bg-white border-slate-200'
+      }`}>
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-amber-400 text-slate-950 rounded-xl flex items-center justify-center font-black text-lg shadow">
             🛒
           </div>
           <div>
-            <h1 className="font-extrabold text-sm text-white tracking-wide">SHOP-MATE UNKLAB</h1>
-            <p className="text-[10px] text-amber-400 font-semibold uppercase">Portal Belanja Civitas Akademika</p>
+            <h1 className={`font-extrabold text-sm tracking-wide ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>SHOP-MATE UNKLAB</h1>
+            <p className="text-[10px] text-amber-500 font-semibold uppercase">Portal Belanja Civitas Akademika</p>
           </div>
         </div>
 
         <div className="flex items-center gap-2">
           <button 
             onClick={() => setActiveTab('katalog')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${activeTab === 'katalog' ? 'bg-amber-400 text-slate-950 shadow-md' : 'text-slate-300 hover:bg-slate-800'}`}
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+              activeTab === 'katalog' 
+                ? 'bg-amber-400 text-slate-950 shadow-md' 
+                : isDarkMode ? 'text-slate-300 hover:bg-slate-800' : 'text-slate-600 hover:bg-slate-100'
+            }`}
           >
             🛍️ Katalog
           </button>
           <button 
             onClick={() => setActiveTab('keranjang')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer relative ${activeTab === 'keranjang' ? 'bg-amber-400 text-slate-950 shadow-md' : 'text-slate-300 hover:bg-slate-800'}`}
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer relative ${
+              activeTab === 'keranjang' 
+                ? 'bg-amber-400 text-slate-950 shadow-md' 
+                : isDarkMode ? 'text-slate-300 hover:bg-slate-800' : 'text-slate-600 hover:bg-slate-100'
+            }`}
           >
             🛒 Keranjang {cart.length > 0 && <span className="absolute -top-1 -right-1 bg-red-600 text-white text-[10px] w-5 h-5 rounded-full flex items-center justify-center font-bold">{cart.length}</span>}
           </button>
           <button 
             onClick={() => setActiveTab('pesanan')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${activeTab === 'pesanan' ? 'bg-amber-400 text-slate-950 shadow-md' : 'text-slate-300 hover:bg-slate-800'}`}
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+              activeTab === 'pesanan' 
+                ? 'bg-amber-400 text-slate-950 shadow-md' 
+                : isDarkMode ? 'text-slate-300 hover:bg-slate-800' : 'text-slate-600 hover:bg-slate-100'
+            }`}
           >
             🔔 Notifikasi
           </button>
           <button 
             onClick={() => setActiveTab('profil')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${activeTab === 'profil' ? 'bg-amber-400 text-slate-950 shadow-md' : 'text-slate-300 hover:bg-slate-800'}`}
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+              activeTab === 'profil' 
+                ? 'bg-amber-400 text-slate-950 shadow-md' 
+                : isDarkMode ? 'text-slate-300 hover:bg-slate-800' : 'text-slate-600 hover:bg-slate-100'
+            }`}
           >
             👤 Profil Saya
           </button>
         </div>
 
         <div className="flex items-center gap-3">
+          {/* TOMBOL PENGALIH TEMA (DARK/LIGHT MODE) */}
+          <button
+            onClick={() => setIsDarkMode(!isDarkMode)}
+            className={`px-3 py-2 rounded-xl text-xs font-bold shadow transition cursor-pointer flex items-center gap-1.5 border ${
+              isDarkMode 
+                ? 'bg-slate-800 border-slate-700 text-amber-400 hover:bg-slate-700' 
+                : 'bg-slate-100 border-slate-300 text-slate-700 hover:bg-slate-200'
+            }`}
+            title={isDarkMode ? "Ubah ke Light Mode" : "Ubah ke Dark Mode"}
+          >
+            {isDarkMode ? '☀️' : '🌙'}
+          </button>
+
           <button 
             onClick={handleLogout}
-            className="px-3.5 py-2 bg-red-600/20 hover:bg-red-600/30 text-red-400 font-bold text-xs rounded-xl transition cursor-pointer flex items-center gap-1"
+            className="px-3.5 py-2 bg-red-600/20 hover:bg-red-600/30 text-red-500 font-bold text-xs rounded-xl transition cursor-pointer flex items-center gap-1"
           >
             <span>&larr;</span> Keluar
           </button>
@@ -260,13 +338,15 @@ export default function Dashboard() {
         
         {activeTab === 'katalog' && (
           <div>
-            <div className="bg-gradient-to-r from-purple-900 via-slate-900 to-slate-900 border border-slate-800 p-8 rounded-3xl mb-8 shadow-xl flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className={`border p-8 rounded-3xl mb-8 shadow-xl flex flex-col md:flex-row items-center justify-between gap-6 transition-colors duration-300 ${
+              isDarkMode ? 'bg-gradient-to-r from-purple-900 via-slate-900 to-slate-900 border-slate-800' : 'bg-gradient-to-r from-purple-100 via-white to-white border-slate-200'
+            }`}>
               <div>
                 <span className="px-3.5 py-1 bg-amber-400 text-slate-950 text-[10px] font-extrabold rounded-full uppercase tracking-wider">
                   KAMPUS E-COMMERCE
                 </span>
-                <h2 className="text-2xl sm:text-3xl font-black text-white mt-2 mb-1">Cari Kebutuhan Kuliah & Konsumsi Anda</h2>
-                <p className="text-xs text-slate-300">Klik produk untuk detail atau hubungi langsung WhatsApp penjual.</p>
+                <h2 className={`text-2xl sm:text-3xl font-black mt-2 mb-1 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Cari Kebutuhan Kuliah & Konsumsi Anda</h2>
+                <p className={`text-xs ${isDarkMode ? 'text-slate-300' : 'text-slate-600'}`}>Klik produk untuk detail atau hubungi langsung WhatsApp penjual.</p>
               </div>
 
               <div className="w-full md:w-80">
@@ -275,14 +355,18 @@ export default function Dashboard() {
                   placeholder="Cari lanyard, makanan, minuman..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full px-4 py-3 bg-slate-950/80 border border-slate-700 rounded-xl text-xs text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-400"
+                  className={`w-full px-4 py-3 border rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-amber-400 ${
+                    isDarkMode ? 'bg-slate-950/80 border-slate-700 text-white placeholder-slate-400' : 'bg-white border-slate-300 text-slate-950 placeholder-slate-500'
+                  }`}
                 />
               </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
               {filteredProducts.map((p) => (
-                <div key={p.id} className="bg-slate-800/60 border border-slate-700/60 rounded-2xl overflow-hidden shadow-lg hover:border-amber-400/50 transition flex flex-col justify-between">
+                <div key={p.id} className={`border rounded-2xl overflow-hidden shadow-lg transition flex flex-col justify-between ${
+                  isDarkMode ? 'bg-slate-800/60 border-slate-700/60 hover:border-amber-400/50' : 'bg-white border-slate-200 hover:border-amber-500'
+                }`}>
                   <div>
                     <div 
                       onClick={() => setSelectedProduct(p)}
@@ -298,21 +382,21 @@ export default function Dashboard() {
                     </div>
 
                     <div className="p-5">
-                      <p className="text-[10px] text-slate-400 font-semibold mb-1">Tenant: <span className="text-amber-400">{p.tenant}</span></p>
+                      <p className={`text-[10px] font-semibold mb-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>Tenant: <span className="text-amber-500 font-bold">{p.tenant}</span></p>
                       <h3 
                         onClick={() => setSelectedProduct(p)}
-                        className="text-sm font-extrabold text-white mb-2 cursor-pointer hover:text-amber-400 transition"
+                        className={`text-sm font-extrabold mb-2 cursor-pointer transition ${isDarkMode ? 'text-white hover:text-amber-400' : 'text-slate-900 hover:text-amber-600'}`}
                       >
                         {p.name}
                       </h3>
-                      <p className="text-sm font-black text-amber-400 mb-2">Rp {Number(p.price).toLocaleString()}</p>
-                      <p className="text-xs text-slate-300 line-clamp-2 mb-3">{p.desc}</p>
+                      <p className="text-sm font-black text-amber-500 mb-2">Rp {Number(p.price).toLocaleString()}</p>
+                      <p className={`text-xs line-clamp-2 mb-3 ${isDarkMode ? 'text-slate-300' : 'text-slate-600'}`}>{p.desc}</p>
                       
                       <a
                         href={`https://wa.me/${p.sellerPhone}?text=Halo%20${encodeURIComponent(p.tenant)},%20saya%20tertarik%20dengan%20produk%20${encodeURIComponent(p.name)}%20di%20Shop-Mate%20UNKLAB.`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-[11px] text-emerald-400 hover:underline font-bold flex items-center gap-1 mb-3"
+                        className="text-[11px] text-emerald-500 hover:underline font-bold flex items-center gap-1 mb-3"
                       >
                         <span>💬</span> Chat WhatsApp Penjual ({p.sellerPhone})
                       </a>
@@ -334,13 +418,16 @@ export default function Dashboard() {
         )}
 
         {activeTab === 'keranjang' && (
-          <div className="max-w-3xl mx-auto bg-slate-800/40 border border-slate-800 rounded-3xl p-8 shadow-xl">
-            <h2 className="text-xl font-black text-white mb-6 pb-4 border-b border-slate-700">Keranjang Belanja Anda</h2>
+          <div className={`max-w-3xl mx-auto border rounded-3xl p-8 shadow-xl transition-colors duration-300 ${
+            isDarkMode ? 'bg-slate-800/40 border-slate-800' : 'bg-white border-slate-200'
+          }`}>
+            <h2 className={`text-xl font-black mb-2 pb-2 border-b ${isDarkMode ? 'text-white border-slate-700' : 'text-slate-900 border-slate-200'}`}>Keranjang Belanja Anda</h2>
+            <p className={`text-xs mb-6 ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>Pilih (centang) produk dari tenant/penjual yang ingin kamu beli terlebih dahulu.</p>
 
             {cart.length === 0 ? (
               <div className="text-center py-12">
                 <p className="text-3xl mb-3">🛒</p>
-                <p className="text-sm text-slate-400 font-medium mb-4">Keranjang belanja Anda masih kosong.</p>
+                <p className={`text-sm font-medium mb-4 ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>Keranjang belanja Anda masih kosong.</p>
                 <button 
                   onClick={() => setActiveTab('katalog')}
                   className="px-5 py-2.5 bg-amber-400 text-slate-950 font-bold rounded-xl text-xs hover:bg-amber-500 transition cursor-pointer"
@@ -351,38 +438,48 @@ export default function Dashboard() {
             ) : (
               <div className="space-y-4">
                 {cart.map((item) => (
-                  <div key={item.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-slate-900/80 rounded-2xl border border-slate-700 gap-4">
+                  <div key={item.id} className={`flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 rounded-2xl border transition ${
+                    item.selected 
+                      ? isDarkMode ? 'bg-slate-900/80 border-amber-400/60' : 'bg-amber-50/50 border-amber-400' 
+                      : isDarkMode ? 'bg-slate-900/40 border-slate-800 opacity-60' : 'bg-slate-50 border-slate-200 opacity-60'
+                  }`}>
                     <div className="flex items-center gap-4">
+                      <input 
+                        type="checkbox" 
+                        checked={item.selected} 
+                        onChange={() => toggleSelectCartItem(item.id)}
+                        className="w-5 h-5 accent-amber-400 cursor-pointer rounded" 
+                      />
                       <img src={item.img} alt={item.name} className="w-14 h-14 object-cover rounded-xl" />
                       <div>
-                        <h4 className="text-xs font-bold text-white">{item.name}</h4>
-                        <p className="text-[11px] text-amber-400">Rp {Number(item.price).toLocaleString()}</p>
+                        <span className="text-[10px] text-amber-500 font-semibold">Tenant: {item.tenant}</span>
+                        <h4 className={`text-xs font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{item.name}</h4>
+                        <p className={`text-[11px] ${isDarkMode ? 'text-slate-300' : 'text-slate-600'}`}>Rp {Number(item.price).toLocaleString()}</p>
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between w-full sm:w-auto gap-4">
-                      {/* Kontrol Qty ala Shopee (+ / -) */}
-                      <div className="flex items-center border border-slate-700 rounded-xl overflow-hidden bg-slate-950">
+                    <div className="flex items-center justify-between w-full sm:w-auto gap-4 mt-3 sm:mt-0">
+                      <div className={`flex items-center border rounded-xl overflow-hidden ${isDarkMode ? 'border-slate-700 bg-slate-950' : 'border-slate-300 bg-white'}`}>
                         <button 
                           onClick={() => updateCartQty(item.id, -1)}
-                          className="px-3 py-1.5 text-slate-300 hover:bg-slate-800 font-bold text-xs transition cursor-pointer"
+                          className={`px-3 py-1.5 font-bold text-xs transition cursor-pointer ${isDarkMode ? 'text-slate-300 hover:bg-slate-800' : 'text-slate-700 hover:bg-slate-100'}`}
                         >
                           -
                         </button>
-                        <span className="px-3 py-1.5 text-xs font-bold text-white">{item.qty}</span>
+                        <span className={`px-3 py-1.5 text-xs font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{item.qty}</span>
                         <button 
                           onClick={() => updateCartQty(item.id, 1)}
-                          className="px-3 py-1.5 text-slate-300 hover:bg-slate-800 font-bold text-xs transition cursor-pointer"
+                          className={`px-3 py-1.5 font-bold text-xs transition cursor-pointer ${isDarkMode ? 'text-slate-300 hover:bg-slate-800' : 'text-slate-700 hover:bg-slate-100'}`}
                         >
                           +
                         </button>
                       </div>
 
-                      <span className="text-xs font-black text-white w-24 text-right">Rp {(Number(item.price) * item.qty).toLocaleString()}</span>
+                      <span className={`text-xs font-black w-24 text-right ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Rp {(Number(item.price) * item.qty).toLocaleString()}</span>
 
                       <button 
                         onClick={() => removeFromCart(item.id)}
-                        className="text-red-400 hover:text-red-300 text-xs font-bold p-2 cursor-pointer"
+                        className="text-red-500 hover:text-red-400 text-xs font-bold p-2 cursor-pointer"
                         title="Hapus produk"
                       >
                         🗑️
@@ -391,27 +488,35 @@ export default function Dashboard() {
                   </div>
                 ))}
 
-                <div className="pt-6 border-t border-slate-700 flex items-center justify-between font-black text-base">
-                  <span>Total Pembayaran:</span>
-                  <span className="text-amber-400">
-                    Rp {cart.reduce((sum, i) => sum + (Number(i.price) * i.qty), 0).toLocaleString()}
+                <div className={`pt-6 border-t flex items-center justify-between font-black text-base ${isDarkMode ? 'border-slate-700 text-white' : 'border-slate-200 text-slate-900'}`}>
+                  <span>Total Pembayaran (Dipilih):</span>
+                  <span className="text-amber-500">
+                    Rp {cart.filter(i => i.selected).reduce((sum, i) => sum + (Number(i.price) * i.qty), 0).toLocaleString()}
                   </span>
                 </div>
 
-                <div className="mt-4 p-4 bg-slate-900 rounded-2xl border border-slate-700">
-                  <label className="block text-xs font-bold text-slate-300 uppercase mb-3">Pilih Metode Pembayaran</label>
+                <div className={`mt-4 p-4 rounded-2xl border ${isDarkMode ? 'bg-slate-900 border-slate-700' : 'bg-slate-50 border-slate-200'}`}>
+                  <label className={`block text-xs font-bold uppercase mb-3 ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>Pilih Metode Pembayaran</label>
                   <div className="grid grid-cols-2 gap-3">
                     <button
                       type="button"
                       onClick={() => setPaymentMethod('QRIS')}
-                      className={`p-3 rounded-xl border text-xs font-extrabold transition cursor-pointer flex items-center justify-center gap-2 ${paymentMethod === 'QRIS' ? 'border-amber-400 bg-amber-400/10 text-amber-400' : 'border-slate-700 text-slate-400'}`}
+                      className={`p-3 rounded-xl border text-xs font-extrabold transition cursor-pointer flex items-center justify-center gap-2 ${
+                        paymentMethod === 'QRIS' 
+                          ? 'border-amber-400 bg-amber-400/10 text-amber-500' 
+                          : isDarkMode ? 'border-slate-700 text-slate-400' : 'border-slate-300 text-slate-600'
+                      }`}
                     >
                       📱 QRIS (Digital)
                     </button>
                     <button
                       type="button"
                       onClick={() => setPaymentMethod('Cash')}
-                      className={`p-3 rounded-xl border text-xs font-extrabold transition cursor-pointer flex items-center justify-center gap-2 ${paymentMethod === 'Cash' ? 'border-amber-400 bg-amber-400/10 text-amber-400' : 'border-slate-700 text-slate-400'}`}
+                      className={`p-3 rounded-xl border text-xs font-extrabold transition cursor-pointer flex items-center justify-center gap-2 ${
+                        paymentMethod === 'Cash' 
+                          ? 'border-amber-400 bg-amber-400/10 text-amber-500' 
+                          : isDarkMode ? 'border-slate-700 text-slate-400' : 'border-slate-300 text-slate-600'
+                      }`}
                     >
                       💵 Cash on Delivery (COD)
                     </button>
@@ -431,18 +536,22 @@ export default function Dashboard() {
 
         {activeTab === 'pesanan' && (
           <div className="max-w-3xl mx-auto space-y-6">
-            <div className="bg-gradient-to-r from-amber-500/20 to-purple-900/40 border border-amber-500/40 rounded-3xl p-6 shadow-xl">
-              <h3 className="text-sm font-black text-amber-400 mb-3 flex items-center gap-2">
+            <div className={`border rounded-3xl p-6 shadow-xl transition-colors duration-300 ${
+              isDarkMode ? 'bg-gradient-to-r from-amber-500/20 to-purple-900/40 border-amber-500/40' : 'bg-gradient-to-r from-amber-100 to-purple-100 border-amber-300'
+            }`}>
+              <h3 className="text-sm font-black text-amber-500 mb-3 flex items-center gap-2">
                 <span>🔔</span> Notifikasi Status Pesanan (Real-time dari Tenant)
               </h3>
               <div className="space-y-3">
                 {orders.map((ord, idx) => (
-                  <div key={idx} className="bg-slate-950/80 p-4 rounded-2xl border border-slate-800 text-xs space-y-1">
+                  <div key={idx} className={`p-4 rounded-2xl border text-xs space-y-1 ${
+                    isDarkMode ? 'bg-slate-950/80 border-slate-800 text-slate-100' : 'bg-white border-slate-200 text-slate-900'
+                  }`}>
                     <div className="flex justify-between font-bold">
-                      <span className="text-amber-400">{ord.id} - {ord.item}</span>
-                      <span className="text-emerald-400">{ord.status}</span>
+                      <span className="text-amber-500">{ord.id} - {ord.item}</span>
+                      <span className="text-emerald-500">{ord.status}</span>
                     </div>
-                    <p className="text-slate-300 italic">💬 "{ord.notification}"</p>
+                    <p className={`italic ${isDarkMode ? 'text-slate-300' : 'text-slate-600'}`}>💬 "{ord.notification}"</p>
                   </div>
                 ))}
               </div>
@@ -451,9 +560,11 @@ export default function Dashboard() {
         )}
 
         {activeTab === 'profil' && (
-          <div className="max-w-xl mx-auto bg-slate-800/60 border border-slate-700 rounded-3xl p-8 shadow-xl space-y-4">
-            <div className="flex justify-between items-center pb-3 border-b border-slate-700">
-              <h2 className="text-xl font-black text-white">Profil Pembeli Civitas</h2>
+          <div className={`max-w-xl mx-auto border rounded-3xl p-8 shadow-xl space-y-4 transition-colors duration-300 ${
+            isDarkMode ? 'bg-slate-800/60 border-slate-700' : 'bg-white border-slate-200'
+          }`}>
+            <div className={`flex justify-between items-center pb-3 border-b ${isDarkMode ? 'border-slate-700' : 'border-slate-200'}`}>
+              <h2 className={`text-xl font-black ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Profil Pembeli Civitas</h2>
               {!isEditingProfile && (
                 <button
                   onClick={() => setIsEditingProfile(true)}
@@ -466,46 +577,46 @@ export default function Dashboard() {
 
             {!isEditingProfile ? (
               <div className="space-y-3 text-xs">
-                <div className="p-3 bg-slate-900 rounded-xl flex justify-between">
-                  <span className="text-slate-400 font-bold">Nama:</span>
-                  <span className="text-white font-semibold">{userProfile.name}</span>
+                <div className={`p-3 rounded-xl flex justify-between ${isDarkMode ? 'bg-slate-900' : 'bg-slate-100'}`}>
+                  <span className={`font-bold ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>Nama:</span>
+                  <span className={`font-semibold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{userProfile.name}</span>
                 </div>
-                <div className="p-3 bg-slate-900 rounded-xl flex justify-between">
-                  <span className="text-slate-400 font-bold">Email UNKLAB:</span>
-                  <span className="text-white font-semibold">{userProfile.email}</span>
+                <div className={`p-3 rounded-xl flex justify-between ${isDarkMode ? 'bg-slate-900' : 'bg-slate-100'}`}>
+                  <span className={`font-bold ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>Email UNKLAB:</span>
+                  <span className={`font-semibold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{userProfile.email}</span>
                 </div>
-                <div className="p-3 bg-slate-900 rounded-xl flex justify-between">
-                  <span className="text-slate-400 font-bold">Nomor WhatsApp:</span>
-                  <span className="text-white font-semibold">{userProfile.phone}</span>
+                <div className={`p-3 rounded-xl flex justify-between ${isDarkMode ? 'bg-slate-900' : 'bg-slate-100'}`}>
+                  <span className={`font-bold ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>Nomor WhatsApp:</span>
+                  <span className={`font-semibold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{userProfile.phone}</span>
                 </div>
-                <div className="p-3 bg-slate-900 rounded-xl flex justify-between">
-                  <span className="text-slate-400 font-bold">Alamat / Asrama:</span>
-                  <span className="text-white font-semibold">{userProfile.address}</span>
+                <div className={`p-3 rounded-xl flex justify-between ${isDarkMode ? 'bg-slate-900' : 'bg-slate-100'}`}>
+                  <span className={`font-bold ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>Alamat / Asrama:</span>
+                  <span className={`font-semibold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{userProfile.address}</span>
                 </div>
               </div>
             ) : (
               <form onSubmit={handleSaveProfile} className="space-y-3 text-xs">
                 <div>
-                  <label className="block font-bold text-slate-400 mb-1">Nama</label>
-                  <input type="text" value={userProfile.name} disabled className="w-full p-3 bg-slate-950 rounded-xl border border-slate-700 text-slate-400 cursor-not-allowed" />
+                  <label className={`block font-bold mb-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>Nama</label>
+                  <input type="text" value={userProfile.name} disabled className={`w-full p-3 rounded-xl border cursor-not-allowed ${isDarkMode ? 'bg-slate-950 border-slate-700 text-slate-500' : 'bg-slate-100 border-slate-300 text-slate-500'}`} />
                 </div>
                 <div>
-                  <label className="block font-bold text-slate-400 mb-1">Email UNKLAB</label>
-                  <input type="email" value={userProfile.email} disabled className="w-full p-3 bg-slate-950 rounded-xl border border-slate-700 text-slate-400 cursor-not-allowed" />
+                  <label className={`block font-bold mb-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>Email UNKLAB</label>
+                  <input type="email" value={userProfile.email} disabled className={`w-full p-3 rounded-xl border cursor-not-allowed ${isDarkMode ? 'bg-slate-950 border-slate-700 text-slate-500' : 'bg-slate-100 border-slate-300 text-slate-500'}`} />
                 </div>
                 <div>
-                  <label className="block font-bold text-amber-400 mb-1">Nomor WhatsApp</label>
-                  <input type="text" name="phone" value={userProfile.phone} onChange={handleProfileChange} required className="w-full p-3 bg-slate-900 rounded-xl border border-amber-400/50 text-white focus:outline-none focus:ring-2 focus:ring-amber-400" />
+                  <label className="block font-bold text-amber-500 mb-1">Nomor WhatsApp</label>
+                  <input type="text" name="phone" value={userProfile.phone} onChange={handleProfileChange} required className={`w-full p-3 rounded-xl border border-amber-400/50 focus:outline-none focus:ring-2 focus:ring-amber-400 ${isDarkMode ? 'bg-slate-900 text-white' : 'bg-white text-slate-900'}`} />
                 </div>
                 <div>
-                  <label className="block font-bold text-amber-400 mb-1">Alamat / Asrama</label>
-                  <textarea name="address" rows="3" value={userProfile.address} onChange={handleProfileChange} required className="w-full p-3 bg-slate-900 rounded-xl border border-amber-400/50 text-white focus:outline-none focus:ring-2 focus:ring-amber-400" />
+                  <label className="block font-bold text-amber-500 mb-1">Alamat / Asrama</label>
+                  <textarea name="address" rows="3" value={userProfile.address} onChange={handleProfileChange} required className={`w-full p-3 rounded-xl border border-amber-400/50 focus:outline-none focus:ring-2 focus:ring-amber-400 ${isDarkMode ? 'bg-slate-900 text-white' : 'bg-white text-slate-900'}`} />
                 </div>
                 <div className="flex gap-3 pt-2">
                   <button type="submit" className="flex-1 bg-amber-400 hover:bg-amber-500 text-slate-950 font-extrabold py-3 rounded-xl cursor-pointer">
                     Simpan Perubahan
                   </button>
-                  <button type="button" onClick={() => setIsEditingProfile(false)} className="px-5 bg-slate-700 text-white font-bold py-3 rounded-xl cursor-pointer">
+                  <button type="button" onClick={() => setIsEditingProfile(false)} className={`px-5 font-bold py-3 rounded-xl cursor-pointer ${isDarkMode ? 'bg-slate-700 text-white' : 'bg-slate-300 text-slate-800'}`}>
                     Batal
                   </button>
                 </div>
@@ -514,7 +625,7 @@ export default function Dashboard() {
 
             <button
               onClick={() => setActiveTab('katalog')}
-              className="w-full mt-4 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold py-3 rounded-xl text-xs cursor-pointer shadow"
+              className={`w-full mt-4 font-bold py-3 rounded-xl text-xs cursor-pointer shadow ${isDarkMode ? 'bg-slate-800 hover:bg-slate-700 text-slate-200' : 'bg-slate-100 hover:bg-slate-200 text-slate-800'}`}
             >
               &larr; Kembali ke Katalog Belanja
             </button>
@@ -526,7 +637,7 @@ export default function Dashboard() {
       {/* MODAL DETAIL */}
       {selectedProduct && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-lg w-full overflow-hidden shadow-2xl text-slate-100">
+          <div className={`border rounded-3xl max-w-lg w-full overflow-hidden shadow-2xl transition-colors duration-300 ${isDarkMode ? 'bg-slate-900 border-slate-800 text-slate-100' : 'bg-white border-slate-200 text-slate-900'}`}>
             <div className="h-64 relative">
               <img src={selectedProduct.img} alt={selectedProduct.name} className="w-full h-full object-cover" />
               <button 
@@ -537,24 +648,24 @@ export default function Dashboard() {
               </button>
             </div>
             <div className="p-6 space-y-3">
-              <span className="px-3 py-1 bg-amber-400/20 text-amber-400 text-[10px] font-bold rounded-lg">
+              <span className="px-3 py-1 bg-amber-400/20 text-amber-500 text-[10px] font-bold rounded-lg">
                 {selectedProduct.category}
               </span>
-              <h2 className="text-xl font-black text-white">{selectedProduct.name}</h2>
-              <p className="text-xs text-slate-400">Penjual: <span className="text-amber-400 font-semibold">{selectedProduct.tenant}</span></p>
-              <p className="text-xs text-slate-300 leading-relaxed">{selectedProduct.desc}</p>
+              <h2 className={`text-xl font-black ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{selectedProduct.name}</h2>
+              <p className={`text-xs ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>Penjual: <span className="text-amber-500 font-semibold">{selectedProduct.tenant}</span></p>
+              <p className={`text-xs leading-relaxed ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>{selectedProduct.desc}</p>
               <div className="pt-2">
                 <a
                   href={`https://wa.me/${selectedProduct.sellerPhone}?text=Halo%20${encodeURIComponent(selectedProduct.tenant)},%20saya%20mau%20bertanya%20tentang%20${encodeURIComponent(selectedProduct.name)}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 text-xs font-bold text-emerald-400 bg-emerald-950/40 border border-emerald-500/30 px-4 py-2 rounded-xl"
+                  className="inline-flex items-center gap-2 text-xs font-bold text-emerald-500 bg-emerald-950/20 border border-emerald-500/30 px-4 py-2 rounded-xl"
                 >
                   <span>💬</span> Hubungi Penjual via WhatsApp ({selectedProduct.sellerPhone})
                 </a>
               </div>
-              <div className="flex items-center justify-between pt-4 border-t border-slate-800">
-                <span className="text-lg font-black text-amber-400">Rp {Number(selectedProduct.price).toLocaleString()}</span>
+              <div className={`flex items-center justify-between pt-4 border-t ${isDarkMode ? 'border-slate-800' : 'border-slate-200'}`}>
+                <span className="text-lg font-black text-amber-500">Rp {Number(selectedProduct.price).toLocaleString()}</span>
                 <button
                   onClick={() => {
                     addToCart(selectedProduct);
@@ -573,12 +684,12 @@ export default function Dashboard() {
       {/* MODAL CHECKOUT */}
       {isCheckoutModal && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-md w-full p-8 shadow-2xl text-slate-100 text-center space-y-4">
+          <div className={`border rounded-3xl max-w-md w-full p-8 shadow-2xl text-center space-y-4 transition-colors duration-300 ${isDarkMode ? 'bg-slate-900 border-slate-800 text-slate-100' : 'bg-white border-slate-200 text-slate-900'}`}>
             <h3 className="text-lg font-black">Konfirmasi Pembayaran ({paymentMethod})</h3>
             
             {paymentMethod === 'QRIS' ? (
               <div className="space-y-3">
-                <p className="text-xs text-slate-400">Scan kode QR berikut menggunakan E-Wallet / Mobile Banking:</p>
+                <p className={`text-xs ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>Scan kode QR berikut menggunakan E-Wallet / Mobile Banking:</p>
                 <div className="w-48 h-48 bg-white p-3 rounded-2xl mx-auto flex items-center justify-center shadow">
                   <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=ShopMateUNKLAB-QRIS" alt="QRIS" className="w-full h-full object-contain" />
                 </div>
@@ -586,14 +697,14 @@ export default function Dashboard() {
             ) : (
               <div className="space-y-3 py-6">
                 <p className="text-3xl">💵</p>
-                <p className="text-xs text-slate-300">Pembayaran <b>Cash on Delivery (COD)</b>. Siapkan uang pas saat pesanan diantarkan ke alamat Anda.</p>
+                <p className={`text-xs ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>Pembayaran <b>Cash on Delivery (COD)</b>. Siapkan uang pas saat pesanan diantarkan ke alamat Anda.</p>
               </div>
             )}
 
-            <div className="flex gap-3 pt-4 border-t border-slate-800">
+            <div className={`flex gap-3 pt-4 border-t ${isDarkMode ? 'border-slate-800' : 'border-slate-200'}`}>
               <button
                 onClick={() => setIsCheckoutModal(false)}
-                className="flex-1 py-3 bg-slate-800 text-slate-300 font-bold rounded-xl text-xs cursor-pointer"
+                className={`flex-1 py-3 font-bold rounded-xl text-xs cursor-pointer ${isDarkMode ? 'bg-slate-800 text-slate-300' : 'bg-slate-200 text-slate-800'}`}
               >
                 Batal
               </button>
