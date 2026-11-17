@@ -17,8 +17,8 @@ export default function SellerDashboard() {
       }
     }
     const defaultProducts = [
-      { id: 1, name: 'Nasi Kuning Special Asrama', price: 15000, stock: 25, category: 'Makanan', tenant: 'Kantin Asrama Putra', sellerPhone: '6281298765432', img: 'https://images.unsplash.com/photo-1555126634-323283e090fa?q=80&w=400&auto=format&fit=crop', desc: 'Nasi kuning hangat dengan lauk abon dan telur pindang khas kantin asrama.' },
-      { id: 2, name: 'Es Teh Manis Segar', price: 5000, stock: 40, category: 'Minuman', tenant: 'Kantin Utama', sellerPhone: '6281211112222', img: 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?q=80&w=400&auto=format&fit=crop', desc: 'Teh melati manis segar disajikan dingin dengan es batu pilihan.' }
+      { id: 1, name: 'Nasi Kuning Special Asrama', price: 15000, stock: 25, category: 'Makanan', tenant: 'Kantin Asrama Putra', sellerPhone: '6281298765432', img: 'https://images.unsplash.com/photo-1555126634-323283e090fa?q=80&w=400&auto=format&fit=crop', desc: 'Nasi kuning hangat dengan lauk abon dan telur pindang khas kantin asrama.', isActive: true },
+      { id: 2, name: 'Es Teh Manis Segar', price: 5000, stock: 40, category: 'Minuman', tenant: 'Kantin Utama', sellerPhone: '6281211112222', img: 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?q=80&w=400&auto=format&fit=crop', desc: 'Teh melati manis segar disajikan dingin dengan es batu pilihan.', isActive: true }
     ];
     localStorage.setItem('shopmate_products', JSON.stringify(defaultProducts));
     return defaultProducts;
@@ -131,7 +131,8 @@ export default function SellerDashboard() {
         tenant: sellerProfile.tenantName,
         sellerPhone: sellerProfile.phone,
         img: newProduct.img || 'https://images.unsplash.com/photo-1548839140-29a749e1cf4d?q=80&w=400&auto=format&fit=crop',
-        desc: newProduct.desc || 'Produk berkualitas pilihan civitas akademika UNKLAB.'
+        desc: newProduct.desc || 'Produk berkualitas pilihan civitas akademika UNKLAB.',
+        isActive: true
       };
       updatedProducts = [...products, productToAdd];
       alert('Produk baru berhasil ditambahkan ke katalog toko!');
@@ -166,6 +167,20 @@ export default function SellerDashboard() {
     }
   };
 
+  // Fungsi untuk menonaktifkan atau mengaktifkan kembali produk
+  const toggleProductStatus = (id) => {
+    const updatedProducts = products.map(p => {
+      if (p.id === id) {
+        const newStatus = p.isActive === false ? true : false;
+        return { ...p, isActive: newStatus };
+      }
+      return p;
+    });
+    setProducts(updatedProducts);
+    localStorage.setItem('shopmate_products', JSON.stringify(updatedProducts));
+    alert('Status produk berhasil diperbarui!');
+  };
+
   const updateOrderStatus = (id, newStatus) => {
     let notifMessage = 'Pesanan sedang diproses oleh tenant.';
     if (newStatus === 'Sedang Diantar Kurir') notifMessage = 'Kurir sedang mengantarkan pesanan ke alamat Anda.';
@@ -174,7 +189,6 @@ export default function SellerDashboard() {
     const updatedOrders = incomingOrders.map(o => o.id === id ? { ...o, status: newStatus } : o);
     setIncomingOrders(updatedOrders);
 
-    // Simpan perubahan ke shopmate_orders agar pembeli bisa melihat status & notifikasinya secara real-time
     const saved = localStorage.getItem('shopmate_orders');
     if (saved) {
       try {
@@ -269,10 +283,17 @@ export default function SellerDashboard() {
         {activeTab === 'produk' && (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
             {products.map((p) => (
-              <div key={p.id} className="bg-slate-800/60 border border-slate-700/60 rounded-2xl overflow-hidden shadow-lg flex flex-col justify-between">
+              <div key={p.id} className={`border rounded-2xl overflow-hidden shadow-lg flex flex-col justify-between transition ${
+                p.isActive === false ? 'bg-slate-900/40 border-slate-800 opacity-60' : 'bg-slate-800/60 border-slate-700/60'
+              }`}>
                 <div>
-                  <div className="h-40 overflow-hidden">
+                  <div className="h-40 overflow-hidden relative">
                     <img src={p.img} alt={p.name} className="w-full h-full object-cover" />
+                    {p.isActive === false && (
+                      <span className="absolute inset-0 bg-black/60 flex items-center justify-center text-xs font-black text-red-400 uppercase tracking-widest">
+                        Produk Nonaktif
+                      </span>
+                    )}
                   </div>
                   <div className="p-4">
                     <span className="text-[10px] bg-slate-900 text-amber-400 px-2 py-0.5 rounded font-bold">{p.category}</span>
@@ -281,12 +302,27 @@ export default function SellerDashboard() {
                     <p className="text-[11px] text-slate-300 line-clamp-2">{p.desc}</p>
                   </div>
                 </div>
-                <div className="p-4 pt-0 flex gap-2">
-                  <button onClick={() => startEditProduct(p)} className="flex-1 py-2 bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs font-bold rounded-xl cursor-pointer">
-                    Edit Detail
-                  </button>
-                  <button onClick={() => handleDeleteProduct(p.id)} className="px-3 py-2 bg-red-600/20 hover:bg-red-600/30 text-red-400 text-xs font-bold rounded-xl cursor-pointer">
-                    Hapus
+
+                <div className="p-4 pt-0 flex flex-col gap-2">
+                  <div className="flex gap-2">
+                    <button onClick={() => startEditProduct(p)} className="flex-1 py-2 bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs font-bold rounded-xl cursor-pointer">
+                      Edit Detail
+                    </button>
+                    <button onClick={() => handleDeleteProduct(p.id)} className="px-3 py-2 bg-red-600/20 hover:bg-red-600/30 text-red-400 text-xs font-bold rounded-xl cursor-pointer">
+                      Hapus
+                    </button>
+                  </div>
+                  
+                  {/* Tombol Nonaktifkan / Aktifkan Kembali */}
+                  <button 
+                    onClick={() => toggleProductStatus(p.id)} 
+                    className={`w-full py-2 text-xs font-bold rounded-xl cursor-pointer transition ${
+                      p.isActive === false 
+                        ? 'bg-emerald-600/20 text-emerald-400 hover:bg-emerald-600/30' 
+                        : 'bg-amber-500/20 text-amber-400 hover:bg-amber-500/30'
+                    }`}
+                  >
+                    {p.isActive === false ? '✓ Aktifkan Kembali Produk' : '🚫 Nonaktifkan Produk'}
                   </button>
                 </div>
               </div>

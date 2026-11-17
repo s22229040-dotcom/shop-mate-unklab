@@ -10,10 +10,10 @@ export default function Dashboard() {
 
   const [activeTab, setActiveTab] = useState('katalog');
 
-  // DISINI PERUBAHANNYA: Membaca tema langsung dari localStorage yang diatur di Login.jsx
+  // State untuk Tema (Dark / Light Mode) yang membaca pilihan dari halaman login
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const savedTheme = localStorage.getItem('shopmate_theme');
-    return savedTheme ? savedTheme === 'dark' : true; // Default ke true (Dark) jika belum ada
+    return savedTheme ? savedTheme === 'dark' : true;
   });
 
   useEffect(() => {
@@ -149,24 +149,16 @@ export default function Dashboard() {
     alert('Profil berhasil diperbarui!');
   };
 
+  // State Pesanan / Notifikasi dikosongkan di awal sampai ada transaksi checkout
   const [orders, setOrders] = useState(() => {
     const savedOrders = localStorage.getItem('shopmate_orders');
     if (savedOrders) {
       try {
         const parsed = JSON.parse(savedOrders);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed)) return parsed;
       } catch (e) {}
     }
-    return [
-      { 
-        id: 'ORD-9821', 
-        item: 'Nasi Kuning Special Asrama (1x)', 
-        total: 'Rp 15.000', 
-        payment: 'QRIS (Verified)',
-        status: 'Selesai diantar ke Asrama', 
-        notification: 'Tenant telah mengonfirmasi: Pesanan Anda telah sampai di lobi asrama!' 
-      }
-    ];
+    return [];
   });
 
   // Sinkronisasi otomatis notifikasi status pesanan
@@ -542,19 +534,27 @@ export default function Dashboard() {
               <h3 className="text-sm font-black text-amber-500 mb-3 flex items-center gap-2">
                 <span>🔔</span> Notifikasi Status Pesanan (Real-time dari Tenant)
               </h3>
-              <div className="space-y-3">
-                {orders.map((ord, idx) => (
-                  <div key={idx} className={`p-4 rounded-2xl border text-xs space-y-1 ${
-                    isDarkMode ? 'bg-slate-950/80 border-slate-800 text-slate-100' : 'bg-white border-slate-200 text-slate-900'
-                  }`}>
-                    <div className="flex justify-between font-bold">
-                      <span className="text-amber-500">{ord.id} - {ord.item}</span>
-                      <span className="text-emerald-500">{ord.status}</span>
+              
+              {orders.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-2xl mb-2">📭</p>
+                  <p className={`text-xs ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>Belum ada pesanan aktif. Silakan lakukan checkout produk dari katalog terlebih dahulu.</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {orders.map((ord, idx) => (
+                    <div key={idx} className={`p-4 rounded-2xl border text-xs space-y-1 ${
+                      isDarkMode ? 'bg-slate-950/80 border-slate-800 text-slate-100' : 'bg-white border-slate-200 text-slate-900'
+                    }`}>
+                      <div className="flex justify-between font-bold">
+                        <span className="text-amber-500">{ord.id} - {ord.item}</span>
+                        <span className="text-emerald-500">{ord.status}</span>
+                      </div>
+                      <p className={`italic ${isDarkMode ? 'text-slate-300' : 'text-slate-600'}`}>💬 "{ord.notification}"</p>
                     </div>
-                    <p className={`italic ${isDarkMode ? 'text-slate-300' : 'text-slate-600'}`}>💬 "{ord.notification}"</p>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         )}
