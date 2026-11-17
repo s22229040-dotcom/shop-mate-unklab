@@ -74,7 +74,7 @@ export default function Register() {
               type="email" 
               name="email" 
               required 
-              placeholder="contoh: s22229040@student.unklab.ac.id"
+              placeholder="contoh: 12435672@student.unklab.ac.id atau s22311363@student.unklab.ac.id"
               value={formData.email} 
               onChange={handleChange} 
               className="w-full px-4 py-3 bg-[#131b2e] border border-slate-700 rounded-xl text-xs text-white focus:ring-2 focus:ring-amber-400" 

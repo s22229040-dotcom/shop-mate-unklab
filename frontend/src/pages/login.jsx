@@ -6,7 +6,7 @@ export default function Login() {
   const [isRegistering, setIsRegistering] = useState(false);
   const [isForgotPass, setIsForgotPass] = useState(false);
   
-  // State untuk Toggle Lihat/Sembunyikan Password
+  // State untuk Toggle Ikon Mata Lihat/Sembunyikan Password
   const [showPassword, setShowPassword] = useState(false);
   
   // State form Login & Registrasi
@@ -22,10 +22,10 @@ export default function Login() {
   // Fungsi Dinamis untuk Placeholder Contoh Email Berdasarkan Peran
   const getEmailPlaceholder = () => {
     if (isRegistering) {
-      return registerRole === 'Penjual' ? 'Contoh: tenant@unklab.ac.id' : 'Contoh: s12421375@student.unklab.ac.id';
+      return registerRole === 'Penjual' ? 'Contoh: tenant@unklab.ac.id / s23142847@student.unklab.ac.id' : 'Contoh: s23142847@student.unklab.ac.id atau 12342734@student.unklab.ac.id';
     }
-    if (loginRole === 'Student (Mahasiswa)') return 'Contoh: s21394187@student.unklab.ac.id';
-    if (loginRole === 'Dosen / Staff') return 'Contoh: nama.dosen@unklab.ac.id';
+    if (loginRole === 'Student (Mahasiswa)') return 'Contoh: s23142847@student.unklab.ac.id';
+    if (loginRole === 'Dosen / Staff') return 'Contoh: nikdosen@unklab.ac.id';
     if (loginRole === 'Penjual / Tenant') return 'Contoh: tenant@unklab.ac.id';
     if (loginRole === 'Admin') return 'Contoh: admin@unklab.ac.id';
     return 'Contoh: email@unklab.ac.id';
@@ -47,19 +47,18 @@ export default function Login() {
       
       // Validasi Format Email Berdasarkan Peran Registrasi
       if (registerRole === 'Pembeli') {
-        const studentPattern = /^s\d+@student\.unklab\.ac\.id$/;
+        const studentPattern = /^(s\d+|\d+)@student\.unklab\.ac\.id$/;
         if (!studentPattern.test(lowerEmail)) {
-          alert('Format Email Mahasiswa salah!\n\nHarus menggunakan awalan huruf "s" diikuti nomor induk mahasiswa (contoh: s12421375@student.unklab.ac.id)');
+          alert('Format Email Mahasiswa salah!\n\nContoh yang benar:\n- s23142847@student.unklab.ac.id\n- 12342734@student.unklab.ac.id');
           return;
         }
       } else if (registerRole === 'Penjual') {
-        if (!lowerEmail.endsWith('@unklab.ac.id') || lowerEmail.includes('@student.unklab.ac.id')) {
-          alert('Format Email Penjual/Tenant harus menggunakan domain resmi @unklab.ac.id (bukan student).');
+        if (!lowerEmail.endsWith('@unklab.ac.id') && !lowerEmail.endsWith('@student.unklab.ac.id')) {
+          alert('Format Email Penjual harus menggunakan domain resmi @unklab.ac.id atau @student.unklab.ac.id');
           return;
         }
       }
 
-      // Cek apakah email sudah terdaftar di database lokal
       let allAccounts = JSON.parse(localStorage.getItem('shopmate_accounts')) || [];
       const existingAccount = allAccounts.find(acc => acc.email.toLowerCase() === lowerEmail);
 
@@ -69,7 +68,6 @@ export default function Login() {
         return;
       }
 
-      // Simpan data akun baru ke dalam array list akun
       const newUser = { 
         role: registerRole, 
         name: fullName, 
@@ -82,23 +80,19 @@ export default function Login() {
 
       allAccounts.push(newUser);
       localStorage.setItem('shopmate_accounts', JSON.stringify(allAccounts));
-      localStorage.setItem('shopmate_registered_user', JSON.stringify(newUser));
 
-      alert(`Registrasi sebagai ${registerRole} berhasil! Silakan masuk (login) menggunakan akun tersebut.`);
+      alert(`Registrasi berhasil! Silakan masuk (login) menggunakan akun yang baru dibuat.`);
       setIsRegistering(false);
     } else {
-      // 3. LOGIKA LOGIN
       const lowerEmail = email.toLowerCase();
       const allAccounts = JSON.parse(localStorage.getItem('shopmate_accounts')) || [];
       const matchedUser = allAccounts.find(acc => acc.email.toLowerCase() === lowerEmail);
 
-      // Jika email belum ada sama sekali di database akun
       if (!matchedUser && !lowerEmail.includes('admin') && lowerEmail !== 'admin@unklab.ac.id') {
         alert('Email belum terdaftar! Silakan lakukan registrasi terlebih dahulu.');
         return;
       }
 
-      // Cek Password jika akun ditemukan
       if (matchedUser) {
         if (matchedUser.password && matchedUser.password !== password) {
           alert('Password salah! Silakan periksa kembali kata sandi Anda.');
@@ -106,7 +100,6 @@ export default function Login() {
         }
       }
 
-      // Validasi Pencocokan Peran Login vs Peran Terdaftar
       let userRole = matchedUser ? matchedUser.role : 'Pembeli';
       if (lowerEmail.includes('admin')) userRole = 'Admin';
 
@@ -115,11 +108,10 @@ export default function Login() {
         return;
       }
       if (userRole === 'Penjual' && loginRole !== 'Penjual / Tenant' && !lowerEmail.includes('admin')) {
-        alert('Akun ini terdaftar sebagai PENJUAL. Silakan pilih peran "Penjual / Tenant" di pilihan atas untuk masuk.');
+        alert('Akun ini terdaftar sebagai PENJUAL. Silakan pilih peran "Penjual / Tenant" di atas untuk masuk.');
         return;
       }
 
-      // Simpan sesi aktif profil pengguna
       const activeUserData = matchedUser || {
         name: 'Civitas UNKLAB',
         email: email,
@@ -131,7 +123,6 @@ export default function Login() {
       localStorage.setItem('shopmate_active_user', lowerEmail);
       localStorage.setItem('shopmate_active_profile', JSON.stringify(activeUserData));
       
-      // Arahkan ke Dashboard sesuai Peran
       if (loginRole.includes('Admin') || lowerEmail.includes('admin')) {
         navigate('/admin-dashboard');
       } else if (loginRole.includes('Penjual') || userRole === 'Penjual') {
@@ -244,7 +235,7 @@ export default function Login() {
               />
             </div>
 
-            {/* INPUT PASSWORD DENGAN TOMBOL LIHAT / SEMBUNYIKAN */}
+            {/* INPUT PASSWORD DENGAN IKON MATA */}
             {!isForgotPass && (
               <div>
                 <label className="text-[11px] font-bold text-slate-300 uppercase">
@@ -263,9 +254,10 @@ export default function Login() {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white text-xs font-bold cursor-pointer"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white text-base cursor-pointer"
+                    title={showPassword ? "Sembunyikan password" : "Lihat password"}
                   >
-                    {showPassword ? '🙈 Sembunyikan' : '👁️ Lihat'}
+                    {showPassword ? '🙈' : '👁️'}
                   </button>
                 </div>
               </div>
