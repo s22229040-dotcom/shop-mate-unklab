@@ -10,10 +10,10 @@ export default function Dashboard() {
 
   const [activeTab, setActiveTab] = useState('katalog');
 
-  // State untuk Tema (Dark / Light Mode) yang tersimpan di localStorage
+  // DISINI PERUBAHANNYA: Membaca tema langsung dari localStorage yang diatur di Login.jsx
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const savedTheme = localStorage.getItem('shopmate_theme');
-    return savedTheme ? savedTheme === 'dark' : true; // Default Dark Mode
+    return savedTheme ? savedTheme === 'dark' : true; // Default ke true (Dark) jika belum ada
   });
 
   useEffect(() => {
@@ -311,7 +311,7 @@ export default function Dashboard() {
         </div>
 
         <div className="flex items-center gap-3">
-          {/* TOMBOL PENGALIH TEMA (DARK/LIGHT MODE) */}
+          {/* TOMBOL PENGALIH TEMA */}
           <button
             onClick={() => setIsDarkMode(!isDarkMode)}
             className={`px-3 py-2 rounded-xl text-xs font-bold shadow transition cursor-pointer flex items-center gap-1.5 border ${
