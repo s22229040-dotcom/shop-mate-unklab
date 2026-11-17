@@ -158,6 +158,21 @@ export default function Dashboard() {
     alert(`Berhasil menambahkan "${product.name}" ke keranjang!`);
   };
 
+  // Fungsi Baru untuk Mengelola Keranjang (Tambah, Kurang, Hapus) ala Shopee
+  const updateCartQty = (id, delta) => {
+    setCart(cart.map(item => {
+      if (item.id === id) {
+        const newQty = item.qty + delta;
+        return newQty > 0 ? { ...item, qty: newQty } : null;
+      }
+      return item;
+    }).filter(Boolean));
+  };
+
+  const removeFromCart = (id) => {
+    setCart(cart.filter(item => item.id !== id));
+  };
+
   const confirmCheckout = () => {
     const totalAmount = cart.reduce((sum, i) => sum + (Number(i.price) * i.qty), 0);
     const newOrder = {
@@ -336,15 +351,43 @@ export default function Dashboard() {
             ) : (
               <div className="space-y-4">
                 {cart.map((item) => (
-                  <div key={item.id} className="flex items-center justify-between p-4 bg-slate-900/80 rounded-2xl border border-slate-700">
+                  <div key={item.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-slate-900/80 rounded-2xl border border-slate-700 gap-4">
                     <div className="flex items-center gap-4">
                       <img src={item.img} alt={item.name} className="w-14 h-14 object-cover rounded-xl" />
                       <div>
                         <h4 className="text-xs font-bold text-white">{item.name}</h4>
-                        <p className="text-[11px] text-amber-400">Rp {Number(item.price).toLocaleString()} x {item.qty}</p>
+                        <p className="text-[11px] text-amber-400">Rp {Number(item.price).toLocaleString()}</p>
                       </div>
                     </div>
-                    <span className="text-xs font-black text-white">Rp {(Number(item.price) * item.qty).toLocaleString()}</span>
+
+                    <div className="flex items-center justify-between w-full sm:w-auto gap-4">
+                      {/* Kontrol Qty ala Shopee (+ / -) */}
+                      <div className="flex items-center border border-slate-700 rounded-xl overflow-hidden bg-slate-950">
+                        <button 
+                          onClick={() => updateCartQty(item.id, -1)}
+                          className="px-3 py-1.5 text-slate-300 hover:bg-slate-800 font-bold text-xs transition cursor-pointer"
+                        >
+                          -
+                        </button>
+                        <span className="px-3 py-1.5 text-xs font-bold text-white">{item.qty}</span>
+                        <button 
+                          onClick={() => updateCartQty(item.id, 1)}
+                          className="px-3 py-1.5 text-slate-300 hover:bg-slate-800 font-bold text-xs transition cursor-pointer"
+                        >
+                          +
+                        </button>
+                      </div>
+
+                      <span className="text-xs font-black text-white w-24 text-right">Rp {(Number(item.price) * item.qty).toLocaleString()}</span>
+
+                      <button 
+                        onClick={() => removeFromCart(item.id)}
+                        className="text-red-400 hover:text-red-300 text-xs font-bold p-2 cursor-pointer"
+                        title="Hapus produk"
+                      >
+                        🗑️
+                      </button>
+                    </div>
                   </div>
                 ))}
 

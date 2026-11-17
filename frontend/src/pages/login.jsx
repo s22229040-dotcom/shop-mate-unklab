@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 export default function Login() {
@@ -8,6 +8,16 @@ export default function Login() {
   
   // State untuk Toggle Lihat/Sembunyikan Password
   const [showPassword, setShowPassword] = useState(false);
+  
+  // State untuk Tema (Dark / Light Mode)
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    const savedTheme = localStorage.getItem('shopmate_theme');
+    return savedTheme ? savedTheme === 'dark' : true; // Default Dark Mode
+  });
+
+  useEffect(() => {
+    localStorage.setItem('shopmate_theme', isDarkMode ? 'dark' : 'light');
+  }, [isDarkMode]);
   
   // State form Login & Registrasi
   const [loginRole, setLoginRole] = useState('Student (Mahasiswa)');
@@ -136,8 +146,24 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-[#070913] flex items-center justify-center p-4 font-sans text-white">
-      <div className="max-w-4xl w-full bg-[#131b2e] rounded-3xl overflow-hidden shadow-2xl border border-slate-800 grid grid-cols-1 md:grid-cols-2">
+    <div className={`min-h-screen flex items-center justify-center p-4 font-sans transition-colors duration-300 ${isDarkMode ? 'bg-[#070913] text-white' : 'bg-slate-100 text-slate-900'}`}>
+      
+      {/* TOMBOL PENGALIH TEMA (DARK/LIGHT MODE) */}
+      <button
+        onClick={() => setIsDarkMode(!isDarkMode)}
+        className={`absolute top-6 right-6 px-3.5 py-2 rounded-xl text-xs font-bold shadow-md transition cursor-pointer flex items-center gap-2 border ${
+          isDarkMode 
+            ? 'bg-[#131b2e] border-slate-700 text-amber-400 hover:bg-slate-800' 
+            : 'bg-white border-slate-300 text-slate-700 hover:bg-slate-50'
+        }`}
+        title={isDarkMode ? "Ubah ke Light Mode" : "Ubah ke Dark Mode"}
+      >
+        {isDarkMode ? '☀️ Light Mode' : '🌙 Dark Mode'}
+      </button>
+
+      <div className={`max-w-4xl w-full rounded-3xl overflow-hidden shadow-2xl border grid grid-cols-1 md:grid-cols-2 transition-colors duration-300 ${
+        isDarkMode ? 'bg-[#131b2e] border-slate-800' : 'bg-white border-slate-200'
+      }`}>
         
         {/* KIRI: BANNER KAMPUS */}
         <div className="p-8 flex flex-col justify-between items-center text-center relative overflow-hidden bg-indigo-950">
@@ -162,11 +188,11 @@ export default function Login() {
         </div>
 
         {/* KANAN: FORM */}
-        <div className="p-8 flex flex-col justify-center bg-[#131b2e]">
-          <h2 className="text-xl font-black text-white mb-1">
+        <div className={`p-8 flex flex-col justify-center ${isDarkMode ? 'bg-[#131b2e]' : 'bg-white'}`}>
+          <h2 className={`text-xl font-black mb-1 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
             {isForgotPass ? 'Pemulihan Kata Sandi' : isRegistering ? 'Form Registrasi Akun Civitas' : 'Masuk ke Akun Anda'}
           </h2>
-          <p className="text-xs text-slate-400 mb-6">
+          <p className={`text-xs mb-6 ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
             {isForgotPass 
               ? 'Masukkan email kampus Anda untuk mereset sandi.' 
               : isRegistering 
@@ -178,9 +204,11 @@ export default function Login() {
             
             {!isRegistering && !isForgotPass && (
               <div>
-                <label className="text-[11px] font-bold text-amber-400 uppercase tracking-wider">Pilih Peran / Status Anda</label>
+                <label className="text-[11px] font-bold text-amber-500 uppercase tracking-wider">Pilih Peran / Status Anda</label>
                 <select value={loginRole} onChange={(e) => setLoginRole(e.target.value)} 
-                  className="w-full mt-1 bg-[#1e293b] border border-amber-400/40 rounded-xl px-4 py-2.5 text-xs text-white font-bold focus:outline-none focus:border-amber-400 shadow-inner">
+                  className={`w-full mt-1 border rounded-xl px-4 py-2.5 text-xs font-bold focus:outline-none focus:border-amber-400 shadow-inner ${
+                    isDarkMode ? 'bg-[#1e293b] border-amber-400/40 text-white' : 'bg-slate-50 border-amber-500/50 text-slate-900'
+                  }`}>
                   <option value="Student (Mahasiswa)">Student (Mahasiswa)</option>
                   <option value="Dosen / Staff">Dosen / Staff</option>
                   <option value="Penjual / Tenant">Penjual / Tenant</option>
@@ -191,9 +219,11 @@ export default function Login() {
 
             {isRegistering && !isForgotPass && (
               <div>
-                <label className="text-[11px] font-bold text-amber-400 uppercase tracking-wider">Pilih Peran / Status Anda</label>
+                <label className="text-[11px] font-bold text-amber-500 uppercase tracking-wider">Pilih Peran / Status Anda</label>
                 <select value={registerRole} onChange={(e) => setRegisterRole(e.target.value)} 
-                  className="w-full mt-1 bg-[#1e293b] border border-amber-400/40 rounded-xl px-4 py-2 text-xs text-white font-bold focus:outline-none focus:border-amber-400 shadow-inner">
+                  className={`w-full mt-1 border rounded-xl px-4 py-2 text-xs font-bold focus:outline-none focus:border-amber-400 shadow-inner ${
+                    isDarkMode ? 'bg-[#1e293b] border-amber-400/40 text-white' : 'bg-slate-50 border-amber-500/50 text-slate-900'
+                  }`}>
                   <option value="Pembeli">Pembeli (Mahasiswa)</option>
                   <option value="Penjual">Penjual / Tenant</option>
                 </select>
@@ -203,27 +233,33 @@ export default function Login() {
             {isRegistering && !isForgotPass && (
               <>
                 <div>
-                  <label className="text-[11px] font-bold text-slate-300 uppercase">Nama Lengkap</label>
+                  <label className={`text-[11px] font-bold uppercase ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>Nama Lengkap</label>
                   <input type="text" placeholder="Masukkan nama lengkap" value={fullName} onChange={(e) => setFullName(e.target.value)} required
-                    className="w-full mt-1 bg-[#1e293b] border border-slate-700 rounded-xl px-4 py-2 text-xs text-white focus:outline-none focus:border-amber-400" />
+                    className={`w-full mt-1 border rounded-xl px-4 py-2 text-xs focus:outline-none focus:border-amber-400 ${
+                      isDarkMode ? 'bg-[#1e293b] border-slate-700 text-white' : 'bg-slate-50 border-slate-300 text-slate-900'
+                    }`} />
                 </div>
 
                 <div>
-                  <label className="text-[11px] font-bold text-slate-300 uppercase">Alamat</label>
+                  <label className={`text-[11px] font-bold uppercase ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>Alamat</label>
                   <input type="text" placeholder="Contoh: Asrama Putra / Tontalete" value={address} onChange={(e) => setAddress(e.target.value)} required
-                    className="w-full mt-1 bg-[#1e293b] border border-slate-700 rounded-xl px-4 py-2 text-xs text-white focus:outline-none focus:border-amber-400" />
+                    className={`w-full mt-1 border rounded-xl px-4 py-2 text-xs focus:outline-none focus:border-amber-400 ${
+                      isDarkMode ? 'bg-[#1e293b] border-slate-700 text-white' : 'bg-slate-50 border-slate-300 text-slate-900'
+                    }`} />
                 </div>
 
                 <div>
-                  <label className="text-[11px] font-bold text-slate-300 uppercase">Nomor HP / WhatsApp</label>
+                  <label className={`text-[11px] font-bold uppercase ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>Nomor HP / WhatsApp</label>
                   <input type="text" placeholder="Contoh: 081234567890" value={phone} onChange={(e) => setPhone(e.target.value)} required
-                    className="w-full mt-1 bg-[#1e293b] border border-slate-700 rounded-xl px-4 py-2 text-xs text-white focus:outline-none focus:border-amber-400" />
+                    className={`w-full mt-1 border rounded-xl px-4 py-2 text-xs focus:outline-none focus:border-amber-400 ${
+                      isDarkMode ? 'bg-[#1e293b] border-slate-700 text-white' : 'bg-slate-50 border-slate-300 text-slate-900'
+                    }`} />
                 </div>
               </>
             )}
 
             <div>
-              <label className="text-[11px] font-bold text-slate-300 uppercase">Email Resmi Unklab</label>
+              <label className={`text-[11px] font-bold uppercase ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>Email Resmi Unklab</label>
               <input 
                 type="email" 
                 placeholder={getEmailPlaceholder()} 
@@ -231,14 +267,16 @@ export default function Login() {
                 onChange={(e) => setEmail(e.target.value)} 
                 required
                 autoComplete="username"
-                className="w-full mt-1 bg-[#1e293b] border border-slate-700 rounded-xl px-4 py-2 text-xs text-white focus:outline-none focus:border-amber-400" 
+                className={`w-full mt-1 border rounded-xl px-4 py-2 text-xs focus:outline-none focus:border-amber-400 ${
+                  isDarkMode ? 'bg-[#1e293b] border-slate-700 text-white' : 'bg-slate-50 border-slate-300 text-slate-900'
+                }`} 
               />
             </div>
 
             {/* INPUT PASSWORD DENGAN IKON MATA SVG */}
             {!isForgotPass && (
               <div>
-                <label className="text-[11px] font-bold text-slate-300 uppercase">
+                <label className={`text-[11px] font-bold uppercase ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>
                   {isRegistering ? 'Buat Password Mandiri' : 'Password'}
                 </label>
                 <div className="relative mt-1">
@@ -249,12 +287,14 @@ export default function Login() {
                     onChange={(e) => setPassword(e.target.value)} 
                     required
                     autoComplete={isRegistering ? "new-password" : "current-password"}
-                    className="w-full bg-[#1e293b] border border-slate-700 rounded-xl px-4 py-2 pr-10 text-xs text-white focus:outline-none focus:border-amber-400" 
+                    className={`w-full border rounded-xl px-4 py-2 pr-10 text-xs focus:outline-none focus:border-amber-400 ${
+                      isDarkMode ? 'bg-[#1e293b] border-slate-700 text-white' : 'bg-slate-50 border-slate-300 text-slate-900'
+                    }`} 
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white cursor-pointer focus:outline-none"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-amber-500 cursor-pointer focus:outline-none"
                     title={showPassword ? "Sembunyikan password" : "Lihat password"}
                   >
                     {showPassword ? (
@@ -281,7 +321,7 @@ export default function Login() {
           <div className="mt-5 space-y-2 text-center">
             {!isForgotPass && !isRegistering && (
               <div>
-                <button onClick={() => setIsForgotPass(true)} className="text-[11px] text-amber-400/90 hover:underline font-semibold cursor-pointer">
+                <button onClick={() => setIsForgotPass(true)} className="text-[11px] text-amber-500 hover:underline font-semibold cursor-pointer">
                   Lupa password Anda? Klik di sini
                 </button>
               </div>
@@ -290,14 +330,14 @@ export default function Login() {
             <div>
               <button 
                 onClick={() => { setIsRegistering(!isRegistering); setIsForgotPass(false); }} 
-                className="text-xs text-amber-400 hover:underline font-bold cursor-pointer">
+                className="text-xs text-amber-500 hover:underline font-bold cursor-pointer">
                 {isRegistering ? 'Sudah punya akun? Masuk di sini' : 'Belum punya akun? Daftar akun civitas'}
               </button>
             </div>
 
             {isForgotPass && (
               <div>
-                <button onClick={() => setIsForgotPass(false)} className="text-xs text-slate-400 hover:underline cursor-pointer">
+                <button onClick={() => setIsForgotPass(false)} className={`text-xs hover:underline cursor-pointer ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
                   ← Kembali ke halaman Masuk
                 </button>
               </div>
