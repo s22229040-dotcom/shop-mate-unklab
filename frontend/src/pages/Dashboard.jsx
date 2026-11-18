@@ -41,7 +41,8 @@ export default function Dashboard() {
         tenant: 'Koperasi UNKLAB', 
         sellerPhone: '6281234567891', 
         img: 'https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?q=80&w=600&auto=format&fit=crop',
-        desc: 'Lanyard resmi berstandar universitas dengan bahan berkualitas tinggi.' 
+        desc: 'Lanyard resmi berstandar universitas dengan bahan berkualitas tinggi.',
+        isActive: true
       },
       { 
         id: 2, 
@@ -52,7 +53,8 @@ export default function Dashboard() {
         tenant: 'Kantin Asrama Putra', 
         sellerPhone: '6281298765432', 
         img: 'https://images.unsplash.com/photo-1555126634-323283e090fa?q=80&w=600&auto=format&fit=crop',
-        desc: 'Nasi kuning hangat dengan lauk abon dan telur pindang khas kantin asrama.' 
+        desc: 'Nasi kuning hangat dengan lauk abon dan telur pindang khas kantin asrama.',
+        isActive: true
       },
       { 
         id: 3, 
@@ -63,7 +65,8 @@ export default function Dashboard() {
         tenant: 'Tenant Fasilkom', 
         sellerPhone: '6281355556666', 
         img: 'https://images.unsplash.com/photo-1548839140-29a749e1cf4d?q=80&w=600&auto=format&fit=crop',
-        desc: 'Air mineral steril kemasan botol 600ml untuk menyegarkan hari kuliah.' 
+        desc: 'Air mineral steril kemasan botol 600ml untuk menyegarkan hari kuliah.',
+        isActive: true
       },
       { 
         id: 4, 
@@ -74,7 +77,8 @@ export default function Dashboard() {
         tenant: 'Kantin Utama', 
         sellerPhone: '6281211112222', 
         img: 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?q=80&w=600&auto=format&fit=crop',
-        desc: 'Teh melati manis segar disajikan dingin dengan es batu pilihan.' 
+        desc: 'Teh melati manis segar disajikan dingin dengan es batu pilihan.',
+        isActive: true
       }
     ];
     localStorage.setItem('shopmate_products', JSON.stringify(defaultProducts));
@@ -149,7 +153,7 @@ export default function Dashboard() {
     alert('Profil berhasil diperbarui!');
   };
 
-  // State Pesanan / Notifikasi dikosongkan di awal sampai ada transaksi checkout
+  // State Pesanan / Notifikasi
   const [orders, setOrders] = useState(() => {
     const savedOrders = localStorage.getItem('shopmate_orders');
     if (savedOrders) {
@@ -236,10 +240,12 @@ export default function Dashboard() {
     navigate('/');
   };
 
+  // FILTER PRODUK: Menyembunyikan produk yang dinonaktifkan oleh penjual (isActive === false)
   const filteredProducts = products.filter(p => {
+    const isNotDisabled = p.isActive !== false;
     const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === 'Semua' || p.category === selectedCategory;
-    return matchesSearch && matchesCategory;
+    return isNotDisabled && matchesSearch && matchesCategory;
   });
 
   return (
@@ -250,7 +256,12 @@ export default function Dashboard() {
         isDarkMode ? 'bg-slate-950 border-slate-800' : 'bg-white border-slate-200'
       }`}>
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-amber-400 text-slate-950 rounded-xl flex items-center justify-center font-black text-lg shadow">
+          {/* LOGO DI TEKAN 2 KALI UNTUK GANTI TEMA DI HP */}
+          <div 
+            onDoubleClick={() => setIsDarkMode(!isDarkMode)}
+            title="Klik 2 kali untuk ubah tema (khusus HP)"
+            className="w-10 h-10 bg-amber-400 text-slate-950 rounded-xl flex items-center justify-center font-black text-lg shadow cursor-pointer select-none active:scale-95 transition"
+          >
             🛒
           </div>
           <div>
@@ -303,7 +314,7 @@ export default function Dashboard() {
         </div>
 
         <div className="flex items-center gap-3">
-          {/* TOMBOL PENGALIH TEMA */}
+          {/* TOMBOL PENGALIH TEMA KHUSUS DI LAPTOP/LAYAR LUAS */}
           <button
             onClick={() => setIsDarkMode(!isDarkMode)}
             className={`px-3 py-2 rounded-xl text-xs font-bold shadow transition cursor-pointer flex items-center gap-1.5 border ${
