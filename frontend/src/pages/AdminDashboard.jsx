@@ -3,13 +3,40 @@ import { useNavigate } from 'react-router-dom';
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
-  
+
   const [activeAdminTab, setActiveAdminTab] = useState('overview');
+
+  // Membaca tema (Dark / Light Mode) dari halaman login (shopmate_theme)
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    const savedTheme = localStorage.getItem('shopmate_theme');
+    return savedTheme ? savedTheme === 'dark' : true;
+  });
+
+  useEffect(() => {
+    const syncTheme = () => {
+      const savedTheme = localStorage.getItem('shopmate_theme');
+      if (savedTheme) {
+        setIsDarkMode(savedTheme === 'dark');
+      }
+    };
+    window.addEventListener('storage', syncTheme);
+    const interval = setInterval(syncTheme, 500);
+    return () => {
+      window.removeEventListener('storage', syncTheme);
+      clearInterval(interval);
+    };
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('shopmate_theme', isDarkMode ? 'dark' : 'light');
+  }, [isDarkMode]);
 
   const [adminProfile, setAdminProfile] = useState(() => {
     const saved = localStorage.getItem('shopmate_admin_profile');
     if (saved) {
-      try { return JSON.parse(saved); } catch (e) {}
+      try {
+        return JSON.parse(saved);
+      } catch (e) {}
     }
     return {
       name: 'Dr. Citra Lestari, M.Kom',
@@ -135,7 +162,10 @@ export default function AdminDashboard() {
 
   // State untuk Manajemen QRIS Pembayaran Pusat (Tersinkronisasi via localStorage)
   const [qrisImage, setQrisImage] = useState(() => {
-    return localStorage.getItem('shopmate_qris_image') || 'https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=ShopMate-UNKLAB-Official-QRIS';
+    return (
+      localStorage.getItem('shopmate_qris_image') ||
+      'https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=ShopMate-UNKLAB-Official-QRIS'
+    );
   });
   const [tempQrisUrl, setTempQrisUrl] = useState(qrisImage);
 
@@ -164,28 +194,48 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col font-sans">
-      
+    <div
+      className={`min-h-screen flex flex-col font-sans transition-colors duration-300 ${
+        isDarkMode ? 'bg-slate-900 text-slate-100' : 'bg-slate-50 text-slate-900'
+      }`}
+    >
       {/* Top Brand Header */}
-      <header className="bg-slate-950 border-b border-slate-800 px-6 py-4 flex items-center justify-between sticky top-0 z-40 shadow-md">
+      <header
+        className={`border-b px-6 py-4 flex items-center justify-between sticky top-0 z-40 shadow-md transition-colors duration-300 ${
+          isDarkMode ? 'bg-slate-950 border-slate-800' : 'bg-white border-slate-200'
+        }`}
+      >
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-amber-400 text-slate-950 rounded-xl flex items-center justify-center font-black text-lg shadow">
             👑
           </div>
           <div>
-            <h1 className="font-extrabold text-sm text-white tracking-wide">ADMIN CONTROL CENTER</h1>
-            <p className="text-[10px] text-amber-400 font-semibold uppercase">Shop-Mate Universitas Klabat</p>
+            <h1 className={`font-extrabold text-sm tracking-wide ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+              ADMIN CONTROL CENTER
+            </h1>
+            <p className="text-[10px] text-amber-500 font-semibold uppercase">Shop-Mate Universitas Klabat</p>
           </div>
         </div>
 
         <div className="flex items-center gap-3">
           <div className="hidden md:block text-right">
-            <p className="text-xs font-bold text-white">{adminProfile.name}</p>
-            <p className="text-[10px] text-amber-400">{adminProfile.email}</p>
+            <p className={`text-xs font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{adminProfile.name}</p>
+            <p className="text-[10px] text-amber-500">{adminProfile.email}</p>
           </div>
-          <button 
+          <button
+            onClick={() => setIsDarkMode(!isDarkMode)}
+            className={`px-3 py-2 rounded-xl text-xs font-bold shadow transition cursor-pointer flex items-center gap-1.5 border ${
+              isDarkMode
+                ? 'bg-slate-800 border-slate-700 text-amber-400 hover:bg-slate-700'
+                : 'bg-slate-100 border-slate-300 text-slate-700 hover:bg-slate-200'
+            }`}
+            title={isDarkMode ? 'Ubah ke Light Mode' : 'Ubah ke Dark Mode'}
+          >
+            {isDarkMode ? '☀️' : '🌙'}
+          </button>
+          <button
             onClick={() => navigate('/')}
-            className="px-3.5 py-2 bg-red-600/20 hover:bg-red-600/30 text-red-400 font-bold text-xs rounded-xl transition cursor-pointer flex items-center gap-1"
+            className="px-3.5 py-2 bg-red-600/20 hover:bg-red-600/30 text-red-500 font-bold text-xs rounded-xl transition cursor-pointer flex items-center gap-1"
           >
             <span>&larr;</span> Keluar
           </button>
@@ -193,82 +243,179 @@ export default function AdminDashboard() {
       </header>
 
       {/* Navigation Tabs Bar */}
-      <div className="bg-slate-950/80 border-b border-slate-800 px-6 py-2.5 flex overflow-x-auto gap-2 sticky top-[73px] z-30">
-        <button onClick={() => setActiveAdminTab('overview')} className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer whitespace-nowrap ${activeAdminTab === 'overview' ? 'bg-amber-400 text-slate-950 shadow' : 'text-slate-300 hover:bg-slate-800'}`}>
+      <div
+        className={`border-b px-6 py-2.5 flex overflow-x-auto gap-2 sticky top-[73px] z-30 transition-colors duration-300 ${
+          isDarkMode ? 'bg-slate-950/80 border-slate-800' : 'bg-white/90 border-slate-200'
+        }`}
+      >
+        <button
+          onClick={() => setActiveAdminTab('overview')}
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer whitespace-nowrap ${
+            activeAdminTab === 'overview'
+              ? 'bg-amber-400 text-slate-950 shadow'
+              : isDarkMode
+              ? 'text-slate-300 hover:bg-slate-800'
+              : 'text-slate-600 hover:bg-slate-100'
+          }`}
+        >
           📊 Dashboard & Persentase
         </button>
-        <button onClick={() => setActiveAdminTab('users')} className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer whitespace-nowrap ${activeAdminTab === 'users' ? 'bg-amber-400 text-slate-950 shadow' : 'text-slate-300 hover:bg-slate-800'}`}>
+        <button
+          onClick={() => setActiveAdminTab('users')}
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer whitespace-nowrap ${
+            activeAdminTab === 'users'
+              ? 'bg-amber-400 text-slate-950 shadow'
+              : isDarkMode
+              ? 'text-slate-300 hover:bg-slate-800'
+              : 'text-slate-600 hover:bg-slate-100'
+          }`}
+        >
           👥 Kelola Pengguna
         </button>
-        <button onClick={() => setActiveAdminTab('categories')} className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer whitespace-nowrap ${activeAdminTab === 'categories' ? 'bg-amber-400 text-slate-950 shadow' : 'text-slate-300 hover:bg-slate-800'}`}>
+        <button
+          onClick={() => setActiveAdminTab('categories')}
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer whitespace-nowrap ${
+            activeAdminTab === 'categories'
+              ? 'bg-amber-400 text-slate-950 shadow'
+              : isDarkMode
+              ? 'text-slate-300 hover:bg-slate-800'
+              : 'text-slate-600 hover:bg-slate-100'
+          }`}
+        >
           🏷️ Kelola Kategori
         </button>
-        <button onClick={() => setActiveAdminTab('transactions')} className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer whitespace-nowrap ${activeAdminTab === 'transactions' ? 'bg-amber-400 text-slate-950 shadow' : 'text-slate-300 hover:bg-slate-800'}`}>
+        <button
+          onClick={() => setActiveAdminTab('transactions')}
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer whitespace-nowrap ${
+            activeAdminTab === 'transactions'
+              ? 'bg-amber-400 text-slate-950 shadow'
+              : isDarkMode
+              ? 'text-slate-300 hover:bg-slate-800'
+              : 'text-slate-600 hover:bg-slate-100'
+          }`}
+        >
           💰 Laporan Transaksi
         </button>
-        <button onClick={() => setActiveAdminTab('qris')} className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer whitespace-nowrap ${activeAdminTab === 'qris' ? 'bg-amber-400 text-slate-950 shadow' : 'text-slate-300 hover:bg-slate-800'}`}>
+        <button
+          onClick={() => setActiveAdminTab('qris')}
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer whitespace-nowrap ${
+            activeAdminTab === 'qris'
+              ? 'bg-amber-400 text-slate-950 shadow'
+              : isDarkMode
+              ? 'text-slate-300 hover:bg-slate-800'
+              : 'text-slate-600 hover:bg-slate-100'
+          }`}
+        >
           💳 Kelola QRIS Pembayaran
         </button>
-        <button onClick={() => setActiveAdminTab('profil')} className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer whitespace-nowrap ${activeAdminTab === 'profil' ? 'bg-amber-400 text-slate-950 shadow' : 'text-slate-300 hover:bg-slate-800'}`}>
+        <button
+          onClick={() => setActiveAdminTab('profil')}
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer whitespace-nowrap ${
+            activeAdminTab === 'profil'
+              ? 'bg-amber-400 text-slate-950 shadow'
+              : isDarkMode
+              ? 'text-slate-300 hover:bg-slate-800'
+              : 'text-slate-600 hover:bg-slate-100'
+          }`}
+        >
           🛡️ Profil & Ganti Password Admin
         </button>
       </div>
 
       {/* Main Content Area */}
       <main className="flex-1 p-6 max-w-7xl mx-auto w-full">
-        
         {activeAdminTab === 'overview' && (
           <div className="space-y-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-              <div className="bg-slate-800/60 border border-slate-700/60 p-6 rounded-3xl shadow-lg">
-                <p className="text-xs text-slate-400 font-semibold mb-1">Total Pengguna Aktif</p>
-                <h3 className="text-3xl font-black text-white">{users.length}</h3>
-                <span className="text-[10px] text-emerald-400 font-bold mt-2 inline-block">Mahasiswa & Staff UNKLAB</span>
+              <div
+                className={`border p-6 rounded-3xl shadow-lg transition-colors duration-300 ${
+                  isDarkMode ? 'bg-slate-800/60 border-slate-700/60' : 'bg-white border-slate-200'
+                }`}
+              >
+                <p className={`text-xs font-semibold mb-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                  Total Pengguna Aktif
+                </p>
+                <h3 className={`text-3xl font-black ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{users.length}</h3>
+                <span className="text-[10px] text-emerald-500 font-bold mt-2 inline-block">
+                  Mahasiswa & Staff UNKLAB
+                </span>
               </div>
-              <div className="bg-slate-800/60 border border-slate-700/60 p-6 rounded-3xl shadow-lg">
-                <p className="text-xs text-slate-400 font-semibold mb-1">Total Pendapatan Bruto</p>
-                <h3 className="text-2xl font-black text-amber-400 mt-1">Rp {totalRevenue.toLocaleString('id-ID')}</h3>
-                <span className="text-[10px] text-emerald-400 font-bold mt-2 inline-block">QRIS & COD Terverifikasi</span>
+              <div
+                className={`border p-6 rounded-3xl shadow-lg transition-colors duration-300 ${
+                  isDarkMode ? 'bg-slate-800/60 border-slate-700/60' : 'bg-white border-slate-200'
+                }`}
+              >
+                <p className={`text-xs font-semibold mb-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                  Total Pendapatan Bruto
+                </p>
+                <h3 className="text-2xl font-black text-amber-500 mt-1">
+                  Rp {totalRevenue.toLocaleString('id-ID')}
+                </h3>
+                <span className="text-[10px] text-emerald-500 font-bold mt-2 inline-block">
+                  QRIS & COD Terverifikasi
+                </span>
               </div>
-              <div className="bg-slate-800/60 border border-slate-700/60 p-6 rounded-3xl shadow-lg">
-                <p className="text-xs text-slate-400 font-semibold mb-1">Komisi Platform (2.5%)</p>
-                <h3 className="text-2xl font-black text-emerald-400 mt-1">Rp {(totalRevenue * 0.025).toLocaleString('id-ID')}</h3>
-                <span className="text-[10px] text-slate-300 font-bold mt-2 inline-block">Kas Kemahasiswaan Kampus</span>
+              <div
+                className={`border p-6 rounded-3xl shadow-lg transition-colors duration-300 ${
+                  isDarkMode ? 'bg-slate-800/60 border-slate-700/60' : 'bg-white border-slate-200'
+                }`}
+              >
+                <p className={`text-xs font-semibold mb-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                  Komisi Platform (2.5%)
+                </p>
+                <h3 className="text-2xl font-black text-emerald-500 mt-1">
+                  Rp {(totalRevenue * 0.025).toLocaleString('id-ID')}
+                </h3>
+                <span className={`text-[10px] font-bold mt-2 inline-block ${isDarkMode ? 'text-slate-300' : 'text-slate-600'}`}>
+                  Kas Kemahasiswaan Kampus
+                </span>
               </div>
-              <div className="bg-slate-800/60 border border-slate-700/60 p-6 rounded-3xl shadow-lg">
-                <p className="text-xs text-slate-400 font-semibold mb-1">Status Sistem SRS</p>
-                <h3 className="text-2xl font-black text-emerald-400 mt-1">Normal 99.9%</h3>
-                <span className="text-[10px] text-amber-400 font-bold mt-2 inline-block">Aman & Terenkripsi</span>
+              <div
+                className={`border p-6 rounded-3xl shadow-lg transition-colors duration-300 ${
+                  isDarkMode ? 'bg-slate-800/60 border-slate-700/60' : 'bg-white border-slate-200'
+                }`}
+              >
+                <p className={`text-xs font-semibold mb-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                  Status Sistem SRS
+                </p>
+                <h3 className="text-2xl font-black text-emerald-500 mt-1">Normal 99.9%</h3>
+                <span className="text-[10px] text-amber-500 font-bold mt-2 inline-block">Aman & Terenkripsi</span>
               </div>
             </div>
 
-            <div className="bg-slate-800/40 border border-slate-800 rounded-3xl p-8 shadow-xl">
-              <h3 className="text-sm font-black text-white mb-6">📈 Grafik Persentase Penjualan Tenant Kampus UNKLAB</h3>
+            <div
+              className={`border rounded-3xl p-8 shadow-xl transition-colors duration-300 ${
+                isDarkMode ? 'bg-slate-800/40 border-slate-800' : 'bg-white border-slate-200'
+              }`}
+            >
+              <h3 className={`text-sm font-black mb-6 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+                📈 Grafik Persentase Penjualan Tenant Kampus UNKLAB
+              </h3>
               <div className="space-y-4 text-xs">
                 <div>
                   <div className="flex justify-between font-bold mb-1">
                     <span>Kantin Asrama Putra (Makanan & Minuman)</span>
-                    <span className="text-amber-400">65% (Terlaris)</span>
+                    <span className="text-amber-500">65% (Terlaris)</span>
                   </div>
-                  <div className="w-full h-3 bg-slate-900 rounded-full overflow-hidden">
+                  <div className={`w-full h-3 rounded-full overflow-hidden ${isDarkMode ? 'bg-slate-900' : 'bg-slate-200'}`}>
                     <div className="bg-amber-400 h-full rounded-full" style={{ width: '65%' }}></div>
                   </div>
                 </div>
                 <div>
                   <div className="flex justify-between font-bold mb-1">
                     <span>Koperasi / Atribut Resmi Kampus</span>
-                    <span className="text-blue-400">25%</span>
+                    <span className="text-blue-500">25%</span>
                   </div>
-                  <div className="w-full h-3 bg-slate-900 rounded-full overflow-hidden">
+                  <div className={`w-full h-3 rounded-full overflow-hidden ${isDarkMode ? 'bg-slate-900' : 'bg-slate-200'}`}>
                     <div className="bg-blue-500 h-full rounded-full" style={{ width: '25%' }}></div>
                   </div>
                 </div>
                 <div>
                   <div className="flex justify-between font-bold mb-1">
                     <span>Tenant Mahasiswa Mandiri (Fasilkom & FEB)</span>
-                    <span className="text-emerald-400">10%</span>
+                    <span className="text-emerald-500">10%</span>
                   </div>
-                  <div className="w-full h-3 bg-slate-900 rounded-full overflow-hidden">
+                  <div className={`w-full h-3 rounded-full overflow-hidden ${isDarkMode ? 'bg-slate-900' : 'bg-slate-200'}`}>
                     <div className="bg-emerald-500 h-full rounded-full" style={{ width: '10%' }}></div>
                   </div>
                 </div>
@@ -278,29 +425,49 @@ export default function AdminDashboard() {
         )}
 
         {activeAdminTab === 'users' && (
-          <div className="bg-slate-800/40 border border-slate-800 rounded-3xl p-8 shadow-xl space-y-4">
-            <h3 className="text-sm font-black text-white mb-4">Manajemen Pengguna Civitas Akademika</h3>
+          <div
+            className={`border rounded-3xl p-8 shadow-xl space-y-4 transition-colors duration-300 ${
+              isDarkMode ? 'bg-slate-800/40 border-slate-800' : 'bg-white border-slate-200'
+            }`}
+          >
+            <h3 className={`text-sm font-black mb-4 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+              Manajemen Pengguna Civitas Akademika
+            </h3>
             {users.length === 0 ? (
-              <p className="text-xs text-slate-400 text-center py-8">Belum ada pengguna yang mendaftar (pembeli/penjual).</p>
+              <p className={`text-xs text-center py-8 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                Belum ada pengguna yang mendaftar (pembeli/penjual).
+              </p>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
                   <thead>
-                    <tr className="border-b border-slate-700 text-slate-400">
+                    <tr className={`border-b ${isDarkMode ? 'border-slate-700 text-slate-400' : 'border-slate-200 text-slate-500'}`}>
                       <th className="pb-3 font-bold uppercase">Nama Lengkap</th>
                       <th className="pb-3 font-bold uppercase">Email Resmi UNKLAB</th>
                       <th className="pb-3 font-bold uppercase">Peran</th>
                       <th className="pb-3 font-bold uppercase text-right">Aksi</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-800 text-slate-300">
+                  <tbody className={`divide-y ${isDarkMode ? 'divide-slate-800 text-slate-300' : 'divide-slate-200 text-slate-700'}`}>
                     {users.map((u, idx) => (
                       <tr key={u.id || idx}>
-                        <td className="py-3.5 font-bold text-white">{u.name}</td>
+                        <td className={`py-3.5 font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{u.name}</td>
                         <td>{u.email}</td>
-                        <td><span className="px-2.5 py-1 bg-amber-400/20 text-amber-400 font-bold rounded-lg text-[10px]">{u.role}</span></td>
+                        <td>
+                          <span className="px-2.5 py-1 bg-amber-400/20 text-amber-500 font-bold rounded-lg text-[10px]">
+                            {u.role}
+                          </span>
+                        </td>
                         <td className="py-3.5 text-right">
-                          <button onClick={() => { setUsers(users.filter((_, i) => i !== idx)); alert('Akun pengguna dihapus.'); }} className="px-3 py-1 bg-red-600/20 text-red-400 font-bold rounded-xl cursor-pointer">Hapus</button>
+                          <button
+                            onClick={() => {
+                              setUsers(users.filter((_, i) => i !== idx));
+                              alert('Akun pengguna dihapus.');
+                            }}
+                            className="px-3 py-1 bg-red-600/20 text-red-500 font-bold rounded-xl cursor-pointer"
+                          >
+                            Hapus
+                          </button>
                         </td>
                       </tr>
                     ))}
@@ -312,28 +479,53 @@ export default function AdminDashboard() {
         )}
 
         {activeAdminTab === 'categories' && (
-          <div className="max-w-2xl mx-auto bg-slate-800/40 border border-slate-800 rounded-3xl p-8 shadow-xl space-y-4">
-            <h3 className="text-sm font-black text-white mb-2">Kelola Kategori Produk Kampus</h3>
+          <div
+            className={`max-w-2xl mx-auto border rounded-3xl p-8 shadow-xl space-y-4 transition-colors duration-300 ${
+              isDarkMode ? 'bg-slate-800/40 border-slate-800' : 'bg-white border-slate-200'
+            }`}
+          >
+            <h3 className={`text-sm font-black mb-2 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+              Kelola Kategori Produk Kampus
+            </h3>
             <form onSubmit={handleAddCategory} className="flex gap-2 text-xs">
               <input
                 type="text"
                 value={newCategoryName}
                 onChange={(e) => setNewCategoryName(e.target.value)}
                 placeholder="Tambah kategori baru..."
-                className="flex-1 px-4 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white"
+                className={`flex-1 px-4 py-2.5 border rounded-xl ${
+                  isDarkMode
+                    ? 'bg-slate-900 border-slate-700 text-white placeholder-slate-400'
+                    : 'bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-500'
+                }`}
               />
-              <button type="submit" className="px-4 py-2.5 bg-amber-400 hover:bg-amber-500 text-slate-950 font-extrabold rounded-xl cursor-pointer">
+              <button
+                type="submit"
+                className="px-4 py-2.5 bg-amber-400 hover:bg-amber-500 text-slate-950 font-extrabold rounded-xl cursor-pointer"
+              >
                 + Tambah
               </button>
             </form>
             <div className="space-y-3 text-xs">
               {categories.length === 0 ? (
-                <p className="text-slate-400 text-center py-6">Belum ada kategori. Tambahkan kategori agar muncul di penjual & pembeli.</p>
+                <p className={`text-center py-6 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                  Belum ada kategori. Tambahkan kategori agar muncul di penjual & pembeli.
+                </p>
               ) : (
-                categories.map(c => (
-                  <div key={c.id} className="flex justify-between items-center p-4 bg-slate-900 rounded-2xl border border-slate-700">
-                    <span className="font-bold text-white">{c.name}</span>
-                    <button onClick={() => handleDeleteCategory(c.id)} className="px-3 py-1 bg-red-600/20 text-red-400 font-bold rounded-xl cursor-pointer">Hapus</button>
+                categories.map((c) => (
+                  <div
+                    key={c.id}
+                    className={`flex justify-between items-center p-4 rounded-2xl border ${
+                      isDarkMode ? 'bg-slate-900 border-slate-700' : 'bg-slate-50 border-slate-200'
+                    }`}
+                  >
+                    <span className={`font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{c.name}</span>
+                    <button
+                      onClick={() => handleDeleteCategory(c.id)}
+                      className="px-3 py-1 bg-red-600/20 text-red-500 font-bold rounded-xl cursor-pointer"
+                    >
+                      Hapus
+                    </button>
                   </div>
                 ))
               )}
@@ -342,28 +534,38 @@ export default function AdminDashboard() {
         )}
 
         {activeAdminTab === 'transactions' && (
-          <div className="bg-slate-800/40 border border-slate-800 rounded-3xl p-8 shadow-xl space-y-4">
-            <h3 className="text-sm font-black text-white mb-4">Rekapitulasi Transaksi Pembeli & Penjual</h3>
+          <div
+            className={`border rounded-3xl p-8 shadow-xl space-y-4 transition-colors duration-300 ${
+              isDarkMode ? 'bg-slate-800/40 border-slate-800' : 'bg-white border-slate-200'
+            }`}
+          >
+            <h3 className={`text-sm font-black mb-4 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+              Rekapitulasi Transaksi Pembeli & Penjual
+            </h3>
             {transactions.length === 0 ? (
-              <p className="text-xs text-slate-400 text-center py-8">Belum ada transaksi tercatat.</p>
+              <p className={`text-xs text-center py-8 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                Belum ada transaksi tercatat.
+              </p>
             ) : (
               <div className="overflow-x-auto text-xs">
                 <table className="w-full text-left">
                   <thead>
-                    <tr className="border-b border-slate-700 text-slate-400">
+                    <tr className={`border-b ${isDarkMode ? 'border-slate-700 text-slate-400' : 'border-slate-200 text-slate-500'}`}>
                       <th className="pb-3 font-bold uppercase">ID</th>
                       <th className="pb-3 font-bold uppercase">Pembeli</th>
                       <th className="pb-3 font-bold uppercase">Tenant Penjual</th>
                       <th className="pb-3 font-bold uppercase">Total</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-800 text-slate-300">
+                  <tbody className={`divide-y ${isDarkMode ? 'divide-slate-800 text-slate-300' : 'divide-slate-200 text-slate-700'}`}>
                     {transactions.map((t, idx) => (
                       <tr key={t.id || idx}>
-                        <td className="py-3 font-bold text-amber-400">{t.id}</td>
+                        <td className="py-3 font-bold text-amber-500">{t.id}</td>
                         <td>{t.buyer}</td>
                         <td>{t.seller}</td>
-                        <td className="font-extrabold text-white">Rp {Number(t.total || 0).toLocaleString('id-ID')}</td>
+                        <td className={`font-extrabold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+                          Rp {Number(t.total || 0).toLocaleString('id-ID')}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -375,14 +577,26 @@ export default function AdminDashboard() {
 
         {/* TAB: KELOLA QRIS PEMBAYARAN */}
         {activeAdminTab === 'qris' && (
-          <div className="max-w-xl mx-auto bg-slate-800/60 border border-slate-700 rounded-3xl p-8 shadow-xl space-y-6 text-xs">
+          <div
+            className={`max-w-xl mx-auto border rounded-3xl p-8 shadow-xl space-y-6 text-xs transition-colors duration-300 ${
+              isDarkMode ? 'bg-slate-800/60 border-slate-700' : 'bg-white border-slate-200'
+            }`}
+          >
             <div>
-              <h2 className="text-xl font-black text-white mb-1">Pengaturan Barcode QRIS Pusat</h2>
-              <p className="text-slate-400">Unggah atau ubah tautan gambar QRIS yang akan dipindai oleh pembeli saat melakukan pembayaran non-tunai.</p>
+              <h2 className={`text-xl font-black mb-1 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+                Pengaturan Barcode QRIS Pusat
+              </h2>
+              <p className={isDarkMode ? 'text-slate-400' : 'text-slate-600'}>
+                Unggah atau ubah tautan gambar QRIS yang akan dipindai oleh pembeli saat melakukan pembayaran non-tunai.
+              </p>
             </div>
 
-            <div className="flex flex-col items-center justify-center p-6 bg-slate-900 rounded-2xl border border-slate-700 space-y-3">
-              <p className="font-bold text-amber-400 uppercase tracking-wider">Preview Barcode QRIS Aktif Saat Ini</p>
+            <div
+              className={`flex flex-col items-center justify-center p-6 rounded-2xl border space-y-3 ${
+                isDarkMode ? 'bg-slate-900 border-slate-700' : 'bg-slate-50 border-slate-200'
+              }`}
+            >
+              <p className="font-bold text-amber-500 uppercase tracking-wider">Preview Barcode QRIS Aktif Saat Ini</p>
               <div className="w-48 h-48 bg-white p-2 rounded-2xl shadow-md flex items-center justify-center">
                 <img src={qrisImage} alt="QRIS Preview" className="w-full h-full object-contain" />
               </div>
@@ -390,16 +604,22 @@ export default function AdminDashboard() {
 
             <form onSubmit={handleSaveQris} className="space-y-4 pt-2">
               <div>
-                <label className="block text-slate-400 font-bold mb-1 uppercase">URL Gambar / Barcode QRIS Baru</label>
+                <label className={`block font-bold mb-1 uppercase ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
+                  URL Gambar / Barcode QRIS Baru
+                </label>
                 <input
                   type="text"
                   required
                   value={tempQrisUrl}
                   onChange={(e) => setTempQrisUrl(e.target.value)}
-                  className="w-full px-4 py-3 bg-slate-950 border border-slate-700 rounded-xl text-white font-mono text-[11px]"
+                  className={`w-full px-4 py-3 border rounded-xl font-mono text-[11px] ${
+                    isDarkMode ? 'bg-slate-950 border-slate-700 text-white' : 'bg-slate-50 border-slate-300 text-slate-900'
+                  }`}
                   placeholder="https://images.unsplash.com/... atau URL gambar QRIS"
                 />
-                <p className="text-[10px] text-slate-400 mt-1">Masukkan URL gambar QRIS valid atau tautan hosting gambar Anda.</p>
+                <p className={`text-[10px] mt-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                  Masukkan URL gambar QRIS valid atau tautan hosting gambar Anda.
+                </p>
               </div>
               <button
                 type="submit"
@@ -412,11 +632,19 @@ export default function AdminDashboard() {
         )}
 
         {activeAdminTab === 'profil' && (
-          <div className="max-w-xl mx-auto bg-slate-800/60 border border-slate-700 rounded-3xl p-8 shadow-xl space-y-6 text-xs">
+          <div
+            className={`max-w-xl mx-auto border rounded-3xl p-8 shadow-xl space-y-6 text-xs transition-colors duration-300 ${
+              isDarkMode ? 'bg-slate-800/60 border-slate-700' : 'bg-white border-slate-200'
+            }`}
+          >
             <div className="flex items-start justify-between gap-2">
               <div>
-                <h2 className="text-xl font-black text-white mb-1">Profil & Keamanan Akun Admin</h2>
-                <p className="text-slate-400">Ubah profil atau password secara berkala untuk mencegah akses login yang tidak sah.</p>
+                <h2 className={`text-xl font-black mb-1 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+                  Profil & Keamanan Akun Admin
+                </h2>
+                <p className={isDarkMode ? 'text-slate-400' : 'text-slate-600'}>
+                  Ubah profil atau password secara berkala untuk mencegah akses login yang tidak sah.
+                </p>
               </div>
               {!isEditingProfile && (
                 <button
@@ -430,42 +658,71 @@ export default function AdminDashboard() {
             </div>
 
             {!isEditingProfile ? (
-              <div className="p-4 bg-slate-900 rounded-2xl border border-slate-700 space-y-2">
-                <p><b>Nama:</b> {adminProfile.name}</p>
-                <p><b>Email:</b> {adminProfile.email}</p>
-                <p><b>Peran:</b> <span className="text-amber-400">{adminProfile.role}</span></p>
-                <p><b>No. WhatsApp:</b> {adminProfile.phone}</p>
+              <div
+                className={`p-4 rounded-2xl border space-y-2 ${
+                  isDarkMode ? 'bg-slate-900 border-slate-700' : 'bg-slate-50 border-slate-200'
+                }`}
+              >
+                <p>
+                  <b>Nama:</b> {adminProfile.name}
+                </p>
+                <p>
+                  <b>Email:</b> {adminProfile.email}
+                </p>
+                <p>
+                  <b>Peran:</b> <span className="text-amber-500 font-bold">{adminProfile.role}</span>
+                </p>
+                <p>
+                  <b>No. WhatsApp:</b> {adminProfile.phone}
+                </p>
               </div>
             ) : (
-              <form onSubmit={handleSaveProfile} className="p-4 bg-slate-900 rounded-2xl border border-amber-400/50 space-y-3">
+              <form
+                onSubmit={handleSaveProfile}
+                className={`p-4 rounded-2xl border border-amber-400/50 space-y-3 ${
+                  isDarkMode ? 'bg-slate-900' : 'bg-slate-50'
+                }`}
+              >
                 <div>
-                  <label className="block text-slate-400 font-bold mb-1">Nama Admin</label>
+                  <label className={`block font-bold mb-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
+                    Nama Admin
+                  </label>
                   <input
                     type="text"
                     required
                     value={editProfileForm.name}
                     onChange={(e) => setEditProfileForm({ ...editProfileForm, name: e.target.value })}
-                    className="w-full px-4 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-white"
+                    className={`w-full px-4 py-2.5 border rounded-xl ${
+                      isDarkMode ? 'bg-slate-950 border-slate-700 text-white' : 'bg-white border-slate-300 text-slate-900'
+                    }`}
                   />
                 </div>
                 <div>
-                  <label className="block text-slate-400 font-bold mb-1">Peran / Jabatan</label>
+                  <label className={`block font-bold mb-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
+                    Peran / Jabatan
+                  </label>
                   <input
                     type="text"
                     required
                     value={editProfileForm.role}
                     onChange={(e) => setEditProfileForm({ ...editProfileForm, role: e.target.value })}
-                    className="w-full px-4 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-white"
+                    className={`w-full px-4 py-2.5 border rounded-xl ${
+                      isDarkMode ? 'bg-slate-950 border-slate-700 text-white' : 'bg-white border-slate-300 text-slate-900'
+                    }`}
                   />
                 </div>
                 <div>
-                  <label className="block text-slate-400 font-bold mb-1">No. WhatsApp</label>
+                  <label className={`block font-bold mb-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
+                    No. WhatsApp
+                  </label>
                   <input
                     type="text"
                     required
                     value={editProfileForm.phone}
                     onChange={(e) => setEditProfileForm({ ...editProfileForm, phone: e.target.value })}
-                    className="w-full px-4 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-white"
+                    className={`w-full px-4 py-2.5 border rounded-xl ${
+                      isDarkMode ? 'bg-slate-950 border-slate-700 text-white' : 'bg-white border-slate-300 text-slate-900'
+                    }`}
                   />
                 </div>
                 <div className="flex gap-2 pt-1">
@@ -478,7 +735,9 @@ export default function AdminDashboard() {
                   <button
                     type="button"
                     onClick={() => setIsEditingProfile(false)}
-                    className="px-4 py-2.5 bg-slate-800 text-slate-300 font-bold rounded-xl transition cursor-pointer"
+                    className={`px-4 py-2.5 font-bold rounded-xl transition cursor-pointer ${
+                      isDarkMode ? 'bg-slate-800 text-slate-300' : 'bg-slate-200 text-slate-800'
+                    }`}
                   >
                     Batal
                   </button>
@@ -486,38 +745,55 @@ export default function AdminDashboard() {
               </form>
             )}
 
-            <form onSubmit={handlePasswordChange} className="space-y-4 pt-4 border-t border-slate-700">
-              <h3 className="font-bold text-white uppercase tracking-wider">Form Ganti Password Admin</h3>
+            <form
+              onSubmit={handlePasswordChange}
+              className={`space-y-4 pt-4 border-t ${isDarkMode ? 'border-slate-700' : 'border-slate-200'}`}
+            >
+              <h3 className={`font-bold uppercase tracking-wider ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+                Form Ganti Password Admin
+              </h3>
               <div>
-                <label className="block text-slate-400 font-bold mb-1">Password Lama</label>
+                <label className={`block font-bold mb-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
+                  Password Lama
+                </label>
                 <input
                   type="password"
                   required
                   value={passwordForm.oldPassword}
                   onChange={(e) => setPasswordForm({ ...passwordForm, oldPassword: e.target.value })}
-                  className="w-full px-4 py-3 bg-slate-950 border border-slate-700 rounded-xl text-white"
+                  className={`w-full px-4 py-3 border rounded-xl ${
+                    isDarkMode ? 'bg-slate-950 border-slate-700 text-white' : 'bg-slate-50 border-slate-300 text-slate-900'
+                  }`}
                   placeholder="••••••••"
                 />
               </div>
               <div>
-                <label className="block text-slate-400 font-bold mb-1">Password Baru</label>
+                <label className={`block font-bold mb-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
+                  Password Baru
+                </label>
                 <input
                   type="password"
                   required
                   value={passwordForm.newPassword}
                   onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
-                  className="w-full px-4 py-3 bg-slate-950 border border-slate-700 rounded-xl text-white"
+                  className={`w-full px-4 py-3 border rounded-xl ${
+                    isDarkMode ? 'bg-slate-950 border-slate-700 text-white' : 'bg-slate-50 border-slate-300 text-slate-900'
+                  }`}
                   placeholder="••••••••"
                 />
               </div>
               <div>
-                <label className="block text-slate-400 font-bold mb-1">Konfirmasi Password Baru</label>
+                <label className={`block font-bold mb-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
+                  Konfirmasi Password Baru
+                </label>
                 <input
                   type="password"
                   required
                   value={passwordForm.confirmPassword}
                   onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
-                  className="w-full px-4 py-3 bg-slate-950 border border-slate-700 rounded-xl text-white"
+                  className={`w-full px-4 py-3 border rounded-xl ${
+                    isDarkMode ? 'bg-slate-950 border-slate-700 text-white' : 'bg-slate-50 border-slate-300 text-slate-900'
+                  }`}
                   placeholder="••••••••"
                 />
               </div>
@@ -530,7 +806,6 @@ export default function AdminDashboard() {
             </form>
           </div>
         )}
-
       </main>
     </div>
   );

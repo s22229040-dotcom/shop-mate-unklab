@@ -5,6 +5,31 @@ export default function SellerDashboard() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('produk');
 
+  // Membaca tema (Dark / Light Mode) dari halaman login (shopmate_theme)
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    const savedTheme = localStorage.getItem('shopmate_theme');
+    return savedTheme ? savedTheme === 'dark' : true;
+  });
+
+  useEffect(() => {
+    const syncTheme = () => {
+      const savedTheme = localStorage.getItem('shopmate_theme');
+      if (savedTheme) {
+        setIsDarkMode(savedTheme === 'dark');
+      }
+    };
+    window.addEventListener('storage', syncTheme);
+    const interval = setInterval(syncTheme, 500);
+    return () => {
+      window.removeEventListener('storage', syncTheme);
+      clearInterval(interval);
+    };
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('shopmate_theme', isDarkMode ? 'dark' : 'light');
+  }, [isDarkMode]);
+
   // Sinkronisasi kategori yang dikelola Admin via localStorage
   const [categoriesList, setCategoriesList] = useState(() => {
     const saved = localStorage.getItem('shopmate_admin_categories');
@@ -308,17 +333,27 @@ export default function SellerDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-100 flex font-sans">
+    <div
+      className={`min-h-screen flex font-sans transition-colors duration-300 ${
+        isDarkMode ? 'bg-slate-900 text-slate-100' : 'bg-slate-50 text-slate-900'
+      }`}
+    >
       {/* Sidebar Penjual */}
-      <div className="w-64 bg-slate-950 border-r border-slate-800 p-6 flex flex-col justify-between">
+      <div
+        className={`w-64 border-r p-6 flex flex-col justify-between transition-colors duration-300 ${
+          isDarkMode ? 'bg-slate-950 border-slate-800' : 'bg-white border-slate-200'
+        }`}
+      >
         <div>
           <div className="flex items-center gap-3 mb-8">
             <div className="w-10 h-10 bg-amber-400 text-slate-950 rounded-xl flex items-center justify-center font-bold text-lg shadow">
               🏪
             </div>
             <div>
-              <h1 className="font-extrabold text-sm text-white">{sellerProfile.tenantName}</h1>
-              <p className="text-[10px] text-amber-400">Shop-Mate UNKLAB</p>
+              <h1 className={`font-extrabold text-sm ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+                {sellerProfile.tenantName}
+              </h1>
+              <p className="text-[10px] text-amber-500 font-semibold">Shop-Mate UNKLAB</p>
             </div>
           </div>
 
@@ -328,7 +363,9 @@ export default function SellerDashboard() {
               className={`w-full text-left px-4 py-3 rounded-xl transition cursor-pointer flex items-center gap-2.5 ${
                 activeTab === 'produk'
                   ? 'bg-amber-400 text-slate-950 font-extrabold shadow'
-                  : 'text-slate-300 hover:bg-slate-800'
+                  : isDarkMode
+                  ? 'text-slate-300 hover:bg-slate-800'
+                  : 'text-slate-600 hover:bg-slate-100'
               }`}
             >
               <span>📦</span> Kelola Produk & Stok
@@ -338,7 +375,9 @@ export default function SellerDashboard() {
               className={`w-full text-left px-4 py-3 rounded-xl transition cursor-pointer flex items-center gap-2.5 ${
                 activeTab === 'pesanan'
                   ? 'bg-amber-400 text-slate-950 font-extrabold shadow'
-                  : 'text-slate-300 hover:bg-slate-800'
+                  : isDarkMode
+                  ? 'text-slate-300 hover:bg-slate-800'
+                  : 'text-slate-600 hover:bg-slate-100'
               }`}
             >
               <span>🛒</span> Pesanan Masuk ({incomingOrders.length})
@@ -348,7 +387,9 @@ export default function SellerDashboard() {
               className={`w-full text-left px-4 py-3 rounded-xl transition cursor-pointer flex items-center gap-2.5 ${
                 activeTab === 'keuangan'
                   ? 'bg-amber-400 text-slate-950 font-extrabold shadow'
-                  : 'text-slate-300 hover:bg-slate-800'
+                  : isDarkMode
+                  ? 'text-slate-300 hover:bg-slate-800'
+                  : 'text-slate-600 hover:bg-slate-100'
               }`}
             >
               <span>💰</span> Laporan Saldo & Keuangan
@@ -358,7 +399,9 @@ export default function SellerDashboard() {
               className={`w-full text-left px-4 py-3 rounded-xl transition cursor-pointer flex items-center gap-2.5 ${
                 activeTab === 'profil'
                   ? 'bg-amber-400 text-slate-950 font-extrabold shadow'
-                  : 'text-slate-300 hover:bg-slate-800'
+                  : isDarkMode
+                  ? 'text-slate-300 hover:bg-slate-800'
+                  : 'text-slate-600 hover:bg-slate-100'
               }`}
             >
               <span>👤</span> Profil Saya
@@ -366,25 +409,44 @@ export default function SellerDashboard() {
           </nav>
         </div>
 
-        <button
-          onClick={() => navigate('/')}
-          className="w-full bg-red-600/20 hover:bg-red-600/30 text-red-400 font-bold py-3 rounded-xl text-xs transition cursor-pointer flex items-center justify-center gap-2"
-        >
-          <span>🚪</span> Keluar (Logout)
-        </button>
+        <div className="space-y-2">
+          <button
+            type="button"
+            onClick={() => setIsDarkMode(!isDarkMode)}
+            className={`w-full px-3.5 py-2.5 rounded-xl text-xs font-bold shadow transition cursor-pointer flex items-center justify-center gap-2 border ${
+              isDarkMode
+                ? 'bg-slate-800 border-slate-700 text-amber-400 hover:bg-slate-700'
+                : 'bg-slate-100 border-slate-300 text-slate-700 hover:bg-slate-200'
+            }`}
+            title={isDarkMode ? 'Ubah ke Light Mode' : 'Ubah ke Dark Mode'}
+          >
+            {isDarkMode ? '☀️ Light Mode' : '🌙 Dark Mode'}
+          </button>
+
+          <button
+            onClick={() => navigate('/')}
+            className="w-full bg-red-600/20 hover:bg-red-600/30 text-red-500 font-bold py-3 rounded-xl text-xs transition cursor-pointer flex items-center justify-center gap-2"
+          >
+            <span>🚪</span> Keluar (Logout)
+          </button>
+        </div>
       </div>
 
       {/* Konten Utama */}
       <main className="flex-1 p-8 overflow-y-auto">
-        <header className="flex justify-between items-center mb-8 pb-4 border-b border-slate-800">
+        <header
+          className={`flex justify-between items-center mb-8 pb-4 border-b transition-colors duration-300 ${
+            isDarkMode ? 'border-slate-800' : 'border-slate-200'
+          }`}
+        >
           <div>
-            <h2 className="text-xl font-black text-white">
+            <h2 className={`text-xl font-black ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
               {activeTab === 'produk' && 'Manajemen Produk Toko / Tenant'}
               {activeTab === 'pesanan' && 'Kelola Pesanan Masuk & Kirim Notifikasi'}
               {activeTab === 'keuangan' && 'Rekapitulasi Saldo & Pendapatan Penjual'}
               {activeTab === 'profil' && 'Profil Toko & Informasi Penjual'}
             </h2>
-            <p className="text-xs text-slate-400">
+            <p className={`text-xs ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
               Dashboard operasional penjual resmi civitas akademika UNKLAB.
             </p>
           </div>
@@ -417,8 +479,12 @@ export default function SellerDashboard() {
                 key={p.id}
                 className={`border rounded-2xl overflow-hidden shadow-lg flex flex-col justify-between transition ${
                   p.isActive === false
-                    ? 'bg-slate-900/40 border-slate-800 opacity-60'
-                    : 'bg-slate-800/60 border-slate-700/60'
+                    ? isDarkMode
+                      ? 'bg-slate-900/40 border-slate-800 opacity-60'
+                      : 'bg-slate-100 border-slate-300 opacity-60'
+                    : isDarkMode
+                    ? 'bg-slate-800/60 border-slate-700/60'
+                    : 'bg-white border-slate-200'
                 }`}
               >
                 <div>
@@ -431,14 +497,22 @@ export default function SellerDashboard() {
                     )}
                   </div>
                   <div className="p-4">
-                    <span className="text-[10px] bg-slate-900 text-amber-400 px-2 py-0.5 rounded font-bold">
+                    <span
+                      className={`text-[10px] px-2 py-0.5 rounded font-bold ${
+                        isDarkMode ? 'bg-slate-900 text-amber-400' : 'bg-amber-100 text-amber-700'
+                      }`}
+                    >
                       {p.category}
                     </span>
-                    <h3 className="text-sm font-extrabold text-white mt-1 mb-1">{p.name}</h3>
-                    <p className="text-xs text-amber-400 font-black mb-1">
+                    <h3 className={`text-sm font-extrabold mt-1 mb-1 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+                      {p.name}
+                    </h3>
+                    <p className="text-xs text-amber-500 font-black mb-1">
                       Rp {Number(p.price).toLocaleString()} | Stok: {p.stock}
                     </p>
-                    <p className="text-[11px] text-slate-300 line-clamp-2">{p.desc}</p>
+                    <p className={`text-[11px] line-clamp-2 ${isDarkMode ? 'text-slate-300' : 'text-slate-600'}`}>
+                      {p.desc}
+                    </p>
                   </div>
                 </div>
 
@@ -446,13 +520,17 @@ export default function SellerDashboard() {
                   <div className="flex gap-2">
                     <button
                       onClick={() => startEditProduct(p)}
-                      className="flex-1 py-2 bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs font-bold rounded-xl cursor-pointer"
+                      className={`flex-1 py-2 text-xs font-bold rounded-xl cursor-pointer transition ${
+                        isDarkMode
+                          ? 'bg-slate-700 hover:bg-slate-600 text-slate-200'
+                          : 'bg-slate-200 hover:bg-slate-300 text-slate-800'
+                      }`}
                     >
                       Edit Detail
                     </button>
                     <button
                       onClick={() => handleDeleteProduct(p.id)}
-                      className="px-3 py-2 bg-red-600/20 hover:bg-red-600/30 text-red-400 text-xs font-bold rounded-xl cursor-pointer"
+                      className="px-3 py-2 bg-red-600/20 hover:bg-red-600/30 text-red-500 text-xs font-bold rounded-xl cursor-pointer"
                     >
                       Hapus
                     </button>
@@ -462,8 +540,8 @@ export default function SellerDashboard() {
                     onClick={() => toggleProductStatus(p.id)}
                     className={`w-full py-2 text-xs font-bold rounded-xl cursor-pointer transition ${
                       p.isActive === false
-                        ? 'bg-emerald-600/20 text-emerald-400 hover:bg-emerald-600/30'
-                        : 'bg-amber-500/20 text-amber-400 hover:bg-amber-500/30'
+                        ? 'bg-emerald-600/20 text-emerald-500 hover:bg-emerald-600/30'
+                        : 'bg-amber-500/20 text-amber-500 hover:bg-amber-500/30'
                     }`}
                   >
                     {p.isActive === false ? '✓ Aktifkan Kembali Produk' : '🚫 Nonaktifkan Produk'}
@@ -478,25 +556,33 @@ export default function SellerDashboard() {
         {activeTab === 'pesanan' && (
           <div className="space-y-4">
             {incomingOrders.length === 0 ? (
-              <div className="text-center py-12 text-slate-500 text-xs">Belum ada pesanan masuk.</div>
+              <div className={`text-center py-12 text-xs ${isDarkMode ? 'text-slate-500' : 'text-slate-500'}`}>
+                Belum ada pesanan masuk.
+              </div>
             ) : (
               incomingOrders.map((ord) => (
                 <div
                   key={ord.id}
-                  className="bg-slate-800/40 border border-slate-800 p-6 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"
+                  className={`border p-6 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 transition-colors duration-300 ${
+                    isDarkMode ? 'bg-slate-800/40 border-slate-800' : 'bg-white border-slate-200'
+                  }`}
                 >
                   <div>
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="text-xs font-extrabold text-amber-400">{ord.id}</span>
-                      <span className="text-[10px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded font-bold">
+                      <span className="text-xs font-extrabold text-amber-500">{ord.id}</span>
+                      <span
+                        className={`text-[10px] px-2 py-0.5 rounded font-bold ${
+                          isDarkMode ? 'bg-slate-800 text-slate-300' : 'bg-slate-100 text-slate-700'
+                        }`}
+                      >
                         Bayar: {ord.payment}
                       </span>
-                      <span className="text-[10px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded font-bold">
+                      <span className="text-[10px] bg-emerald-500/20 text-emerald-500 px-2 py-0.5 rounded font-bold">
                         {ord.status}
                       </span>
                     </div>
-                    <p className="text-xs font-bold text-white">{ord.item}</p>
-                    <p className="text-[11px] text-slate-400">
+                    <p className={`text-xs font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{ord.item}</p>
+                    <p className={`text-[11px] ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
                       Total: {ord.total} | Pemesan: {ord.buyer}
                     </p>
                   </div>
@@ -531,17 +617,33 @@ export default function SellerDashboard() {
         {activeTab === 'keuangan' && (
           <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-slate-800/60 p-6 rounded-2xl border border-slate-700">
-                <p className="text-xs text-slate-400 mb-1">Total Pendapatan (Bulan Ini)</p>
-                <h3 className="text-2xl font-black text-amber-400">Rp 1.450.000</h3>
+              <div
+                className={`p-6 rounded-2xl border transition-colors duration-300 ${
+                  isDarkMode ? 'bg-slate-800/60 border-slate-700' : 'bg-white border-slate-200'
+                }`}
+              >
+                <p className={`text-xs mb-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                  Total Pendapatan (Bulan Ini)
+                </p>
+                <h3 className="text-2xl font-black text-amber-500">Rp 1.450.000</h3>
               </div>
-              <div className="bg-slate-800/60 p-6 rounded-2xl border border-slate-700">
-                <p className="text-xs text-slate-400 mb-1">Saldo Siap Dicairkan</p>
-                <h3 className="text-2xl font-black text-emerald-400">Rp 980.000</h3>
+              <div
+                className={`p-6 rounded-2xl border transition-colors duration-300 ${
+                  isDarkMode ? 'bg-slate-800/60 border-slate-700' : 'bg-white border-slate-200'
+                }`}
+              >
+                <p className={`text-xs mb-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                  Saldo Siap Dicairkan
+                </p>
+                <h3 className="text-2xl font-black text-emerald-500">Rp 980.000</h3>
               </div>
-              <div className="bg-slate-800/60 p-6 rounded-2xl border border-slate-700">
-                <p className="text-xs text-slate-400 mb-1">Transaksi Sukses</p>
-                <h3 className="text-2xl font-black text-white">45 Pesanan</h3>
+              <div
+                className={`p-6 rounded-2xl border transition-colors duration-300 ${
+                  isDarkMode ? 'bg-slate-800/60 border-slate-700' : 'bg-white border-slate-200'
+                }`}
+              >
+                <p className={`text-xs mb-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>Transaksi Sukses</p>
+                <h3 className={`text-2xl font-black ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>45 Pesanan</h3>
               </div>
             </div>
 
@@ -558,9 +660,19 @@ export default function SellerDashboard() {
 
         {/* TAB 4: PROFIL PENJUAL */}
         {activeTab === 'profil' && (
-          <div className="max-w-xl mx-auto bg-slate-800/60 border border-slate-700 rounded-3xl p-8 shadow-xl space-y-4">
-            <div className="flex justify-between items-center pb-3 border-b border-slate-700">
-              <h2 className="text-xl font-black text-white">Profil Toko & Informasi Penjual</h2>
+          <div
+            className={`max-w-xl mx-auto border rounded-3xl p-8 shadow-xl space-y-4 transition-colors duration-300 ${
+              isDarkMode ? 'bg-slate-800/60 border-slate-700' : 'bg-white border-slate-200'
+            }`}
+          >
+            <div
+              className={`flex justify-between items-center pb-3 border-b ${
+                isDarkMode ? 'border-slate-700' : 'border-slate-200'
+              }`}
+            >
+              <h2 className={`text-xl font-black ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+                Profil Toko & Informasi Penjual
+              </h2>
               {!isEditingProfile && (
                 <button
                   onClick={() => {
@@ -576,43 +688,73 @@ export default function SellerDashboard() {
 
             {!isEditingProfile ? (
               <div className="space-y-3 text-xs">
-                <div className="p-3 bg-slate-900 rounded-xl flex justify-between">
-                  <span className="text-slate-400 font-bold">Nama Penjual:</span>
-                  <span className="text-white font-semibold">{sellerProfile.name}</span>
+                <div
+                  className={`p-3 rounded-xl flex justify-between ${isDarkMode ? 'bg-slate-900' : 'bg-slate-100'}`}
+                >
+                  <span className={`font-bold ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
+                    Nama Penjual:
+                  </span>
+                  <span className={`font-semibold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+                    {sellerProfile.name}
+                  </span>
                 </div>
-                <div className="p-3 bg-slate-900 rounded-xl flex justify-between">
-                  <span className="text-slate-400 font-bold">Nama Tenant / Toko:</span>
-                  <span className="text-amber-400 font-bold">{sellerProfile.tenantName}</span>
+                <div
+                  className={`p-3 rounded-xl flex justify-between ${isDarkMode ? 'bg-slate-900' : 'bg-slate-100'}`}
+                >
+                  <span className={`font-bold ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
+                    Nama Tenant / Toko:
+                  </span>
+                  <span className="text-amber-500 font-bold">{sellerProfile.tenantName}</span>
                 </div>
-                <div className="p-3 bg-slate-900 rounded-xl flex justify-between">
-                  <span className="text-slate-400 font-bold">Email UNKLAB:</span>
-                  <span className="text-white font-semibold">{sellerProfile.email}</span>
+                <div
+                  className={`p-3 rounded-xl flex justify-between ${isDarkMode ? 'bg-slate-900' : 'bg-slate-100'}`}
+                >
+                  <span className={`font-bold ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
+                    Email UNKLAB:
+                  </span>
+                  <span className={`font-semibold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+                    {sellerProfile.email}
+                  </span>
                 </div>
-                <div className="p-3 bg-slate-900 rounded-xl flex justify-between">
-                  <span className="text-slate-400 font-bold">Nomor WhatsApp:</span>
-                  <span className="text-white font-semibold">{sellerProfile.phone}</span>
+                <div
+                  className={`p-3 rounded-xl flex justify-between ${isDarkMode ? 'bg-slate-900' : 'bg-slate-100'}`}
+                >
+                  <span className={`font-bold ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
+                    Nomor WhatsApp:
+                  </span>
+                  <span className={`font-semibold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+                    {sellerProfile.phone}
+                  </span>
                 </div>
-                <div className="p-3 bg-slate-900 rounded-xl flex justify-between">
-                  <span className="text-slate-400 font-bold">Lokasi / Alamat Toko:</span>
-                  <span className="text-white font-semibold">{sellerProfile.address}</span>
+                <div
+                  className={`p-3 rounded-xl flex justify-between ${isDarkMode ? 'bg-slate-900' : 'bg-slate-100'}`}
+                >
+                  <span className={`font-bold ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
+                    Lokasi / Alamat Toko:
+                  </span>
+                  <span className={`font-semibold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+                    {sellerProfile.address}
+                  </span>
                 </div>
               </div>
             ) : (
               <form onSubmit={handleSaveProfile} className="space-y-3 text-xs">
                 <div>
-                  <label className="block font-bold text-slate-400 uppercase mb-1">
+                  <label className={`block font-bold uppercase mb-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
                     Nama Penjual
                   </label>
                   <input
                     type="text"
                     value={tempProfile.name}
                     onChange={(e) => setTempProfile({ ...tempProfile, name: e.target.value })}
-                    className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-white"
+                    className={`w-full px-3.5 py-2.5 border rounded-xl ${
+                      isDarkMode ? 'bg-slate-950 border-slate-700 text-white' : 'bg-slate-50 border-slate-300 text-slate-900'
+                    }`}
                     required
                   />
                 </div>
                 <div>
-                  <label className="block font-bold text-slate-400 uppercase mb-1">
+                  <label className={`block font-bold uppercase mb-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
                     Nama Tenant / Toko
                   </label>
                   <input
@@ -621,43 +763,51 @@ export default function SellerDashboard() {
                     onChange={(e) =>
                       setTempProfile({ ...tempProfile, tenantName: e.target.value })
                     }
-                    className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-white"
+                    className={`w-full px-3.5 py-2.5 border rounded-xl ${
+                      isDarkMode ? 'bg-slate-950 border-slate-700 text-white' : 'bg-slate-50 border-slate-300 text-slate-900'
+                    }`}
                     required
                   />
                 </div>
                 <div>
-                  <label className="block font-bold text-slate-400 uppercase mb-1">
+                  <label className={`block font-bold uppercase mb-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
                     Email Resmi Unklab
                   </label>
                   <input
                     type="email"
                     value={tempProfile.email}
                     onChange={(e) => setTempProfile({ ...tempProfile, email: e.target.value })}
-                    className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-white"
+                    className={`w-full px-3.5 py-2.5 border rounded-xl ${
+                      isDarkMode ? 'bg-slate-950 border-slate-700 text-white' : 'bg-slate-50 border-slate-300 text-slate-900'
+                    }`}
                     required
                   />
                 </div>
                 <div>
-                  <label className="block font-bold text-slate-400 uppercase mb-1">
+                  <label className={`block font-bold uppercase mb-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
                     Nomor WhatsApp
                   </label>
                   <input
                     type="text"
                     value={tempProfile.phone}
                     onChange={(e) => setTempProfile({ ...tempProfile, phone: e.target.value })}
-                    className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-white"
+                    className={`w-full px-3.5 py-2.5 border rounded-xl ${
+                      isDarkMode ? 'bg-slate-950 border-slate-700 text-white' : 'bg-slate-50 border-slate-300 text-slate-900'
+                    }`}
                     required
                   />
                 </div>
                 <div>
-                  <label className="block font-bold text-slate-400 uppercase mb-1">
+                  <label className={`block font-bold uppercase mb-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
                     Lokasi / Alamat Toko
                   </label>
                   <input
                     type="text"
                     value={tempProfile.address}
                     onChange={(e) => setTempProfile({ ...tempProfile, address: e.target.value })}
-                    className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-white"
+                    className={`w-full px-3.5 py-2.5 border rounded-xl ${
+                      isDarkMode ? 'bg-slate-950 border-slate-700 text-white' : 'bg-slate-50 border-slate-300 text-slate-900'
+                    }`}
                     required
                   />
                 </div>
@@ -666,7 +816,9 @@ export default function SellerDashboard() {
                   <button
                     type="button"
                     onClick={() => setIsEditingProfile(false)}
-                    className="flex-1 py-3 bg-slate-800 text-slate-300 font-bold rounded-xl cursor-pointer"
+                    className={`flex-1 py-3 font-bold rounded-xl cursor-pointer ${
+                      isDarkMode ? 'bg-slate-800 text-slate-300' : 'bg-slate-200 text-slate-800'
+                    }`}
                   >
                     Batal
                   </button>
@@ -686,13 +838,17 @@ export default function SellerDashboard() {
       {/* MODAL TAMBAH / EDIT PRODUK */}
       {isAddModal && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-md w-full p-6 shadow-2xl text-slate-100 space-y-4">
+          <div
+            className={`border rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4 transition-colors duration-300 ${
+              isDarkMode ? 'bg-slate-900 border-slate-800 text-slate-100' : 'bg-white border-slate-200 text-slate-900'
+            }`}
+          >
             <h3 className="text-lg font-black">
               {editingProduct ? 'Edit Detail Produk Toko' : 'Tambah Produk Toko Baru'}
             </h3>
             <form onSubmit={handleSaveProduct} className="space-y-3 text-xs">
               <div>
-                <label className="block font-bold text-slate-400 uppercase mb-1">
+                <label className={`block font-bold uppercase mb-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
                   Nama Produk
                 </label>
                 <input
@@ -700,13 +856,15 @@ export default function SellerDashboard() {
                   placeholder="Contoh: Burger Khas Kampus"
                   value={newProduct.name}
                   onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}
-                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-white"
+                  className={`w-full px-3.5 py-2.5 border rounded-xl ${
+                    isDarkMode ? 'bg-slate-950 border-slate-700 text-white' : 'bg-slate-50 border-slate-300 text-slate-900'
+                  }`}
                   required
                 />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold text-slate-400 uppercase mb-1">
+                  <label className={`block font-bold uppercase mb-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
                     Harga (Rp)
                   </label>
                   <input
@@ -714,12 +872,14 @@ export default function SellerDashboard() {
                     placeholder="15000"
                     value={newProduct.price}
                     onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })}
-                    className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-white"
+                    className={`w-full px-3.5 py-2.5 border rounded-xl ${
+                      isDarkMode ? 'bg-slate-950 border-slate-700 text-white' : 'bg-slate-50 border-slate-300 text-slate-900'
+                    }`}
                     required
                   />
                 </div>
                 <div>
-                  <label className="block font-bold text-slate-400 uppercase mb-1">
+                  <label className={`block font-bold uppercase mb-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
                     Stok Awal
                   </label>
                   <input
@@ -727,24 +887,28 @@ export default function SellerDashboard() {
                     placeholder="20"
                     value={newProduct.stock}
                     onChange={(e) => setNewProduct({ ...newProduct, stock: e.target.value })}
-                    className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-white"
+                    className={`w-full px-3.5 py-3 border rounded-xl ${
+                      isDarkMode ? 'bg-slate-950 border-slate-700 text-white' : 'bg-slate-50 border-slate-300 text-slate-900'
+                    }`}
                     required
                   />
                 </div>
               </div>
               <div>
-                <label className="block font-bold text-slate-400 uppercase mb-1">
+                <label className={`block font-bold uppercase mb-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
                   Kategori (Sinkron dari Admin)
                 </label>
                 {categoriesList.length === 0 ? (
-                  <div className="w-full px-3.5 py-2.5 bg-slate-950 border border-amber-500/40 rounded-xl text-amber-400 text-[11px]">
+                  <div className="w-full px-3.5 py-2.5 bg-amber-500/10 border border-amber-500/40 rounded-xl text-amber-500 text-[11px]">
                     Belum ada kategori dari Admin. Tambahkan kategori terlebih dahulu di Admin Control Center.
                   </div>
                 ) : (
                   <select
                     value={newProduct.category}
                     onChange={(e) => setNewProduct({ ...newProduct, category: e.target.value })}
-                    className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-white cursor-pointer"
+                    className={`w-full px-3.5 py-2.5 border rounded-xl cursor-pointer ${
+                      isDarkMode ? 'bg-slate-950 border-slate-700 text-white' : 'bg-slate-50 border-slate-300 text-slate-900'
+                    }`}
                     required
                   >
                     {categoriesList.map((cat) => (
@@ -756,20 +920,22 @@ export default function SellerDashboard() {
                 )}
               </div>
               <div>
-                <label className="block font-bold text-slate-400 uppercase mb-1">
+                <label className={`block font-bold uppercase mb-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
                   Deskripsi / Detail Produk
                 </label>
                 <textarea
                   placeholder="Jelaskan detail bahan, rasa, atau ukuran produk..."
                   value={newProduct.desc}
                   onChange={(e) => setNewProduct({ ...newProduct, desc: e.target.value })}
-                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-white h-20 resize-none"
+                  className={`w-full px-3.5 py-2.5 border rounded-xl h-20 resize-none ${
+                    isDarkMode ? 'bg-slate-950 border-slate-700 text-white' : 'bg-slate-50 border-slate-300 text-slate-900'
+                  }`}
                   required
                 />
               </div>
 
               <div>
-                <label className="block font-bold text-amber-400 uppercase mb-1">
+                <label className="block font-bold text-amber-500 uppercase mb-1">
                   Upload Gambar dari Galeri Perangkat
                 </label>
                 <input
@@ -785,10 +951,12 @@ export default function SellerDashboard() {
                       reader.readAsDataURL(file);
                     }
                   }}
-                  className="w-full p-2 bg-slate-950 border border-slate-700 rounded-xl text-white text-xs file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-amber-400 file:text-slate-950 hover:file:bg-amber-500 cursor-pointer"
+                  className={`w-full p-2 border rounded-xl text-xs file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-amber-400 file:text-slate-950 hover:file:bg-amber-500 cursor-pointer ${
+                    isDarkMode ? 'bg-slate-950 border-slate-700 text-white' : 'bg-slate-50 border-slate-300 text-slate-900'
+                  }`}
                 />
                 {newProduct.img && (
-                  <p className="text-[10px] text-emerald-400 mt-1">
+                  <p className="text-[10px] text-emerald-500 mt-1">
                     ✓ Gambar berhasil dipilih dan siap disimpan.
                   </p>
                 )}
@@ -798,7 +966,9 @@ export default function SellerDashboard() {
                 <button
                   type="button"
                   onClick={() => setIsAddModal(false)}
-                  className="flex-1 py-3 bg-slate-800 text-slate-300 font-bold rounded-xl cursor-pointer"
+                  className={`flex-1 py-3 font-bold rounded-xl cursor-pointer ${
+                    isDarkMode ? 'bg-slate-800 text-slate-300' : 'bg-slate-200 text-slate-800'
+                  }`}
                 >
                   Batal
                 </button>
