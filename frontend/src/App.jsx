@@ -11,12 +11,13 @@ function App() {
   return (
     <Router>
       <Routes>
-        {/* Halaman Utama & Registrasi (Digabung di Komponen Login) */}
-        <Route path="/" element={<Login />} />
-        <Route path="/register" element={<Login />} />
-        
-        {/* Halaman Dashboard Pembeli / Mahasiswa */}
+        {/* Halaman utama langsung ke katalog Dashboard tanpa wajib login */}
+        <Route path="/" element={<Dashboard />} />
         <Route path="/dashboard" element={<Dashboard />} />
+
+        {/* Halaman Login & Registrasi */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Login />} />
         
         {/* Halaman Profil Pembeli */}
         <Route path="/profile" element={<Profile />} />
