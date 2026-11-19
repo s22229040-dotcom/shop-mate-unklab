@@ -73,69 +73,18 @@ export default function Dashboard() {
     };
   }, []);
 
-  // Katalog Produk disinkronkan dengan localStorage agar terhubung dengan Penjual
+  // Katalog Produk kosong di awal dan disinkronkan dengan localStorage Penjual
   const [products, setProducts] = useState(() => {
     const savedProducts = localStorage.getItem('shopmate_products');
     if (savedProducts) {
       try {
         const parsed = JSON.parse(savedProducts);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed)) return parsed;
       } catch (e) {
         console.error(e);
       }
     }
-    const defaultProducts = [
-      { 
-        id: 1, 
-        name: 'Lanyard Resmi UNKLAB Premium', 
-        category: 'Atribut Kampus', 
-        price: 25000, 
-        stock: 15, 
-        tenant: 'Koperasi UNKLAB', 
-        sellerPhone: '6281234567891', 
-        img: 'https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?q=80&w=600&auto=format&fit=crop',
-        desc: 'Lanyard resmi berstandar universitas dengan bahan berkualitas tinggi.',
-        isActive: true
-      },
-      { 
-        id: 2, 
-        name: 'Nasi Kuning Special Asrama', 
-        category: 'Makanan', 
-        price: 15000, 
-        stock: 25, 
-        tenant: 'Kantin Asrama Putra', 
-        sellerPhone: '6281298765432', 
-        img: 'https://images.unsplash.com/photo-1555126634-323283e090fa?q=80&w=600&auto=format&fit=crop',
-        desc: 'Nasi kuning hangat dengan lauk abon dan telur pindang khas kantin asrama.',
-        isActive: true
-      },
-      { 
-        id: 3, 
-        name: 'Air Mineral Aqua / Cleo 600ml', 
-        category: 'Minuman', 
-        price: 4000, 
-        stock: 50, 
-        tenant: 'Tenant Fasilkom', 
-        sellerPhone: '6281355556666', 
-        img: 'https://images.unsplash.com/photo-1548839140-29a749e1cf4d?q=80&w=600&auto=format&fit=crop',
-        desc: 'Air mineral steril kemasan botol 600ml untuk menyegarkan hari kuliah.',
-        isActive: true
-      },
-      { 
-        id: 4, 
-        name: 'Es Teh Manis Segar Kampus', 
-        category: 'Minuman', 
-        price: 5000, 
-        stock: 30, 
-        tenant: 'Kantin Utama', 
-        sellerPhone: '6281211112222', 
-        img: 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?q=80&w=600&auto=format&fit=crop',
-        desc: 'Teh melati manis segar disajikan dingin dengan es batu pilihan.',
-        isActive: true
-      }
-    ];
-    localStorage.setItem('shopmate_products', JSON.stringify(defaultProducts));
-    return defaultProducts;
+    return [];
   });
 
   // Sinkronisasi otomatis setiap ada perubahan produk dari Penjual
@@ -426,7 +375,7 @@ export default function Dashboard() {
               <div className="w-full md:w-80">
                 <input
                   type="text"
-                  placeholder="Cari lanyard, makanan, minuman..."
+                  placeholder="Cari produk di katalog..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className={`w-full px-4 py-3 border rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-amber-400 ${
@@ -436,58 +385,72 @@ export default function Dashboard() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-              {filteredProducts.map((p) => (
-                <div key={p.id} className={`border rounded-2xl overflow-hidden shadow-lg transition flex flex-col justify-between ${
-                  isDarkMode ? 'bg-slate-800/60 border-slate-700/60 hover:border-amber-400/50' : 'bg-white border-slate-200 hover:border-amber-500'
-                }`}>
-                  <div>
-                    <div 
-                      onClick={() => setSelectedProduct(p)}
-                      className="h-48 overflow-hidden relative cursor-pointer group"
-                    >
-                      <img src={p.img} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition duration-300" />
-                      <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
-                        <span className="bg-slate-950/80 text-amber-400 px-3 py-1.5 rounded-xl text-xs font-bold shadow">🔍 Lihat Detail</span>
-                      </div>
-                      <span className="absolute top-3 left-3 px-2.5 py-1 bg-slate-950/80 backdrop-blur-md text-amber-400 font-bold text-[10px] rounded-lg">
-                        {p.category}
-                      </span>
-                    </div>
-
-                    <div className="p-5">
-                      <p className={`text-[10px] font-semibold mb-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>Tenant: <span className="text-amber-500 font-bold">{p.tenant}</span></p>
-                      <h3 
+            {filteredProducts.length === 0 ? (
+              <div className={`border rounded-3xl p-12 text-center shadow-lg transition-colors duration-300 ${
+                isDarkMode ? 'bg-slate-800/40 border-slate-800' : 'bg-white border-slate-200'
+              }`}>
+                <p className="text-3xl mb-3">🛍️</p>
+                <h3 className={`text-sm font-black mb-1 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+                  Belum Ada Produk di Katalog
+                </h3>
+                <p className={`text-xs ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
+                  Katalog akan otomatis terisi setelah penjual menambahkan produk baru.
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                {filteredProducts.map((p) => (
+                  <div key={p.id} className={`border rounded-2xl overflow-hidden shadow-lg transition flex flex-col justify-between ${
+                    isDarkMode ? 'bg-slate-800/60 border-slate-700/60 hover:border-amber-400/50' : 'bg-white border-slate-200 hover:border-amber-500'
+                  }`}>
+                    <div>
+                      <div 
                         onClick={() => setSelectedProduct(p)}
-                        className={`text-sm font-extrabold mb-2 cursor-pointer transition ${isDarkMode ? 'text-white hover:text-amber-400' : 'text-slate-900 hover:text-amber-600'}`}
+                        className="h-48 overflow-hidden relative cursor-pointer group"
                       >
-                        {p.name}
-                      </h3>
-                      <p className="text-sm font-black text-amber-500 mb-2">Rp {Number(p.price).toLocaleString()}</p>
-                      <p className={`text-xs line-clamp-2 mb-3 ${isDarkMode ? 'text-slate-300' : 'text-slate-600'}`}>{p.desc}</p>
-                      
-                      <a
-                        href={`https://wa.me/${p.sellerPhone}?text=Halo%20${encodeURIComponent(p.tenant)},%20saya%20tertarik%20dengan%20produk%20${encodeURIComponent(p.name)}%20di%20Shop-Mate%20UNKLAB.`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-[11px] text-emerald-500 hover:underline font-bold flex items-center gap-1 mb-3"
+                        <img src={p.img} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition duration-300" />
+                        <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+                          <span className="bg-slate-950/80 text-amber-400 px-3 py-1.5 rounded-xl text-xs font-bold shadow">🔍 Lihat Detail</span>
+                        </div>
+                        <span className="absolute top-3 left-3 px-2.5 py-1 bg-slate-950/80 backdrop-blur-md text-amber-400 font-bold text-[10px] rounded-lg">
+                          {p.category}
+                        </span>
+                      </div>
+
+                      <div className="p-5">
+                        <p className={`text-[10px] font-semibold mb-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>Tenant: <span className="text-amber-500 font-bold">{p.tenant}</span></p>
+                        <h3 
+                          onClick={() => setSelectedProduct(p)}
+                          className={`text-sm font-extrabold mb-2 cursor-pointer transition ${isDarkMode ? 'text-white hover:text-amber-400' : 'text-slate-900 hover:text-amber-600'}`}
+                        >
+                          {p.name}
+                        </h3>
+                        <p className="text-sm font-black text-amber-500 mb-2">Rp {Number(p.price).toLocaleString()}</p>
+                        <p className={`text-xs line-clamp-2 mb-3 ${isDarkMode ? 'text-slate-300' : 'text-slate-600'}`}>{p.desc}</p>
+                        
+                        <a
+                          href={`https://wa.me/${p.sellerPhone}?text=Halo%20${encodeURIComponent(p.tenant)},%20saya%20tertarik%20dengan%20produk%20${encodeURIComponent(p.name)}%20di%20Shop-Mate%20UNKLAB.`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-[11px] text-emerald-500 hover:underline font-bold flex items-center gap-1 mb-3"
+                        >
+                          <span>💬</span> Chat WhatsApp Penjual ({p.sellerPhone})
+                        </a>
+                      </div>
+                    </div>
+
+                    <div className="p-5 pt-0">
+                      <button
+                        onClick={() => addToCart(p)}
+                        className="w-full bg-amber-400 hover:bg-amber-500 text-slate-950 font-extrabold py-2.5 rounded-xl transition text-xs shadow-lg cursor-pointer flex items-center justify-center gap-2"
                       >
-                        <span>💬</span> Chat WhatsApp Penjual ({p.sellerPhone})
-                      </a>
+                        <span>🛒 + Tambah ke Keranjang</span>
+                      </button>
                     </div>
                   </div>
-
-                  <div className="p-5 pt-0">
-                    <button
-                      onClick={() => addToCart(p)}
-                      className="w-full bg-amber-400 hover:bg-amber-500 text-slate-950 font-extrabold py-2.5 rounded-xl transition text-xs shadow-lg cursor-pointer flex items-center justify-center gap-2"
-                    >
-                      <span>🛒 + Tambah ke Keranjang</span>
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 

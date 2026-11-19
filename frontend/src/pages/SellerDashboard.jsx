@@ -68,7 +68,7 @@ export default function SellerDashboard() {
     };
   }, []);
 
-  // State produk tenant dikosongkan di awal dan disinkronkan dengan localStorage
+  // State produk tenant kosong di awal dan disinkronkan dengan localStorage
   const [products, setProducts] = useState(() => {
     const saved = localStorage.getItem('shopmate_products');
     if (saved) {
@@ -894,7 +894,7 @@ export default function SellerDashboard() {
                     placeholder="20"
                     value={newProduct.stock}
                     onChange={(e) => setNewProduct({ ...newProduct, stock: e.target.value })}
-                    className={`w-full px-3.5 py-3 border rounded-xl ${
+                    className={`w-full px-3.5 py-2.5 border rounded-xl ${
                       isDarkMode ? 'bg-slate-950 border-slate-700 text-white' : 'bg-slate-50 border-slate-300 text-slate-900'
                     }`}
                     required
