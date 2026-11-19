@@ -68,45 +68,18 @@ export default function SellerDashboard() {
     };
   }, []);
 
-  // State produk tenant disinkronkan dengan localStorage
+  // State produk tenant dikosongkan di awal dan disinkronkan dengan localStorage
   const [products, setProducts] = useState(() => {
     const saved = localStorage.getItem('shopmate_products');
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed)) return parsed;
       } catch (e) {
         console.error(e);
       }
     }
-    const defaultProducts = [
-      {
-        id: 1,
-        name: 'Nasi Kuning Special Asrama',
-        price: 15000,
-        stock: 25,
-        category: 'Makanan & Minuman Kampus',
-        tenant: 'Kantin Asrama Putra',
-        sellerPhone: '6281298765432',
-        img: 'https://images.unsplash.com/photo-1555126634-323283e090fa?q=80&w=400&auto=format&fit=crop',
-        desc: 'Nasi kuning hangat dengan lauk abon dan telur pindang khas kantin asrama.',
-        isActive: true
-      },
-      {
-        id: 2,
-        name: 'Es Teh Manis Segar',
-        price: 5000,
-        stock: 40,
-        category: 'Makanan & Minuman Kampus',
-        tenant: 'Kantin Utama',
-        sellerPhone: '6281211112222',
-        img: 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?q=80&w=400&auto=format&fit=crop',
-        desc: 'Teh melati manis segar disajikan dingin dengan es batu pilihan.',
-        isActive: true
-      }
-    ];
-    localStorage.setItem('shopmate_products', JSON.stringify(defaultProducts));
-    return defaultProducts;
+    return [];
   });
 
   useEffect(() => {
@@ -473,83 +446,117 @@ export default function SellerDashboard() {
 
         {/* TAB 1: PRODUK */}
         {activeTab === 'produk' && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-            {products.map((p) => (
-              <div
-                key={p.id}
-                className={`border rounded-2xl overflow-hidden shadow-lg flex flex-col justify-between transition ${
-                  p.isActive === false
-                    ? isDarkMode
-                      ? 'bg-slate-900/40 border-slate-800 opacity-60'
-                      : 'bg-slate-100 border-slate-300 opacity-60'
-                    : isDarkMode
-                    ? 'bg-slate-800/60 border-slate-700/60'
-                    : 'bg-white border-slate-200'
-                }`}
+          products.length === 0 ? (
+            <div
+              className={`border rounded-3xl p-12 text-center shadow-lg transition-colors duration-300 ${
+                isDarkMode ? 'bg-slate-800/40 border-slate-800' : 'bg-white border-slate-200'
+              }`}
+            >
+              <p className="text-3xl mb-3">📦</p>
+              <h3 className={`text-sm font-black mb-1 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+                Belum Ada Produk di Katalog Toko
+              </h3>
+              <p className={`text-xs mb-5 ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
+                Pastikan Admin sudah menambahkan kategori terlebih dahulu, lalu klik tombol di bawah untuk menambah produk baru.
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  setEditingProduct(null);
+                  setNewProduct({
+                    name: '',
+                    price: '',
+                    stock: '',
+                    category: categoriesList[0]?.name || '',
+                    img: '',
+                    desc: ''
+                  });
+                  setIsAddModal(true);
+                }}
+                className="px-5 py-2.5 bg-amber-400 hover:bg-amber-500 text-slate-950 font-extrabold text-xs rounded-xl shadow transition cursor-pointer"
               >
-                <div>
-                  <div className="h-40 overflow-hidden relative">
-                    <img src={p.img} alt={p.name} className="w-full h-full object-cover" />
-                    {p.isActive === false && (
-                      <span className="absolute inset-0 bg-black/60 flex items-center justify-center text-xs font-black text-red-400 uppercase tracking-widest">
-                        Produk Nonaktif
+                + Tambah Produk Baru
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+              {products.map((p) => (
+                <div
+                  key={p.id}
+                  className={`border rounded-2xl overflow-hidden shadow-lg flex flex-col justify-between transition ${
+                    p.isActive === false
+                      ? isDarkMode
+                        ? 'bg-slate-900/40 border-slate-800 opacity-60'
+                        : 'bg-slate-100 border-slate-300 opacity-60'
+                      : isDarkMode
+                      ? 'bg-slate-800/60 border-slate-700/60'
+                      : 'bg-white border-slate-200'
+                  }`}
+                >
+                  <div>
+                    <div className="h-40 overflow-hidden relative">
+                      <img src={p.img} alt={p.name} className="w-full h-full object-cover" />
+                      {p.isActive === false && (
+                        <span className="absolute inset-0 bg-black/60 flex items-center justify-center text-xs font-black text-red-400 uppercase tracking-widest">
+                          Produk Nonaktif
+                        </span>
+                      )}
+                    </div>
+                    <div className="p-4">
+                      <span
+                        className={`text-[10px] px-2 py-0.5 rounded font-bold ${
+                          isDarkMode ? 'bg-slate-900 text-amber-400' : 'bg-amber-100 text-amber-700'
+                        }`}
+                      >
+                        {p.category}
                       </span>
-                    )}
-                  </div>
-                  <div className="p-4">
-                    <span
-                      className={`text-[10px] px-2 py-0.5 rounded font-bold ${
-                        isDarkMode ? 'bg-slate-900 text-amber-400' : 'bg-amber-100 text-amber-700'
-                      }`}
-                    >
-                      {p.category}
-                    </span>
-                    <h3 className={`text-sm font-extrabold mt-1 mb-1 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
-                      {p.name}
-                    </h3>
-                    <p className="text-xs text-amber-500 font-black mb-1">
-                      Rp {Number(p.price).toLocaleString()} | Stok: {p.stock}
-                    </p>
-                    <p className={`text-[11px] line-clamp-2 ${isDarkMode ? 'text-slate-300' : 'text-slate-600'}`}>
-                      {p.desc}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="p-4 pt-0 flex flex-col gap-2">
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => startEditProduct(p)}
-                      className={`flex-1 py-2 text-xs font-bold rounded-xl cursor-pointer transition ${
-                        isDarkMode
-                          ? 'bg-slate-700 hover:bg-slate-600 text-slate-200'
-                          : 'bg-slate-200 hover:bg-slate-300 text-slate-800'
-                      }`}
-                    >
-                      Edit Detail
-                    </button>
-                    <button
-                      onClick={() => handleDeleteProduct(p.id)}
-                      className="px-3 py-2 bg-red-600/20 hover:bg-red-600/30 text-red-500 text-xs font-bold rounded-xl cursor-pointer"
-                    >
-                      Hapus
-                    </button>
+                      <h3 className={`text-sm font-extrabold mt-1 mb-1 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+                        {p.name}
+                      </h3>
+                      <p className="text-xs text-amber-500 font-black mb-1">
+                        Rp {Number(p.price).toLocaleString()} | Stok: {p.stock}
+                      </p>
+                      <p className={`text-[11px] line-clamp-2 ${isDarkMode ? 'text-slate-300' : 'text-slate-600'}`}>
+                        {p.desc}
+                      </p>
+                    </div>
                   </div>
 
-                  <button
-                    onClick={() => toggleProductStatus(p.id)}
-                    className={`w-full py-2 text-xs font-bold rounded-xl cursor-pointer transition ${
-                      p.isActive === false
-                        ? 'bg-emerald-600/20 text-emerald-500 hover:bg-emerald-600/30'
-                        : 'bg-amber-500/20 text-amber-500 hover:bg-amber-500/30'
-                    }`}
-                  >
-                    {p.isActive === false ? '✓ Aktifkan Kembali Produk' : '🚫 Nonaktifkan Produk'}
-                  </button>
+                  <div className="p-4 pt-0 flex flex-col gap-2">
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => startEditProduct(p)}
+                        className={`flex-1 py-2 text-xs font-bold rounded-xl cursor-pointer transition ${
+                          isDarkMode
+                            ? 'bg-slate-700 hover:bg-slate-600 text-slate-200'
+                            : 'bg-slate-200 hover:bg-slate-300 text-slate-800'
+                        }`}
+                      >
+                        Edit Detail
+                      </button>
+                      <button
+                        onClick={() => handleDeleteProduct(p.id)}
+                        className="px-3 py-2 bg-red-600/20 hover:bg-red-600/30 text-red-500 text-xs font-bold rounded-xl cursor-pointer"
+                      >
+                        Hapus
+                      </button>
+                    </div>
+
+                    <button
+                      onClick={() => toggleProductStatus(p.id)}
+                      className={`w-full py-2 text-xs font-bold rounded-xl cursor-pointer transition ${
+                        p.isActive === false
+                          ? 'bg-emerald-600/20 text-emerald-500 hover:bg-emerald-600/30'
+                          : 'bg-amber-500/20 text-amber-500 hover:bg-amber-500/30'
+                      }`}
+                    >
+                      {p.isActive === false ? '✓ Aktifkan Kembali Produk' : '🚫 Nonaktifkan Produk'}
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )
         )}
 
         {/* TAB 2: PESANAN MASUK */}
