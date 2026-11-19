@@ -91,6 +91,19 @@ export default function Login() {
       allAccounts.push(newUser);
       localStorage.setItem('shopmate_accounts', JSON.stringify(allAccounts));
 
+      // Sinkronkan pendaftar baru ke daftar Kelola Pengguna di AdminDashboard
+      const adminUsers = JSON.parse(localStorage.getItem('shopmate_admin_users')) || [];
+      if (!adminUsers.some(u => u.email.toLowerCase() === lowerEmail)) {
+        adminUsers.push({
+          id: Date.now(),
+          name: fullName,
+          email: lowerEmail,
+          role: registerRole === 'Penjual' ? 'seller' : 'buyer',
+          status: 'Aktif'
+        });
+        localStorage.setItem('shopmate_admin_users', JSON.stringify(adminUsers));
+      }
+
       alert(`Registrasi berhasil! Silakan masuk (login) menggunakan akun yang baru dibuat.`);
       setIsRegistering(false);
     } else {
@@ -129,6 +142,21 @@ export default function Login() {
         address: 'Kampus Universitas Klabat, Airmadidi',
         role: loginRole
       };
+
+      // Pastikan akun terdaftar juga tercatat di Kelola Pengguna Admin
+      if (matchedUser && !lowerEmail.includes('admin')) {
+        const adminUsers = JSON.parse(localStorage.getItem('shopmate_admin_users')) || [];
+        if (!adminUsers.some(u => u.email.toLowerCase() === lowerEmail)) {
+          adminUsers.push({
+            id: Date.now(),
+            name: matchedUser.name || matchedUser.fullName || 'Civitas UNKLAB',
+            email: lowerEmail,
+            role: matchedUser.role === 'Penjual' ? 'seller' : 'buyer',
+            status: 'Aktif'
+          });
+          localStorage.setItem('shopmate_admin_users', JSON.stringify(adminUsers));
+        }
+      }
 
       localStorage.setItem('shopmate_active_user', lowerEmail);
       localStorage.setItem('shopmate_active_profile', JSON.stringify(activeUserData));

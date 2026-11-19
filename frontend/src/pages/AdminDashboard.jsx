@@ -6,13 +6,51 @@ export default function AdminDashboard() {
   
   const [activeAdminTab, setActiveAdminTab] = useState('overview');
 
-  const [adminProfile, setAdminProfile] = useState({
-    name: 'Dr. Citra Lestari, M.Kom',
-    email: 'admin@unklab.ac.id',
-    phone: '081199887766',
-    role: 'Administrator Utama UNKLAB',
-    password: 'admin123'
+  const [adminProfile, setAdminProfile] = useState(() => {
+    const saved = localStorage.getItem('shopmate_admin_profile');
+    if (saved) {
+      try { return JSON.parse(saved); } catch (e) {}
+    }
+    return {
+      name: 'Dr. Citra Lestari, M.Kom',
+      email: 'admin@unklab.ac.id',
+      phone: '081199887766',
+      role: 'Administrator Utama UNKLAB',
+      password: 'admin123'
+    };
   });
+
+  useEffect(() => {
+    localStorage.setItem('shopmate_admin_profile', JSON.stringify(adminProfile));
+  }, [adminProfile]);
+
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [editProfileForm, setEditProfileForm] = useState({
+    name: adminProfile.name,
+    phone: adminProfile.phone,
+    role: adminProfile.role
+  });
+
+  const handleOpenEditProfile = () => {
+    setEditProfileForm({
+      name: adminProfile.name,
+      phone: adminProfile.phone,
+      role: adminProfile.role
+    });
+    setIsEditingProfile(true);
+  };
+
+  const handleSaveProfile = (e) => {
+    e.preventDefault();
+    setAdminProfile({
+      ...adminProfile,
+      name: editProfileForm.name,
+      phone: editProfileForm.phone,
+      role: editProfileForm.role
+    });
+    setIsEditingProfile(false);
+    alert('Profil admin berhasil diperbarui!');
+  };
 
   const [passwordForm, setPasswordForm] = useState({
     oldPassword: '',
@@ -20,7 +58,7 @@ export default function AdminDashboard() {
     confirmPassword: ''
   });
 
-  // State Kelola Pengguna (Dikosongkan di awal, akan terisi otomatis saat ada pendaftaran pembeli/penjual)
+  // Terisi jika ada pendaftaran pembeli/penjual (tersimpan di localStorage)
   const [users, setUsers] = useState(() => {
     const saved = localStorage.getItem('shopmate_admin_users');
     if (saved) {
@@ -36,7 +74,7 @@ export default function AdminDashboard() {
     localStorage.setItem('shopmate_admin_users', JSON.stringify(users));
   }, [users]);
 
-  // State Kelola Kategori (Dapat mengelola, menambah, serta menghapus yang terhubung ke Penjual & Pembeli)
+  // Kelola kategori: tambah & hapus, tersinkron ke penjual & pembeli
   const [categories, setCategories] = useState(() => {
     const saved = localStorage.getItem('shopmate_admin_categories');
     if (saved) {
@@ -45,7 +83,6 @@ export default function AdminDashboard() {
         if (Array.isArray(parsed)) return parsed;
       } catch (e) {}
     }
-    // Default awal dikosongkan sesuai permintaan agar admin bisa menambahkannya dari awal
     return [];
   });
 
@@ -58,29 +95,43 @@ export default function AdminDashboard() {
   const handleAddCategory = (e) => {
     e.preventDefault();
     if (!newCategoryName.trim()) return;
-    const newCat = {
-      id: Date.now(),
-      name: newCategoryName.trim(),
-      inUse: true
-    };
-    const updated = [...categories, newCat];
-    setCategories(updated);
+    setCategories([
+      ...categories,
+      { id: Date.now(), name: newCategoryName.trim(), inUse: true }
+    ]);
     setNewCategoryName('');
-    alert('Kategori produk baru berhasil ditambahkan dan disinkronkan ke penjual & pembeli!');
+    alert('Kategori berhasil ditambahkan!');
   };
 
   const handleDeleteCategory = (id) => {
-    if (window.confirm('Yakin ingin menghapus kategori ini?')) {
-      const filtered = categories.filter(c => c.id !== id);
-      setCategories(filtered);
-      alert('Kategori berhasil dihapus.');
-    }
+    setCategories(categories.filter((c) => c.id !== id));
   };
 
-  const [transactions] = useState([
-    { id: 'TRX-501', date: '2026-11-10 10:30', buyer: 'Christina Pattilamonia', seller: 'Kantin Asri & Snack', total: 30000, status: 'Berhasil', method: 'QRIS UNKLAB' },
-    { id: 'TRX-502', date: '2026-11-09 14:15', buyer: 'Michael Tendean', seller: 'Ayu Merchandise', total: 185000, status: 'Berhasil', method: 'Transfer BSI' }
-  ]);
+  // Transaksi terhubung dari localStorage jika pembeli melakukan checkout
+  const [transactions, setTransactions] = useState(() => {
+    const saved = localStorage.getItem('shopmate_admin_transactions');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) return parsed;
+      } catch (e) {}
+    }
+    return [];
+  });
+
+  useEffect(() => {
+    const syncTransactions = () => {
+      const saved = localStorage.getItem('shopmate_admin_transactions');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed)) setTransactions(parsed);
+        } catch (e) {}
+      }
+    };
+    const interval = setInterval(syncTransactions, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   // State untuk Manajemen QRIS Pembayaran Pusat (Tersinkronisasi via localStorage)
   const [qrisImage, setQrisImage] = useState(() => {
@@ -95,7 +146,7 @@ export default function AdminDashboard() {
     alert('Barcode QRIS pembayaran pusat berhasil diperbarui dan disinkronkan ke seluruh pembeli!');
   };
 
-  const totalRevenue = transactions.reduce((sum, t) => sum + t.total, 0);
+  const totalRevenue = transactions.reduce((sum, t) => sum + Number(t.total || 0), 0);
 
   const handlePasswordChange = (e) => {
     e.preventDefault();
@@ -147,10 +198,10 @@ export default function AdminDashboard() {
           📊 Dashboard & Persentase
         </button>
         <button onClick={() => setActiveAdminTab('users')} className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer whitespace-nowrap ${activeAdminTab === 'users' ? 'bg-amber-400 text-slate-950 shadow' : 'text-slate-300 hover:bg-slate-800'}`}>
-          👥 Kelola Pengguna ({users.length})
+          👥 Kelola Pengguna
         </button>
         <button onClick={() => setActiveAdminTab('categories')} className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer whitespace-nowrap ${activeAdminTab === 'categories' ? 'bg-amber-400 text-slate-950 shadow' : 'text-slate-300 hover:bg-slate-800'}`}>
-          🏷️ Kelola Kategori ({categories.length})
+          🏷️ Kelola Kategori
         </button>
         <button onClick={() => setActiveAdminTab('transactions')} className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer whitespace-nowrap ${activeAdminTab === 'transactions' ? 'bg-amber-400 text-slate-950 shadow' : 'text-slate-300 hover:bg-slate-800'}`}>
           💰 Laporan Transaksi
@@ -170,7 +221,7 @@ export default function AdminDashboard() {
           <div className="space-y-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
               <div className="bg-slate-800/60 border border-slate-700/60 p-6 rounded-3xl shadow-lg">
-                <p className="text-xs text-slate-400 font-semibold mb-1">Total Pengguna Terdaftar</p>
+                <p className="text-xs text-slate-400 font-semibold mb-1">Total Pengguna Aktif</p>
                 <h3 className="text-3xl font-black text-white">{users.length}</h3>
                 <span className="text-[10px] text-emerald-400 font-bold mt-2 inline-block">Mahasiswa & Staff UNKLAB</span>
               </div>
@@ -228,30 +279,28 @@ export default function AdminDashboard() {
 
         {activeAdminTab === 'users' && (
           <div className="bg-slate-800/40 border border-slate-800 rounded-3xl p-8 shadow-xl space-y-4">
-            <h3 className="text-sm font-black text-white mb-4">Manajemen Pengguna Civitas Akademika[cite: 5]</h3>
+            <h3 className="text-sm font-black text-white mb-4">Manajemen Pengguna Civitas Akademika</h3>
             {users.length === 0 ? (
-              <div className="text-center py-12 text-slate-400 text-xs">
-                Belum ada pengguna yang mendaftar. Data akan muncul otomatis saat ada akun pembeli atau penjual baru yang mendaftar.
-              </div>
+              <p className="text-xs text-slate-400 text-center py-8">Belum ada pengguna yang mendaftar (pembeli/penjual).</p>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
                   <thead>
                     <tr className="border-b border-slate-700 text-slate-400">
-                      <th className="pb-3 font-bold uppercase">Nama Lengkap[cite: 5]</th>
-                      <th className="pb-3 font-bold uppercase">Email Resmi UNKLAB[cite: 5]</th>
-                      <th className="pb-3 font-bold uppercase">Peran[cite: 5]</th>
-                      <th className="pb-3 font-bold uppercase text-right">Aksi[cite: 5]</th>
+                      <th className="pb-3 font-bold uppercase">Nama Lengkap</th>
+                      <th className="pb-3 font-bold uppercase">Email Resmi UNKLAB</th>
+                      <th className="pb-3 font-bold uppercase">Peran</th>
+                      <th className="pb-3 font-bold uppercase text-right">Aksi</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-800 text-slate-300">
-                    {users.map(u => (
-                      <tr key={u.id}>
+                    {users.map((u, idx) => (
+                      <tr key={u.id || idx}>
                         <td className="py-3.5 font-bold text-white">{u.name}</td>
                         <td>{u.email}</td>
                         <td><span className="px-2.5 py-1 bg-amber-400/20 text-amber-400 font-bold rounded-lg text-[10px]">{u.role}</span></td>
                         <td className="py-3.5 text-right">
-                          <button onClick={() => { setUsers(users.filter(x => x.id !== u.id)); alert('Akun pengguna dihapus.'); }} className="px-3 py-1 bg-red-600/20 text-red-400 font-bold rounded-xl cursor-pointer">Hapus[cite: 5]</button>
+                          <button onClick={() => { setUsers(users.filter((_, i) => i !== idx)); alert('Akun pengguna dihapus.'); }} className="px-3 py-1 bg-red-600/20 text-red-400 font-bold rounded-xl cursor-pointer">Hapus</button>
                         </td>
                       </tr>
                     ))}
@@ -262,44 +311,29 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        {/* TAB: KELOLA KATEGORI (MENGELOLA, MENAMBAH, MENGHAPUS & TERHUBUNG KE PENJUAL/PEMBELI) */}
         {activeAdminTab === 'categories' && (
-          <div className="max-w-2xl mx-auto bg-slate-800/40 border border-slate-800 rounded-3xl p-8 shadow-xl space-y-6">
-            <div>
-              <h3 className="text-sm font-black text-white mb-1">Kelola Kategori Produk Kampus[cite: 3]</h3>
-              <p className="text-xs text-slate-400">Admin dapat menambah atau menghapus kategori[cite: 3]. Data kategori ini terhubung langsung ke dashboard penjual saat menambah produk dan tersinkronisasi ke pembeli.</p>
-            </div>
-
-            <form onSubmit={handleAddCategory} className="flex gap-3 text-xs">
+          <div className="max-w-2xl mx-auto bg-slate-800/40 border border-slate-800 rounded-3xl p-8 shadow-xl space-y-4">
+            <h3 className="text-sm font-black text-white mb-2">Kelola Kategori Produk Kampus</h3>
+            <form onSubmit={handleAddCategory} className="flex gap-2 text-xs">
               <input
                 type="text"
-                placeholder="Nama kategori baru (contoh: Buku & Modul)..."
                 value={newCategoryName}
                 onChange={(e) => setNewCategoryName(e.target.value)}
-                className="flex-1 px-4 py-3 bg-slate-950 border border-slate-700 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-amber-400"
-                required
+                placeholder="Tambah kategori baru..."
+                className="flex-1 px-4 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white"
               />
-              <button
-                type="submit"
-                className="px-6 py-3 bg-amber-400 hover:bg-amber-500 text-slate-950 font-extrabold rounded-xl transition cursor-pointer shadow whitespace-nowrap"
-              >
-                + Tambah Kategori
+              <button type="submit" className="px-4 py-2.5 bg-amber-400 hover:bg-amber-500 text-slate-950 font-extrabold rounded-xl cursor-pointer">
+                + Tambah
               </button>
             </form>
-
             <div className="space-y-3 text-xs">
               {categories.length === 0 ? (
-                <div className="text-center py-8 text-slate-400">Belum ada kategori. Silakan tambahkan kategori baru melalui form di atas.</div>
+                <p className="text-slate-400 text-center py-6">Belum ada kategori. Tambahkan kategori agar muncul di penjual & pembeli.</p>
               ) : (
                 categories.map(c => (
                   <div key={c.id} className="flex justify-between items-center p-4 bg-slate-900 rounded-2xl border border-slate-700">
                     <span className="font-bold text-white">{c.name}</span>
-                    <button 
-                      onClick={() => handleDeleteCategory(c.id)} 
-                      className="px-3 py-1 bg-red-600/20 hover:bg-red-600/30 text-red-400 font-bold rounded-xl cursor-pointer transition"
-                    >
-                      Hapus[cite: 3]
-                    </button>
+                    <button onClick={() => handleDeleteCategory(c.id)} className="px-3 py-1 bg-red-600/20 text-red-400 font-bold rounded-xl cursor-pointer">Hapus</button>
                   </div>
                 ))
               )}
@@ -309,29 +343,33 @@ export default function AdminDashboard() {
 
         {activeAdminTab === 'transactions' && (
           <div className="bg-slate-800/40 border border-slate-800 rounded-3xl p-8 shadow-xl space-y-4">
-            <h3 className="text-sm font-black text-white mb-4">Rekapitulasi Transaksi Pembeli & Penjual[cite: 4]</h3>
-            <div className="overflow-x-auto text-xs">
-              <table className="w-full text-left">
-                <thead>
-                  <tr className="border-b border-slate-700 text-slate-400">
-                    <th className="pb-3 font-bold uppercase">ID[cite: 4]</th>
-                    <th className="pb-3 font-bold uppercase">Pembeli[cite: 4]</th>
-                    <th className="pb-3 font-bold uppercase">Tenant Penjual[cite: 4]</th>
-                    <th className="pb-3 font-bold uppercase">Total[cite: 4]</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-800 text-slate-300">
-                  {transactions.map(t => (
-                    <tr key={t.id}>
-                      <td className="py-3 font-bold text-amber-400">{t.id}</td>
-                      <td>{t.buyer}</td>
-                      <td>{t.seller}</td>
-                      <td className="font-extrabold text-white">Rp {t.total.toLocaleString('id-ID')}</td>
+            <h3 className="text-sm font-black text-white mb-4">Rekapitulasi Transaksi Pembeli & Penjual</h3>
+            {transactions.length === 0 ? (
+              <p className="text-xs text-slate-400 text-center py-8">Belum ada transaksi tercatat.</p>
+            ) : (
+              <div className="overflow-x-auto text-xs">
+                <table className="w-full text-left">
+                  <thead>
+                    <tr className="border-b border-slate-700 text-slate-400">
+                      <th className="pb-3 font-bold uppercase">ID</th>
+                      <th className="pb-3 font-bold uppercase">Pembeli</th>
+                      <th className="pb-3 font-bold uppercase">Tenant Penjual</th>
+                      <th className="pb-3 font-bold uppercase">Total</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800 text-slate-300">
+                    {transactions.map((t, idx) => (
+                      <tr key={t.id || idx}>
+                        <td className="py-3 font-bold text-amber-400">{t.id}</td>
+                        <td>{t.buyer}</td>
+                        <td>{t.seller}</td>
+                        <td className="font-extrabold text-white">Rp {Number(t.total || 0).toLocaleString('id-ID')}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         )}
 
@@ -375,17 +413,78 @@ export default function AdminDashboard() {
 
         {activeAdminTab === 'profil' && (
           <div className="max-w-xl mx-auto bg-slate-800/60 border border-slate-700 rounded-3xl p-8 shadow-xl space-y-6 text-xs">
-            <div>
-              <h2 className="text-xl font-black text-white mb-1">Profil & Keamanan Akun Admin</h2>
-              <p className="text-slate-400">Ubah password secara berkala untuk mencegah akses login yang tidak sah.</p>
+            <div className="flex items-start justify-between gap-2">
+              <div>
+                <h2 className="text-xl font-black text-white mb-1">Profil & Keamanan Akun Admin</h2>
+                <p className="text-slate-400">Ubah profil atau password secara berkala untuk mencegah akses login yang tidak sah.</p>
+              </div>
+              {!isEditingProfile && (
+                <button
+                  type="button"
+                  onClick={handleOpenEditProfile}
+                  className="px-3.5 py-2 bg-amber-400 hover:bg-amber-500 text-slate-950 font-extrabold rounded-xl transition cursor-pointer whitespace-nowrap"
+                >
+                  Edit Profil
+                </button>
+              )}
             </div>
 
-            <div className="p-4 bg-slate-900 rounded-2xl border border-slate-700 space-y-2">
-              <p><b>Nama:</b> {adminProfile.name}</p>
-              <p><b>Email:</b> {adminProfile.email}</p>
-              <p><b>Peran:</b> <span className="text-amber-400">{adminProfile.role}</span></p>
-              <p><b>No. WhatsApp:</b> {adminProfile.phone}</p>
-            </div>
+            {!isEditingProfile ? (
+              <div className="p-4 bg-slate-900 rounded-2xl border border-slate-700 space-y-2">
+                <p><b>Nama:</b> {adminProfile.name}</p>
+                <p><b>Email:</b> {adminProfile.email}</p>
+                <p><b>Peran:</b> <span className="text-amber-400">{adminProfile.role}</span></p>
+                <p><b>No. WhatsApp:</b> {adminProfile.phone}</p>
+              </div>
+            ) : (
+              <form onSubmit={handleSaveProfile} className="p-4 bg-slate-900 rounded-2xl border border-amber-400/50 space-y-3">
+                <div>
+                  <label className="block text-slate-400 font-bold mb-1">Nama Admin</label>
+                  <input
+                    type="text"
+                    required
+                    value={editProfileForm.name}
+                    onChange={(e) => setEditProfileForm({ ...editProfileForm, name: e.target.value })}
+                    className="w-full px-4 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-400 font-bold mb-1">Peran / Jabatan</label>
+                  <input
+                    type="text"
+                    required
+                    value={editProfileForm.role}
+                    onChange={(e) => setEditProfileForm({ ...editProfileForm, role: e.target.value })}
+                    className="w-full px-4 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-400 font-bold mb-1">No. WhatsApp</label>
+                  <input
+                    type="text"
+                    required
+                    value={editProfileForm.phone}
+                    onChange={(e) => setEditProfileForm({ ...editProfileForm, phone: e.target.value })}
+                    className="w-full px-4 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-white"
+                  />
+                </div>
+                <div className="flex gap-2 pt-1">
+                  <button
+                    type="submit"
+                    className="flex-1 bg-amber-400 hover:bg-amber-500 text-slate-950 font-extrabold py-2.5 rounded-xl transition cursor-pointer"
+                  >
+                    Simpan Profil ✓
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setIsEditingProfile(false)}
+                    className="px-4 py-2.5 bg-slate-800 text-slate-300 font-bold rounded-xl transition cursor-pointer"
+                  >
+                    Batal
+                  </button>
+                </div>
+              </form>
+            )}
 
             <form onSubmit={handlePasswordChange} className="space-y-4 pt-4 border-t border-slate-700">
               <h3 className="font-bold text-white uppercase tracking-wider">Form Ganti Password Admin</h3>

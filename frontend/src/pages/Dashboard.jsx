@@ -20,6 +20,59 @@ export default function Dashboard() {
     localStorage.setItem('shopmate_theme', isDarkMode ? 'dark' : 'light');
   }, [isDarkMode]);
 
+  // Sinkronisasi kategori yang dikelola Admin
+  const [adminCategories, setAdminCategories] = useState(() => {
+    const savedCategories = localStorage.getItem('shopmate_admin_categories');
+    if (savedCategories) {
+      try {
+        const parsed = JSON.parse(savedCategories);
+        if (Array.isArray(parsed)) return parsed;
+      } catch (e) {}
+    }
+    return [];
+  });
+
+  useEffect(() => {
+    const syncCategories = () => {
+      const savedCategories = localStorage.getItem('shopmate_admin_categories');
+      if (savedCategories) {
+        try {
+          const parsed = JSON.parse(savedCategories);
+          if (Array.isArray(parsed)) setAdminCategories(parsed);
+        } catch (e) {}
+      }
+    };
+    window.addEventListener('storage', syncCategories);
+    const interval = setInterval(syncCategories, 1000);
+    return () => {
+      window.removeEventListener('storage', syncCategories);
+      clearInterval(interval);
+    };
+  }, []);
+
+  // Sinkronisasi QRIS pembayaran pusat yang diatur Admin
+  const [qrisImage, setQrisImage] = useState(() => {
+    return (
+      localStorage.getItem('shopmate_qris_image') ||
+      'https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=ShopMateUNKLAB-QRIS'
+    );
+  });
+
+  useEffect(() => {
+    const syncQris = () => {
+      const savedQris = localStorage.getItem('shopmate_qris_image');
+      if (savedQris) {
+        setQrisImage(savedQris);
+      }
+    };
+    window.addEventListener('storage', syncQris);
+    const interval = setInterval(syncQris, 1000);
+    return () => {
+      window.removeEventListener('storage', syncQris);
+      clearInterval(interval);
+    };
+  }, []);
+
   // Katalog Produk disinkronkan dengan localStorage agar terhubung dengan Penjual
   const [products, setProducts] = useState(() => {
     const savedProducts = localStorage.getItem('shopmate_products');
@@ -216,8 +269,9 @@ export default function Dashboard() {
     }
 
     const totalAmount = selectedItems.reduce((sum, i) => sum + (Number(i.price) * i.qty), 0);
+    const orderId = `ORD-${Math.floor(1000 + Math.random() * 9000)}`;
     const newOrder = {
-      id: `ORD-${Math.floor(1000 + Math.random() * 9000)}`,
+      id: orderId,
       item: selectedItems.map(i => `${i.name} (${i.qty}x)`).join(', '),
       total: `Rp ${totalAmount.toLocaleString()}`,
       payment: paymentMethod === 'QRIS' ? 'QRIS (Verified)' : 'Cash on Delivery (COD)',
@@ -228,6 +282,23 @@ export default function Dashboard() {
     const updatedOrders = [newOrder, ...orders];
     setOrders(updatedOrders);
     localStorage.setItem('shopmate_orders', JSON.stringify(updatedOrders));
+
+    // Sinkronkan transaksi baru ke Laporan Transaksi Admin
+    try {
+      const existingTrx = JSON.parse(localStorage.getItem('shopmate_admin_transactions') || '[]');
+      const sellerNames = [...new Set(selectedItems.map(i => i.tenant).filter(Boolean))].join(', ') || 'Tenant Kampus';
+      const newTrx = {
+        id: orderId,
+        buyer: userProfile.name || 'Civitas UNKLAB',
+        seller: sellerNames,
+        total: totalAmount,
+        payment: paymentMethod
+      };
+      const updatedTrx = Array.isArray(existingTrx) ? [newTrx, ...existingTrx] : [newTrx];
+      localStorage.setItem('shopmate_admin_transactions', JSON.stringify(updatedTrx));
+    } catch (e) {
+      console.error(e);
+    }
 
     setCart(cart.filter(i => !i.selected));
     setIsCheckoutModal(false);
@@ -702,7 +773,7 @@ export default function Dashboard() {
               <div className="space-y-3">
                 <p className={`text-xs ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>Scan kode QR berikut menggunakan E-Wallet / Mobile Banking:</p>
                 <div className="w-48 h-48 bg-white p-3 rounded-2xl mx-auto flex items-center justify-center shadow">
-                  <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=ShopMateUNKLAB-QRIS" alt="QRIS" className="w-full h-full object-contain" />
+                  <img src={qrisImage} alt="QRIS" className="w-full h-full object-contain" />
                 </div>
               </div>
             ) : (
