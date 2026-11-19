@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 export default function AdminDashboard() {
@@ -20,17 +20,62 @@ export default function AdminDashboard() {
     confirmPassword: ''
   });
 
-  const [users, setUsers] = useState([
-    { id: 1, name: 'Christina Pattilamonia', email: 'christina@student.unklab.ac.id', role: 'buyer', status: 'Aktif' },
-    { id: 2, name: 'Kantin Asri UNKLAB', email: 'kantinasri@student.unklab.ac.id', role: 'seller', status: 'Aktif' },
-    { id: 3, name: 'Michael Tendean', email: 'michael@student.unklab.ac.id', role: 'buyer', status: 'Aktif' }
-  ]);
+  // State Kelola Pengguna (Dikosongkan di awal, akan terisi otomatis saat ada pendaftaran pembeli/penjual)
+  const [users, setUsers] = useState(() => {
+    const saved = localStorage.getItem('shopmate_admin_users');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) return parsed;
+      } catch (e) {}
+    }
+    return [];
+  });
 
-  const [categories, setCategories] = useState([
-    { id: 1, name: 'Buku & Modul Kuliah', inUse: true },
-    { id: 2, name: 'Atribut & Merchandise UNKLAB', inUse: true },
-    { id: 3, name: 'Makanan & Minuman Kampus', inUse: true }
-  ]);
+  useEffect(() => {
+    localStorage.setItem('shopmate_admin_users', JSON.stringify(users));
+  }, [users]);
+
+  // State Kelola Kategori (Dapat mengelola, menambah, serta menghapus yang terhubung ke Penjual & Pembeli)
+  const [categories, setCategories] = useState(() => {
+    const saved = localStorage.getItem('shopmate_admin_categories');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) return parsed;
+      } catch (e) {}
+    }
+    // Default awal dikosongkan sesuai permintaan agar admin bisa menambahkannya dari awal
+    return [];
+  });
+
+  const [newCategoryName, setNewCategoryName] = useState('');
+
+  useEffect(() => {
+    localStorage.setItem('shopmate_admin_categories', JSON.stringify(categories));
+  }, [categories]);
+
+  const handleAddCategory = (e) => {
+    e.preventDefault();
+    if (!newCategoryName.trim()) return;
+    const newCat = {
+      id: Date.now(),
+      name: newCategoryName.trim(),
+      inUse: true
+    };
+    const updated = [...categories, newCat];
+    setCategories(updated);
+    setNewCategoryName('');
+    alert('Kategori produk baru berhasil ditambahkan dan disinkronkan ke penjual & pembeli!');
+  };
+
+  const handleDeleteCategory = (id) => {
+    if (window.confirm('Yakin ingin menghapus kategori ini?')) {
+      const filtered = categories.filter(c => c.id !== id);
+      setCategories(filtered);
+      alert('Kategori berhasil dihapus.');
+    }
+  };
 
   const [transactions] = useState([
     { id: 'TRX-501', date: '2026-11-10 10:30', buyer: 'Christina Pattilamonia', seller: 'Kantin Asri & Snack', total: 30000, status: 'Berhasil', method: 'QRIS UNKLAB' },
@@ -102,10 +147,10 @@ export default function AdminDashboard() {
           📊 Dashboard & Persentase
         </button>
         <button onClick={() => setActiveAdminTab('users')} className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer whitespace-nowrap ${activeAdminTab === 'users' ? 'bg-amber-400 text-slate-950 shadow' : 'text-slate-300 hover:bg-slate-800'}`}>
-          👥 Kelola Pengguna
+          👥 Kelola Pengguna ({users.length})
         </button>
         <button onClick={() => setActiveAdminTab('categories')} className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer whitespace-nowrap ${activeAdminTab === 'categories' ? 'bg-amber-400 text-slate-950 shadow' : 'text-slate-300 hover:bg-slate-800'}`}>
-          🏷️ Kelola Kategori
+          🏷️ Kelola Kategori ({categories.length})
         </button>
         <button onClick={() => setActiveAdminTab('transactions')} className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer whitespace-nowrap ${activeAdminTab === 'transactions' ? 'bg-amber-400 text-slate-950 shadow' : 'text-slate-300 hover:bg-slate-800'}`}>
           💰 Laporan Transaksi
@@ -125,8 +170,8 @@ export default function AdminDashboard() {
           <div className="space-y-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
               <div className="bg-slate-800/60 border border-slate-700/60 p-6 rounded-3xl shadow-lg">
-                <p className="text-xs text-slate-400 font-semibold mb-1">Total Pengguna Aktif</p>
-                <h3 className="text-3xl font-black text-white">{users.length + 120}</h3>
+                <p className="text-xs text-slate-400 font-semibold mb-1">Total Pengguna Terdaftar</p>
+                <h3 className="text-3xl font-black text-white">{users.length}</h3>
                 <span className="text-[10px] text-emerald-400 font-bold mt-2 inline-block">Mahasiswa & Staff UNKLAB</span>
               </div>
               <div className="bg-slate-800/60 border border-slate-700/60 p-6 rounded-3xl shadow-lg">
@@ -183,59 +228,96 @@ export default function AdminDashboard() {
 
         {activeAdminTab === 'users' && (
           <div className="bg-slate-800/40 border border-slate-800 rounded-3xl p-8 shadow-xl space-y-4">
-            <h3 className="text-sm font-black text-white mb-4">Manajemen Pengguna Civitas Akademika</h3>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead>
-                  <tr className="border-b border-slate-700 text-slate-400">
-                    <th className="pb-3 font-bold uppercase">Nama Lengkap</th>
-                    <th className="pb-3 font-bold uppercase">Email Resmi UNKLAB</th>
-                    <th className="pb-3 font-bold uppercase">Peran</th>
-                    <th className="pb-3 font-bold uppercase text-right">Aksi</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-800 text-slate-300">
-                  {users.map(u => (
-                    <tr key={u.id}>
-                      <td className="py-3.5 font-bold text-white">{u.name}</td>
-                      <td>{u.email}</td>
-                      <td><span className="px-2.5 py-1 bg-amber-400/20 text-amber-400 font-bold rounded-lg text-[10px]">{u.role}</span></td>
-                      <td className="py-3.5 text-right">
-                        <button onClick={() => { setUsers(users.filter(x => x.id !== u.id)); alert('Akun pengguna dihapus.'); }} className="px-3 py-1 bg-red-600/20 text-red-400 font-bold rounded-xl cursor-pointer">Hapus</button>
-                      </td>
+            <h3 className="text-sm font-black text-white mb-4">Manajemen Pengguna Civitas Akademika[cite: 5]</h3>
+            {users.length === 0 ? (
+              <div className="text-center py-12 text-slate-400 text-xs">
+                Belum ada pengguna yang mendaftar. Data akan muncul otomatis saat ada akun pembeli atau penjual baru yang mendaftar.
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead>
+                    <tr className="border-b border-slate-700 text-slate-400">
+                      <th className="pb-3 font-bold uppercase">Nama Lengkap[cite: 5]</th>
+                      <th className="pb-3 font-bold uppercase">Email Resmi UNKLAB[cite: 5]</th>
+                      <th className="pb-3 font-bold uppercase">Peran[cite: 5]</th>
+                      <th className="pb-3 font-bold uppercase text-right">Aksi[cite: 5]</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800 text-slate-300">
+                    {users.map(u => (
+                      <tr key={u.id}>
+                        <td className="py-3.5 font-bold text-white">{u.name}</td>
+                        <td>{u.email}</td>
+                        <td><span className="px-2.5 py-1 bg-amber-400/20 text-amber-400 font-bold rounded-lg text-[10px]">{u.role}</span></td>
+                        <td className="py-3.5 text-right">
+                          <button onClick={() => { setUsers(users.filter(x => x.id !== u.id)); alert('Akun pengguna dihapus.'); }} className="px-3 py-1 bg-red-600/20 text-red-400 font-bold rounded-xl cursor-pointer">Hapus[cite: 5]</button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         )}
 
+        {/* TAB: KELOLA KATEGORI (MENGELOLA, MENAMBAH, MENGHAPUS & TERHUBUNG KE PENJUAL/PEMBELI) */}
         {activeAdminTab === 'categories' && (
-          <div className="max-w-2xl mx-auto bg-slate-800/40 border border-slate-800 rounded-3xl p-8 shadow-xl space-y-4">
-            <h3 className="text-sm font-black text-white mb-4">Kelola Kategori Produk Kampus</h3>
+          <div className="max-w-2xl mx-auto bg-slate-800/40 border border-slate-800 rounded-3xl p-8 shadow-xl space-y-6">
+            <div>
+              <h3 className="text-sm font-black text-white mb-1">Kelola Kategori Produk Kampus[cite: 3]</h3>
+              <p className="text-xs text-slate-400">Admin dapat menambah atau menghapus kategori[cite: 3]. Data kategori ini terhubung langsung ke dashboard penjual saat menambah produk dan tersinkronisasi ke pembeli.</p>
+            </div>
+
+            <form onSubmit={handleAddCategory} className="flex gap-3 text-xs">
+              <input
+                type="text"
+                placeholder="Nama kategori baru (contoh: Buku & Modul)..."
+                value={newCategoryName}
+                onChange={(e) => setNewCategoryName(e.target.value)}
+                className="flex-1 px-4 py-3 bg-slate-950 border border-slate-700 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-amber-400"
+                required
+              />
+              <button
+                type="submit"
+                className="px-6 py-3 bg-amber-400 hover:bg-amber-500 text-slate-950 font-extrabold rounded-xl transition cursor-pointer shadow whitespace-nowrap"
+              >
+                + Tambah Kategori
+              </button>
+            </form>
+
             <div className="space-y-3 text-xs">
-              {categories.map(c => (
-                <div key={c.id} className="flex justify-between items-center p-4 bg-slate-900 rounded-2xl border border-slate-700">
-                  <span className="font-bold text-white">{c.name}</span>
-                  <button onClick={() => setCategories(categories.filter(x => x.id !== c.id))} className="px-3 py-1 bg-red-600/20 text-red-400 font-bold rounded-xl cursor-pointer">Hapus</button>
-                </div>
-              ))}
+              {categories.length === 0 ? (
+                <div className="text-center py-8 text-slate-400">Belum ada kategori. Silakan tambahkan kategori baru melalui form di atas.</div>
+              ) : (
+                categories.map(c => (
+                  <div key={c.id} className="flex justify-between items-center p-4 bg-slate-900 rounded-2xl border border-slate-700">
+                    <span className="font-bold text-white">{c.name}</span>
+                    <button 
+                      onClick={() => handleDeleteCategory(c.id)} 
+                      className="px-3 py-1 bg-red-600/20 hover:bg-red-600/30 text-red-400 font-bold rounded-xl cursor-pointer transition"
+                    >
+                      Hapus[cite: 3]
+                    </button>
+                  </div>
+                ))
+              )}
             </div>
           </div>
         )}
 
         {activeAdminTab === 'transactions' && (
           <div className="bg-slate-800/40 border border-slate-800 rounded-3xl p-8 shadow-xl space-y-4">
-            <h3 className="text-sm font-black text-white mb-4">Rekapitulasi Transaksi Pembeli & Penjual</h3>
+            <h3 className="text-sm font-black text-white mb-4">Rekapitulasi Transaksi Pembeli & Penjual[cite: 4]</h3>
             <div className="overflow-x-auto text-xs">
               <table className="w-full text-left">
                 <thead>
                   <tr className="border-b border-slate-700 text-slate-400">
-                    <th className="pb-3 font-bold uppercase">ID</th>
-                    <th className="pb-3 font-bold uppercase">Pembeli</th>
-                    <th className="pb-3 font-bold uppercase">Tenant Penjual</th>
-                    <th className="pb-3 font-bold uppercase">Total</th>
+                    <th className="pb-3 font-bold uppercase">ID[cite: 4]</th>
+                    <th className="pb-3 font-bold uppercase">Pembeli[cite: 4]</th>
+                    <th className="pb-3 font-bold uppercase">Tenant Penjual[cite: 4]</th>
+                    <th className="pb-3 font-bold uppercase">Total[cite: 4]</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-800 text-slate-300">
