@@ -1,79 +1,108 @@
 # Shop-Mate UNKLAB
 
-Marketplace berbasis web eksklusif yang dirancang untuk mendukung kegiatan jual beli di lingkungan civitas akademika Universitas Klabat (UNKLAB), menyediakan platform terpusat yang aman, terstruktur, dan terverifikasi menggunakan email resmi kampus.
+Sistem informasi berbasis web berupa marketplace untuk lingkungan Universitas Klabat yang membantu Pembeli, Penjual, dan Administrator melakukan jual beli, mengelola produk dan pesanan, serta memantau transaksi agar proses jual beli di kampus lebih terstruktur dan tidak lagi tercecer di chat.
 
-![Halaman utama](docs/screenshots/01_halaman_utama.png)
+![Halaman utama](docs/screenshots/01_gambar_halaman_pertama.png)
 
 | | |
 |---|---|
 | **Mata kuliah** | System Analysis and Design — Fakultas Ilmu Komputer, Universitas Klabat |
-| **Kelompok** | Kelompok Well — Model SDLC: Agile |
-| **Objek / studi kasus** | Civitas Akademika Universitas Klabat (Mahasiswa, Dosen, Staf, dan Tenant) |
-| **Model SDLC** | Agile (Iteratif / Sprint) |
-| **Dokumen SRS** | [docs/SAD_FP_Kelompok_SRS.pdf](docs/) |
-| **Prototipe UI** | [Figma UI/UX Design](https://www.figma.com/…) |
+| **Kelompok** | [N] — Well |
+| **Objek / studi kasus** | Kegiatan jual beli mahasiswa, dosen, dan staf di Universitas Klabat |
+| **Model SDLC** | Agile |
+| **Dokumen SRS** | [docs/SAD_FP_Kelompok[N]_SRS.pdf](docs/) |
+| **Prototipe UI** | [https://www.figma.com/…] |
+| **Aplikasi (deploy)** | [https://shop-mate-unklab-xpmy.vercel.app](https://shop-mate-unklab-xpmy.vercel.app) |
 
 ## Anggota Kelompok
 
 | No | Nama | NIM | Peran | Kontribusi utama |
 |----|------|-----|-------|------------------|
-| 1 | Pattilamonia, Christina J. | [isi NIM] | Project Manager / Koordinator | Perencanaan jadwal, pengawasan task, dan koordinasi tim |
-| 2 | Palari, Sisiani | [isi NIM] | System Analyst | Elisitasi kebutuhan, pembuatan use case, dan activity diagram |
-| 3 | Kartika Sari | [isi NIM] | System Designer / Analis UML | Perancangan arsitektur basis data, ERD, dan class diagram |
-| 4 | Ayu Ningsi | [isi NIM] | UI/UX Designer | Perancangan wireframe dan prototipe antarmuka di Figma |
+| 1 | Pattilamonia, Christina J. | 105022410098 | Project Manager / Koordinator | Perencanaan jadwal, pengawasan task, koordinasi tim, repository |
+| 2 | Palari, Sisiani | 105012410097 | System Analyst | Elisitasi kebutuhan, use case, dan activity diagram |
+| 3 | Kartika Sari | 1050112410022 | System Designer / Analis UML | Arsitektur basis data, ERD, dan class diagram |
+| 4 | Ayu Ningsi | 105022410100 | UI/UX Designer | Wireframe dan prototipe antarmuka di Figma (L-01 s.d. L-24) |
 
 ## Latar Belakang
 
-- **Masalah:** Warga kampus Universitas Klabat mengalami kesulitan dalam melacak stok barang, merekap pesanan, dan sering terjadi miskomunikasi karena proses jual-beli saat ini masih mengandalkan grup WhatsApp, Instagram, serta pencatatan manual di buku atau Excel.
-- **Kondisi saat ini (As-Is):** Promosi dilakukan di media sosial, negosiasi secara chat pribadi, dan pembayaran/COD tanpa rekapitulasi data terpusat yang rapi.
-- **Tujuan sistem:** Menyediakan platform e-commerce kampus yang mengotomatisasi pencatatan katalog produk, keranjang belanja, *checkout*, pemilihan metode pembayaran, pemantauan status pesanan, hingga dasbor laporan penjualan bagi penjual dan administrator.
-- **Pengguna (Aktor):** 
-  - **Pembeli (Mahasiswa, Dosen, Staf):** Mencari produk, mengelola keranjang, *checkout*, memilih metode pembayaran, dan memantau status pesanan.
-  - **Penjual (Tenant):** Mengelola produk (tambah, edit, nonaktifkan), mengelola pesanan masuk, melihat informasi pembeli, mengatur visibilitas, dan memantau popularitas produk.
-  - **Administrator:** Mengelola akun pengguna, memantau produk, mengelola kategori, serta mengawasi seluruh catatan transaksi sistem.
+- **Masalah:** Penjual dan pembeli di kampus kesulitan melacak stok barang dan merekap pesanan karena semua dilakukan lewat chat; sering terjadi miskomunikasi stok.
+- **Kondisi saat ini:** Penjual mengunggah foto barang di grup WhatsApp kampus, pembeli menghubungi lewat chat pribadi, harga dan tempat transaksi (umumnya COD di area kampus) disepakati sendiri, dan pencatatan dilakukan manual di buku tulis atau Microsoft Excel.
+- **Tujuan sistem:** Menyediakan satu tempat bagi warga kampus untuk menawarkan, mencari, dan memesan produk dengan alur yang jelas (keranjang, checkout, pemilihan metode pembayaran, dan pemantauan status pesanan), serta membantu Administrator mengelola pengguna, produk, kategori, dan transaksi.
+- **Pengguna (aktor):**
+  - **Pembeli**: mahasiswa, dosen, atau staf yang membeli produk (registrasi, login, katalog, pencarian, keranjang, checkout, status pesanan, profil).
+  - **Penjual**: pengguna yang menjual produk (kelola produk, kelola pesanan dan status, lihat informasi pembeli, notifikasi, visibilitas, popularitas produk, profil).
+  - **Administrator**: pengelola sistem (kelola pengguna, produk, kategori, transaksi, dan profil).
 
-## Fitur Utama (Berdasarkan 27 Use Case)
+## Fitur Utama
 
-| No | Fitur | Aktor | Use Case | Kebutuhan |
+Setiap fitur dipetakan ke use case dan kebutuhan di SRS (Bagian 5.2 dan 6.3).
+
+| No | Fitur | Aktor | Use case | Kebutuhan |
 |----|-------|-------|----------|-----------|
-| 1 | Registrasi Akun Civitas | Pembeli | UC-01 | FR-01 |
-| 2 | Login & Autentikasi Berbasis Peran | Semua Aktor | UC-02 | FR-02 |
-| 3 | Katalog Produk & Pencarian | Pembeli | UC-03, UC-04, UC-05 | FR-03, FR-04, FR-05 |
-| 4 | Keranjang Belanja & Checkout | Pembeli | UC-06, UC-07, UC-08 | FR-06, FR-07, FR-08 |
-| 5 | Pemantauan Status Pesanan | Pembeli | UC-09 | FR-09 |
-| 6 | Pengelolaan Profil Pengguna | Semua Aktor | UC-10 | FR-10 |
-| 7 | Pengelolaan Produk & Stok Toko | Penjual | UC-11, UC-12, UC-13, UC-14, UC-19, UC-20 | FR-11 s.d. FR-14, FR-19, FR-20 |
-| 8 | Manajemen Pesanan & Notifikasi Tenant | Penjual | UC-15, UC-16, UC-17, UC-18 | FR-15 s.d. FR-18 |
-| 9 | Administrasi Pengguna & Sistem | Administrator | UC-21 s.d. UC-27 | FR-21 s.d. FR-27 |
+| 1 | Registrasi dan login | Pembeli, Penjual, Administrator | UC-01, UC-02 | FR-01, FR-02 |
+| 2 | Katalog, pencarian, dan detail produk | Pembeli | UC-03, UC-04, UC-05 | FR-03, FR-04, FR-05 |
+| 3 | Keranjang, checkout, dan metode pembayaran | Pembeli | UC-06, UC-07, UC-08 | FR-06, FR-07, FR-08 |
+| 4 | Status pesanan | Pembeli | UC-09 | FR-09 |
+| 5 | Kelola profil | Semua aktor | UC-10 | FR-10 |
+| 6 | Kelola produk (tambah, edit, nonaktifkan, visibilitas) | Penjual | UC-11, UC-12, UC-13, UC-14, UC-19 | FR-11, FR-12, FR-13, FR-14, FR-19 |
+| 7 | Kelola pesanan, status, informasi pembeli, dan notifikasi | Penjual | UC-15, UC-16, UC-17, UC-18 | FR-15, FR-16, FR-17, FR-18 |
+| 8 | Popularitas produk | Penjual | UC-20 | FR-20 |
+| 9 | Kelola pengguna | Administrator | UC-21, UC-22, UC-23, UC-24 | FR-21, FR-22, FR-23, FR-24 |
+| 10 | Kelola produk dan kategori | Administrator | UC-25, UC-26 | FR-25, FR-26 |
+| 11 | Lihat dan kelola transaksi | Administrator | UC-27 | FR-27 |
 
 ## Screenshot
 
-**[UC-01 & UC-02] Halaman Registrasi & Login**
+**Halaman pertama: login dan registrasi (UC-01, UC-02)**
 
-![Login](docs/screenshots/02_uc01.png)
+![Halaman login](docs/screenshots/01_gambar_halaman_pertama.png)
 
-**[UC-03] Katalog Produk & Dashboard Pembeli**
+**Dashboard Pembeli: katalog, keranjang, checkout, status pesanan (UC-03 s.d. UC-09)**
 
-![Dashboard](docs/screenshots/03_uc02.png)
+![Dashboard Pembeli](docs/screenshots/08_gambar_halaman_pembeli.png)
 
-**Validasi Sistem & Keamanan Input**
+**Dashboard Penjual: kelola produk dan stok, pesanan masuk, laporan saldo (UC-11 s.d. UC-20)**
 
-![Validasi](docs/screenshots/10_validasi.png)
+![Dashboard Penjual](docs/screenshots/02_gambar_halaman_penjual.png)
+
+**Dashboard Administrator: pengguna, kategori, laporan transaksi, QRIS (UC-21 s.d. UC-27)**
+
+![Dashboard Administrator](docs/screenshots/03_gambar_halaman_admin.png)
+
+**Profil Pembeli (UC-10)**
+
+![Profil Pembeli](docs/screenshots/04_gambar_profil_pembeli.png)
+
+**Profil Penjual (UC-10)**
+
+![Profil Penjual](docs/screenshots/05_gambar_profil_penjual.png)
+
+**Profil dan ganti password Administrator (UC-10)**
+
+![Profil Administrator](docs/screenshots/06_gambar_profil_admin.png)
+
+**Validasi input: pesan error saat password salah**
+
+![Pesan validasi](docs/screenshots/07_gambar_validasi.png)
 
 ## Teknologi
 
-| Lapisan | Teknologi | Alasan / Keterangan |
-|---------|-----------|---------------------|
-| Front-end | React, Vite, Tailwind CSS | Mudah diintegrasikan, responsif di mobile & desktop |
-| Back-end / Storage | Node.js / PHP & LocalStorage (Prototyping) | Tangguh untuk request data dan simulasi basis data klien |
-| Database | MySQL / MariaDB | Relasional, sangat cocok untuk struktur transaksi e-commerce |
-| Tools pemodelan | Figma, Draw.io | Desain antarmuka kolaboratif dan perancangan diagram UML |
+| Lapisan | Teknologi | Versi |
+|---------|-----------|-------|
+| Front-end | React, Vite, Tailwind CSS, PostCSS | [lihat `frontend/package.json`] |
+| Autentikasi | Firebase Authentication | [lihat `frontend/package.json`] |
+| Back-end | [Node.js / sesuai isi folder `backend/`] | [ ] |
+| Database | [Firebase / MySQL — sesuaikan dengan yang dipakai] | [ ] |
+| Hosting | Vercel | — |
+| Tools pemodelan | draw.io | — |
+| Prototipe UI | Figma | — |
 
 ## Kebutuhan Sistem
 
-- Node.js 18.x atau lebih baru
+- Node.js 20 atau lebih baru (dan npm)
 - Git
-- Browser web modern (Google Chrome, Mozilla Firefox, Microsoft Edge)
+- Browser modern (Chrome, Edge, Firefox)
+- Akun proyek Firebase (untuk nilai konfigurasi `VITE_FIREBASE_*`)
 
 ## Instalasi dan Menjalankan Aplikasi
 
@@ -81,97 +110,147 @@ Marketplace berbasis web eksklusif yang dirancang untuk mendukung kegiatan jual 
 
    ```bash
    git clone https://github.com/s22229040-dotcom/shop-mate-unklab.git
-   cd shop-mate-unklab
+   cd shop-mate-unklab/frontend
    ```
 
-2. Masuk ke direktori frontend dan pasang dependensi:
+2. Pasang dependensi:
 
    ```bash
-   cd frontend
    npm install
    ```
 
-3. Jalankan server pengembangan lokal:
+3. Siapkan konfigurasi. Buat file `.env` di folder `frontend/` lalu isi dengan konfigurasi Firebase proyek (nilai diambil dari Firebase Console):
+
+   ```env
+   VITE_FIREBASE_API_KEY=
+   VITE_FIREBASE_AUTH_DOMAIN=
+   VITE_FIREBASE_PROJECT_ID=
+   VITE_FIREBASE_STORAGE_BUCKET=
+   VITE_FIREBASE_MESSAGING_SENDER_ID=
+   VITE_FIREBASE_APP_ID=
+   ```
+
+4. Jalankan aplikasi dalam mode pengembangan:
 
    ```bash
    npm run dev
    ```
 
-4. Buka tautan `http://localhost:5173` di browser Anda.
+5. Buka [http://localhost:5173](http://localhost:5173) di browser.
 
-### Akun Uji
+6. (Opsional) Build untuk produksi:
 
-| Aktor | Email / Username | Keterangan Peran |
-|-------|------------------|------------------|
-| **Administrator** | admin@unklab.ac.id | Akses penuh kontrol sistem dan pengguna |
-| **Penjual (Tenant)** | tenant@unklab.ac.id | Pengelolaan produk dan pesanan toko |
-| **Pembeli (Mahasiswa)** | s23142847@student.unklab.ac.id | Katalog, keranjang, dan transaksi |
+   ```bash
+   npm run build
+   ```
+
+### Akun uji
+
+Hanya akun uji, bukan akun asli siapa pun.
+
+| Aktor | Username / email | Password |
+|-------|------------------|----------|
+| Administrator | [admin@contoh.test] | [password uji] |
+| Penjual | [penjual@contoh.test] | [password uji] |
+| Pembeli | [pembeli@contoh.test] | [password uji] |
 
 ## Struktur Folder
+
+Struktur kode mengikuti rancangan di SRS Bagian 10.2. Halaman pada `src/pages/` mengacu pada prototipe UI (SRS Bagian 9) dan dibagi berdasarkan peran aktor.
 
 ```text
 shop-mate-unklab/
 ├── .vscode/
-├── backend/
+├── backend/                   # logika server / layanan pendukung
 ├── frontend/
-│   ├── dist/
-│   ├── node_modules/
-│   ├── public/
+│   ├── dist/                  # hasil build (otomatis)
+│   ├── docs/
+│   │   └── screenshots/       # screenshot untuk README
+│   │       ├── 01_gambar_halaman_pertama.png
+│   │       ├── 02_gambar_halaman_penjual.png
+│   │       ├── 03_gambar_halaman_admin.png
+│   │       ├── 04_gambar_profil_pembeli.png
+│   │       ├── 05_gambar_profil_penjual.png
+│   │       ├── 06_gambar_profil_admin.png
+│   │       ├── 07_gambar_validasi.png
+│   │       └── 08_gambar_halaman_pembeli.png
+│   ├── node_modules/          # dependensi (otomatis)
+│   ├── public/                # aset statis
 │   │   ├── download.jpg
 │   │   └── logo.png
 │   ├── src/
-│   │   ├── pages/
-│   │   │   ├── AdminDashboard.jsx
-│   │   │   ├── Dashboard.jsx
-│   │   │   ├── FacultyDashboard.jsx
-│   │   │   ├── login.jsx
-│   │   │   ├── Profile.jsx
-│   │   │   └── SellerDashboard.jsx
-│   │   ├── App.jsx
-│   │   ├── index.css
-│   │   └── main.jsx
+│   │   ├── pages/             # halaman sesuai peran aktor (prototipe SRS Bagian 9)
+│   │   │   ├── login.jsx             # registrasi dan login (UC-01, UC-02)
+│   │   │   ├── Dashboard.jsx         # dashboard Pembeli (UC-03 s.d. UC-09)
+│   │   │   ├── SellerDashboard.jsx   # dashboard Penjual (UC-11 s.d. UC-20)
+│   │   │   ├── AdminDashboard.jsx    # dashboard Administrator (UC-21 s.d. UC-27)
+│   │   │   ├── FacultyDashboard.jsx  # dashboard dosen/staf
+│   │   │   └── Profile.jsx           # kelola profil (UC-10)
+│   │   ├── App.jsx            # routing dan kontrol akses berbasis peran
+│   │   ├── index.css          # gaya global (Tailwind)
+│   │   └── main.jsx           # titik masuk aplikasi
 │   ├── .gitignore
 │   ├── index.html
 │   ├── package-lock.json
 │   ├── package.json
 │   ├── postcss.config.js
 │   ├── tailwind.config.js
-│   └── vite.config.js
-├── README.md
-└── vercel.json
+│   ├── vite.config.js
+│   └── README.md
+└── vercel.json                # konfigurasi deploy Vercel
 ```
 
-## Rancangan Sistem (SRS Summary)
+## Rancangan Sistem
 
-Ringkasan artefak perancangan sistem yang bersumber dari dokumen SRS Kelompok Well:
-- **Use Case Diagram & Deskripsi:** 27 Use Case fungsional mencakup aktor Pembeli, Penjual, dan Administrator (SRS Bagian 6).
-- **Activity & Sequence Diagram:** Pemodelan interaksi lengkap AD-01 s.d. AD-27 dan SD-01 s.d. SD-27 (SRS Bagian 6 & 7).
-- **Class Diagram & Data Model (ERD):** Pemetaan entitas Pengguna, Pembeli, Penjual, Administrator, Produk, Kategori, Pesanan, Detail Pesanan, Pembayaran, Keranjang, dan Transaksi (SRS Bagian 7 & 8).
-- **Prototipe UI/UX:** 24 rancangan halaman interaktif (L-01 s.d. L-24) dirancang di Figma (SRS Bagian 9).
+Ringkasan rancangan; detail lengkap ada di dokumen SRS.
 
-## Pengujian (Testing)
+| Artefak | Lokasi |
+|---------|--------|
+| Kebutuhan fungsional dan non-fungsional | SRS Bagian 5 |
+| Use case diagram dan description (UC-01 s.d. UC-27) | SRS Bagian 6.2 dan 6.3 |
+| Activity diagram (AD-01 s.d. AD-27) | SRS Bagian 6.4 |
+| Sequence diagram (SD-01 s.d. SD-27) | SRS Bagian 7.1 |
+| Class diagram | SRS Bagian 7.2 |
+| Model data (ERD) | SRS Bagian 8 |
+| Prototipe UI (24 halaman, L-01 s.d. L-24) | SRS Bagian 9 · [tautan Figma] |
+| Matriks keterlacakan | SRS Bagian 10.3 |
 
-Menggunakan metode Black-Box Testing berdasarkan matriks keterlacakan fungsi (TC-01 s.d. TC-27):
+![Use case diagram](docs/diagrams/use_case_diagram.png)
 
-| ID Uji | Use Case | Skenario Pengujian | Hasil yang Diharapkan | Status |
-|--------|----------|--------------------|------------------------|--------|
-| TC-01 | UC-01 | Registrasi dengan format NIM mahasiswa valid | Akun baru tersimpan di sistem | Lulus |
-| TC-02 | UC-02 | Login dengan kredensial benar sesuai peran | Masuk ke dasbor masing-masing aktor | Lulus |
-| TC-03 | UC-07 | Melakukan checkout saat keranjang terisi | Ringkasan pesanan dan metode pembayaran muncul | Lulus |
-| TC-04 | UC-12 | Penjual menambahkan produk baru ke katalog | Produk tampil di etalase pembeli | Lulus |
-| TC-05 | UC-21 | Administrator mengelola atau menonaktifkan akun | Status akun diperbarui secara real-time | Lulus |
+![Class diagram](docs/diagrams/class_diagram.png)
+
+![ERD](docs/diagrams/erd.png)
+
+## Pengujian
+
+Ringkasan: **[jumlah] kasus uji, [jumlah] lulus**. Daftar lengkap ada di SRS Bagian 10.4 (pengujian menggunakan metode Black-Box Testing).
+
+| ID | Use case | Skenario | Hasil diharapkan | Status |
+|----|----------|----------|------------------|--------|
+| TC-01 | UC-02 | Login dengan email dan password benar | Masuk ke dasbor | [Lulus] |
+| TC-02 | UC-02 | Login dengan password salah | Muncul pesan error | [Lulus] |
+| TC-03 | UC-07 | Checkout saat keranjang kosong | Tombol checkout nonaktif | [Lulus] |
 
 ## Keterbatasan dan Pengembangan Berikutnya
 
-- Penyimpanan data operasional saat ini memanfaatkan *LocalStorage* sisi klien untuk kebutuhan prototipe cepat dan kemudahan demonstrasi portabel.
-- Integrasi pembayaran riil (*Payment Gateway* pihak ketiga) disimulasikan menggunakan pilihan metode pembayaran transfer dan COD internal kampus.
+- Pembayaran hanya disimulasikan (pemilihan metode pembayaran), belum terhubung ke payment gateway.
+- Integrasi API kurir pihak ketiga (mis. JNE/J&T) tidak termasuk ruang lingkup.
+- Fitur wishlist, ulasan produk, dan media sosial tidak termasuk ruang lingkup.
+- Antarmuka dirancang untuk tampilan desktop dan berbahasa Indonesia.
+- [Bug yang diketahui dan belum diperbaiki]
+- [Rencana pengembangan, mis. validasi daftar civitas UNKLAB, notifikasi real-time]
 
 ## Penggunaan AI dan Referensi
 
-| Alat AI | Dipakai untuk | Bagian Dokumen / Kode |
-|---------|---------------|------------------------|
-| LLM / Gemini | Penyusunan draf teks laporan SRS dan struktur logika komponen React | Bagian 1 s.d. 12 & modul autentikasi frontend |
+| Alat AI | Dipakai untuk | Yang diperiksa atau diubah dari hasilnya |
+|---------|---------------|------------------------------------------|
+| LLM | Penyusunan teks laporan (SRS Bagian 1–12) | Pengecekan tata bahasa dan kesesuaian format tabel |
+| Claude | Membantu melihat error pada kode dan menyusun README | [isi apa yang kalian periksa atau ubah] |
 
 Referensi:
-1. Dokumentasi Resmi React — [https://react.dev](https://react.dev)
-2. Dokumentasi Tailwind CSS — [https://tailwindcss.com](https://tailwindcss.com)
+
+1. React — https://react.dev
+2. Vite — https://vite.dev
+3. Tailwind CSS — https://tailwindcss.com
+4. Firebase Authentication — https://firebase.google.com/docs/auth
+5. Dokumentasi Vercel — https://vercel.com/docs
