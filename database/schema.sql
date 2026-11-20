@@ -16,6 +16,6 @@ CREATE TABLE IF NOT EXISTS users (
 -- Catatan: kalau akun admin tidak masuk ke dashboard Administrator,
 -- ubah nilai role-nya sesuai yang dipakai frontend (cek frontend/src/pages/login.jsx).
 INSERT INTO users (name, email, password, address, phone, role) VALUES
-  ('Admin Uji',   'admin@contoh.test',   'admin123',   '', '', 'Administrator'),
-  ('Penjual Uji', 'penjual@contoh.test', 'penjual123', '', '', 'Penjual'),
-  ('Pembeli Uji', 'pembeli@contoh.test', 'pembeli123', '', '', 'Pembeli');
+  ('Admin Uji',   'admin@unklab.ac.id',   'admin12345',   '', '', 'Administrator'),
+  ('Penjual Uji', 'penjual@unklab.ac.id', '123456', '', '', 'Penjual'),
+  ('Pembeli Uji', 'pembeli@student.unklab.ac.id', '123456', '', '', 'Pembeli');
